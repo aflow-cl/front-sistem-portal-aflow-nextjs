@@ -1,0 +1,62 @@
+[
+  {
+    "id": "cont-001",
+    "tipo": "juridica",
+    "razonSocial": "Transportes ABC S.A.",
+    "rut": "76.123.456-7",
+    "correo": "contacto@transportesabc.cl",
+    "telefono": "+56912345678",
+    "direccion": "Av. Principal 123, Santiago",
+    "activo": true,
+    "createdAt": "2024-01-15T10:00:00Z",
+    "updatedAt": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id": "cont-002",
+    "tipo": "natural",
+    "nombreCompleto": "Juan Carlos Pérez González",
+    "rut": "12.345.678-9",
+    "correo": "juan.perez@email.com",
+    "telefono": "+56987654321",
+    "direccion": "Calle Los Aromos 456, Valparaíso",
+    "activo": true,
+    "createdAt": "2024-02-10T14:30:00Z",
+    "updatedAt": "2024-02-10T14:30:00Z"
+  },
+  {
+    "id": "cont-003",
+    "tipo": "juridica",
+    "razonSocial": "Comercializadora XYZ Ltda.",
+    "rut": "77.987.654-3",
+    "correo": "ventas@comercializadoraxyz.cl",
+    "telefono": "+56922334455",
+    "direccion": "Pasaje Industrial 789, Concepción",
+    "activo": true,
+    "createdAt": "2024-03-05T09:15:00Z",
+    "updatedAt": "2024-03-05T09:15:00Z"
+  },
+  {
+    "id": "cont-004",
+    "tipo": "natural",
+    "nombreCompleto": "María Isabel Rodríguez Silva",
+    "rut": "15.678.234-K",
+    "correo": "maria.rodriguez@email.com",
+    "telefono": "+56933445566",
+    "direccion": "Av. Libertad 234, La Serena",
+    "activo": false,
+    "createdAt": "2024-01-20T11:45:00Z",
+    "updatedAt": "2024-03-10T16:20:00Z"
+  },
+  {
+    "id": "cont-005",
+    "tipo": "juridica",
+    "razonSocial": "Logística del Sur SpA",
+    "rut": "76.543.210-1",
+    "correo": "info@logisticadelsur.cl",
+    "telefono": "+56944556677",
+    "direccion": "Ruta 5 Sur Km 120, Temuco",
+    "activo": true,
+    "createdAt": "2024-02-28T13:00:00Z",
+    "updatedAt": "2024-02-28T13:00:00Z"
+  }
+]
