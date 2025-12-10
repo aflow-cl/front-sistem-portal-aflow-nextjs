@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2, ChevronLeft, ChevronRight, Home, Calculator, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { QueryProvider } from "@/providers/QueryProvider";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -153,7 +154,9 @@ export default function PortalLayout({
           sidebarCollapsed ? "pl-16" : "pl-64"
         }`}
       >
-        <div className="p-6">{children}</div>
+        <QueryProvider>
+          <div className="p-6">{children}</div>
+        </QueryProvider>
       </main>
     </div>
   );

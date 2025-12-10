@@ -1,78 +1,148 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calculator } from "lucide-react";
+import { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
+
+import { fetchBudgets, fetchIndicators, createBudget } from "./api/budgetService";
+import { Indicators } from "./components/Indicators";
+import { Filters } from "./components/Filters";
+import { BudgetTable } from "./components/BudgetTable";
+import { CreateBudgetModal } from "./components/CreateBudgetModal";
+import { LoadingSkeleton } from "./components/LoadingSkeleton";
+import type { FilterState, CreateBudgetInput, Budget } from "@/types/presupuesto";
 
 export default function PresupuestoPage() {
+  const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    cliente: "",
+    estado: "",
+    fecha: "",
+  });
+
+  // Fetch indicators
+  const { data: indicators = [] } = useQuery({
+    queryKey: ["indicators"],
+    queryFn: fetchIndicators,
+  });
+
+  // Fetch budgets
+  const {
+    data: budgets = [],
+    isLoading: isBudgetsLoading,
+    error: budgetsError,
+  } = useQuery({
+    queryKey: ["budgets"],
+    queryFn: fetchBudgets,
+  });
+
+  // Create budget mutation
+  const createBudgetMutation = useMutation({
+    mutationFn: createBudget,
+    onSuccess: (newBudget: Budget) => {
+      // Update cache
+      queryClient.setQueryData<Budget[]>(["budgets"], (old) => [newBudget, ...(old || [])]);
+      
+      // Close modal and show success message
+      setIsModalOpen(false);
+      toast.success("Presupuesto creado exitosamente", {
+        description: `Folio: ${newBudget.folio} - ${newBudget.cliente}`,
+      });
+    },
+    onError: (error: Error) => {
+      toast.error("Error al crear presupuesto", {
+        description: "Por favor, intenta nuevamente.",
+      });
+      console.error("Error creating budget:", error);
+    },
+  });
+
+  // Filter budgets
+  const filteredBudgets = useMemo(() => {
+    return budgets.filter((budget: Budget) => {
+      const matchesCliente = filters.cliente
+        ? budget.cliente.toLowerCase().includes(filters.cliente.toLowerCase())
+        : true;
+
+      const matchesEstado = filters.estado
+        ? budget.estado === filters.estado
+        : true;
+
+      const matchesFecha = filters.fecha
+        ? budget.fecha === filters.fecha
+        : true;
+
+      return matchesCliente && matchesEstado && matchesFecha;
+    });
+  }, [budgets, filters]);
+
+  // Handle create budget
+  const handleCreateBudget = (data: CreateBudgetInput) => {
+    createBudgetMutation.mutate(data);
+  };
+
+  // Show error state
+  if (budgetsError) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Presupuesto</h1>
+          <p className="text-gray-600 mt-1">Gestión de presupuestos y cotizaciones</p>
+        </div>
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+          <p className="text-red-800">Error al cargar los presupuestos</p>
+          <Button
+            onClick={() => queryClient.invalidateQueries({ queryKey: ["budgets"] })}
+            className="mt-4 bg-aflow-orange hover:bg-orange-600"
+          >
+            Reintentar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (isBudgetsLoading) {
+    return <LoadingSkeleton />;
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Presupuesto</h1>
-        <p className="text-gray-600 mt-1">Gestión de presupuestos y cotizaciones</p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Presupuesto</h1>
+          <p className="text-gray-600 mt-1">Gestión de presupuestos y cotizaciones</p>
+        </div>
+        <Button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-aflow-orange hover:bg-orange-600 text-white rounded-xl shadow-sm"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Nuevo Presupuesto
+        </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="shadow-md hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Presupuestos
-            </CardTitle>
-            <Calculator className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-muted-foreground">
-              +3 desde el último mes
-            </p>
-          </CardContent>
-        </Card>
+      {/* Indicators */}
+      <Indicators data={indicators} />
 
-        <Card className="shadow-md hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Presupuestos Activos
-            </CardTitle>
-            <Calculator className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">
-              En proceso de aprobación
-            </p>
-          </CardContent>
-        </Card>
+      {/* Filters */}
+      <Filters filters={filters} onFilterChange={setFilters} />
 
-        <Card className="shadow-md hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Monto Total
-            </CardTitle>
-            <Calculator className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$125,000</div>
-            <p className="text-xs text-muted-foreground">
-              Valor acumulado
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Budget Table */}
+      <BudgetTable data={filteredBudgets} loading={isBudgetsLoading} />
 
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle>Módulo de Presupuesto</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-600 mb-4">
-            Aquí podrás gestionar todos los presupuestos y cotizaciones del sistema.
-          </p>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <p className="text-sm text-amber-800">
-              <strong>Próximamente:</strong> Funcionalidades para crear, editar y aprobar presupuestos.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Create Modal */}
+      <CreateBudgetModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        onSubmit={handleCreateBudget}
+        isSubmitting={createBudgetMutation.isPending}
+      />
     </div>
   );
 }
