@@ -263,13 +263,6 @@ export function CreateBudgetModal({
     }
   };
 
-  const handleClose = () => {
-    if (!isSubmitting) {
-      form.reset();
-      onOpenChange(false);
-    }
-  };
-
   // ============================================
   // RENDER
   // ============================================
