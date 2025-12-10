@@ -6,7 +6,7 @@ export function Footer() {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-aflow-orange rounded flex items-center justify-center">
+            <div className="w-6 h-6 bg-aflow-blue rounded flex items-center justify-center">
               <span className="text-white font-bold text-sm">A</span>
             </div>
             <span className="font-poppins font-semibold text-gray-dark">
@@ -19,19 +19,19 @@ export function Footer() {
           <div className="flex gap-6">
             <a
               href="#"
-              className="text-sm text-gray-600 hover:text-aflow-orange transition-colors"
+              className="text-sm text-gray-600 hover:text-aflow-blue transition-colors"
             >
               Privacidad
             </a>
             <a
               href="#"
-              className="text-sm text-gray-600 hover:text-aflow-orange transition-colors"
+              className="text-sm text-gray-600 hover:text-aflow-blue transition-colors"
             >
               Términos
             </a>
             <a
               href="#"
-              className="text-sm text-gray-600 hover:text-aflow-orange transition-colors"
+              className="text-sm text-gray-600 hover:text-aflow-blue transition-colors"
             >
               Soporte
             </a>

@@ -17,7 +17,7 @@ export default function HomePage() {
             <div className="max-w-4xl mx-auto text-center">
               <h1 className="text-4xl md:text-6xl font-poppins font-bold text-white mb-6">
                 Bienvenido a{" "}
-                <span className="text-aflow-orange">AFLOW Portal</span>
+                <span className="text-aflow-blue">AFLOW Portal</span>
               </h1>
               <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
                 Sistema Corporativo Modular Empresarial. Gestiona tu negocio de
@@ -26,14 +26,14 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center gap-2 bg-aflow-orange text-white px-8 py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors shadow-lg shadow-aflow-orange/30"
+                  className="inline-flex items-center justify-center gap-2 bg-aflow-blue text-white px-8 py-3 rounded-lg font-medium hover:bg-aflow-blue-light transition-colors shadow-lg shadow-aflow-blue/30"
                 >
                   Iniciar Sesión
                   <ArrowRight className="w-5 h-5" />
                 </Link>
                 <a
                   href="#features"
-                  className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm text-white px-8 py-3 rounded-lg font-medium border border-white/30 hover:bg-white/20 hover:border-aflow-orange transition-colors"
+                  className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm text-white px-8 py-3 rounded-lg font-medium border border-white/30 hover:bg-white/20 hover:border-aflow-blue transition-colors"
                 >
                   Conocer más
                 </a>
@@ -57,9 +57,9 @@ export default function HomePage() {
 
             <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               {/* Feature 1 */}
-              <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 hover:border-aflow-orange transition-colors">
-                <div className="w-12 h-12 bg-aflow-orange/10 rounded-lg flex items-center justify-center mb-4">
-                  <Shield className="w-6 h-6 text-aflow-orange" />
+              <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 hover:border-aflow-blue transition-colors">
+                <div className="w-12 h-12 bg-aflow-blue/10 rounded-lg flex items-center justify-center mb-4">
+                  <Shield className="w-6 h-6 text-aflow-blue" />
                 </div>
                 <h3 className="text-xl font-poppins font-semibold text-gray-dark mb-3">
                   Seguridad Avanzada
@@ -71,9 +71,9 @@ export default function HomePage() {
               </div>
 
               {/* Feature 2 */}
-              <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 hover:border-aflow-orange transition-colors">
-                <div className="w-12 h-12 bg-aflow-orange/10 rounded-lg flex items-center justify-center mb-4">
-                  <Zap className="w-6 h-6 text-aflow-orange" />
+              <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 hover:border-aflow-blue transition-colors">
+                <div className="w-12 h-12 bg-aflow-blue/10 rounded-lg flex items-center justify-center mb-4">
+                  <Zap className="w-6 h-6 text-aflow-blue" />
                 </div>
                 <h3 className="text-xl font-poppins font-semibold text-gray-dark mb-3">
                   Alta Performance
@@ -85,9 +85,9 @@ export default function HomePage() {
               </div>
 
               {/* Feature 3 */}
-              <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 hover:border-aflow-orange transition-colors">
-                <div className="w-12 h-12 bg-aflow-orange/10 rounded-lg flex items-center justify-center mb-4">
-                  <Users className="w-6 h-6 text-aflow-orange" />
+              <div className="bg-gray-50 p-8 rounded-xl border border-gray-200 hover:border-aflow-blue transition-colors">
+                <div className="w-12 h-12 bg-aflow-blue/10 rounded-lg flex items-center justify-center mb-4">
+                  <Users className="w-6 h-6 text-aflow-blue" />
                 </div>
                 <h3 className="text-xl font-poppins font-semibold text-gray-dark mb-3">
                   Gestión Colaborativa
@@ -102,7 +102,7 @@ export default function HomePage() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-20 bg-gradient-to-br from-aflow-orange to-orange-600">
+        <section className="py-20 bg-gradient-to-br from-aflow-blue to-blue-700">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl md:text-4xl font-poppins font-bold text-white mb-6">
               ¿Listo para comenzar?
@@ -113,7 +113,7 @@ export default function HomePage() {
             </p>
             <Link
               href="/login"
-              className="inline-flex items-center justify-center gap-2 bg-white text-aflow-orange px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+              className="inline-flex items-center justify-center gap-2 bg-white text-aflow-blue px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
             >
               Iniciar Sesión Ahora
               <ArrowRight className="w-5 h-5" />

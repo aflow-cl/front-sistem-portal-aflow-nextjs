@@ -96,7 +96,7 @@ export default function PresupuestoPage() {
           <p className="text-red-800">Error al cargar los presupuestos</p>
           <Button
             onClick={() => queryClient.invalidateQueries({ queryKey: ["budgets"] })}
-            className="mt-4 bg-aflow-orange hover:bg-orange-600"
+            className="mt-4 bg-aflow-blue hover:bg-aflow-blue-light"
           >
             Reintentar
           </Button>
@@ -120,7 +120,7 @@ export default function PresupuestoPage() {
         </div>
         <Button
           onClick={() => setIsModalOpen(true)}
-          className="bg-aflow-orange hover:bg-orange-600 text-white rounded-xl shadow-sm"
+          className="bg-aflow-blue hover:bg-aflow-blue-light text-white rounded-xl shadow-sm"
         >
           <Plus className="h-4 w-4 mr-2" />
           Nuevo Presupuesto

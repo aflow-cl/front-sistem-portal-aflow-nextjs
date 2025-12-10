@@ -23,14 +23,14 @@ export function Filters({ filters, onFilterChange }: FiltersProps) {
     <Card className="shadow-sm rounded-2xl border-none bg-gray-50">
       <CardContent className="pt-6">
         <div className="flex items-center gap-2 mb-4">
-          <Filter className="h-5 w-5 text-aflow-orange" />
+          <Filter className="h-5 w-5 text-aflow-blue" />
           <h3 className="text-sm font-semibold text-gray-900">Filtros de búsqueda</h3>
         </div>
         
         <div className="grid gap-4 md:grid-cols-3">
           {/* Cliente filter */}
           <div className="space-y-2">
-            <Label htmlFor="filter-cliente" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="filter-cliente" className="text-xs font-medium text-gray-700">
               Cliente
             </Label>
             <div className="relative">
@@ -41,21 +41,21 @@ export function Filters({ filters, onFilterChange }: FiltersProps) {
                 placeholder="Buscar cliente..."
                 value={filters.cliente}
                 onChange={(e) => handleInputChange("cliente", e.target.value)}
-                className="pl-9 rounded-xl border-gray-200 focus:border-aflow-orange focus:ring-aflow-orange"
+                className="pl-9 rounded-xl border-gray-200 focus:border-aflow-blue focus:ring-aflow-blue"
               />
             </div>
           </div>
 
           {/* Estado filter */}
           <div className="space-y-2">
-            <Label htmlFor="filter-estado" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="filter-estado" className="text-xs font-medium text-gray-700">
               Estado
             </Label>
             <select
               id="filter-estado"
               value={filters.estado}
               onChange={(e) => handleInputChange("estado", e.target.value)}
-              className="w-full h-10 px-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-aflow-orange focus:border-aflow-orange"
+              className="w-full h-8 px-2 rounded-xl border border-gray-200 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-aflow-blue focus:border-aflow-blue"
             >
               <option value="">Todos los estados</option>
               <option value="Borrador">Borrador</option>
@@ -68,7 +68,7 @@ export function Filters({ filters, onFilterChange }: FiltersProps) {
 
           {/* Fecha filter */}
           <div className="space-y-2">
-            <Label htmlFor="filter-fecha" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="filter-fecha" className="text-xs font-medium text-gray-700">
               Fecha
             </Label>
             <Input
@@ -76,7 +76,7 @@ export function Filters({ filters, onFilterChange }: FiltersProps) {
               type="date"
               value={filters.fecha}
               onChange={(e) => handleInputChange("fecha", e.target.value)}
-              className="rounded-xl border-gray-200 focus:border-aflow-orange focus:ring-aflow-orange"
+              className="rounded-xl border-gray-200 focus:border-aflow-blue focus:ring-aflow-blue"
             />
           </div>
         </div>

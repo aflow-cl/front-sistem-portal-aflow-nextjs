@@ -30,7 +30,7 @@ export default function PortalLayout({
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-aflow-orange mx-auto mb-4" />
+          <Loader2 className="w-8 h-8 animate-spin text-aflow-blue mx-auto mb-4" />
           <p className="text-gray-600">Verificando sesión...</p>
         </div>
       </div>
@@ -86,7 +86,7 @@ export default function PortalLayout({
               variant="ghost"
               size="sm"
               onClick={logout}
-              className="text-gray-600 hover:text-aflow-orange"
+              className="text-gray-600 hover:text-aflow-blue"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Cerrar Sesión
@@ -130,7 +130,7 @@ export default function PortalLayout({
                     <div
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors cursor-pointer ${
                         isActive
-                          ? "bg-aflow-orange text-white"
+                          ? "bg-aflow-blue text-white"
                           : "text-gray-700 hover:bg-gray-100"
                       }`}
                       title={sidebarCollapsed ? item.title : undefined}

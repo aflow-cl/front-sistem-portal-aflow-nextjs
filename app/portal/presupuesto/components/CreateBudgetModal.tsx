@@ -84,7 +84,7 @@ export function CreateBudgetModal({
 
       {/* Modal */}
       <Card className="relative z-10 w-full max-w-lg mx-4 shadow-2xl rounded-2xl border-none">
-        <CardHeader className="bg-gradient-to-r from-aflow-orange to-orange-600 text-white rounded-t-2xl">
+        <CardHeader className="bg-gradient-to-r from-aflow-blue to-blue-700 text-white rounded-t-2xl">
           <div className="flex items-center justify-between">
             <CardTitle className="text-xl font-semibold">
               Crear Nuevo Presupuesto
@@ -105,7 +105,7 @@ export function CreateBudgetModal({
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Cliente */}
             <div className="space-y-2">
-              <Label htmlFor="cliente" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="cliente" className="text-xs font-medium text-gray-700">
                 Cliente <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -126,7 +126,7 @@ export function CreateBudgetModal({
 
             {/* Descripción */}
             <div className="space-y-2">
-              <Label htmlFor="descripcion" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="descripcion" className="text-xs font-medium text-gray-700">
                 Descripción <span className="text-red-500">*</span>
               </Label>
               <textarea
@@ -136,7 +136,7 @@ export function CreateBudgetModal({
                 value={formData.descripcion}
                 onChange={(e) => handleInputChange("descripcion", e.target.value)}
                 disabled={isSubmitting}
-                className={`w-full px-3 py-2 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-aflow-orange focus:border-aflow-orange resize-none ${
+                className={`w-full px-2 py-1 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-aflow-blue focus:border-aflow-blue resize-none ${
                   errors.descripcion
                     ? "border-red-500 focus:ring-red-500"
                     : "border-gray-200"
@@ -149,7 +149,7 @@ export function CreateBudgetModal({
 
             {/* Monto */}
             <div className="space-y-2">
-              <Label htmlFor="monto" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="monto" className="text-xs font-medium text-gray-700">
                 Monto (CLP) <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -184,7 +184,7 @@ export function CreateBudgetModal({
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 bg-aflow-orange hover:bg-orange-600 text-white rounded-xl"
+                className="flex-1 bg-aflow-blue hover:bg-aflow-blue-light text-white rounded-xl"
               >
                 {isSubmitting ? (
                   <>

@@ -97,7 +97,7 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-aflow-orange mb-8 transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-aflow-blue mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Volver al inicio
@@ -115,7 +115,7 @@ export default function LoginPage() {
                 priority
               />
             </div>
-            <CardTitle className="text-3xl font-poppins font-bold text-center bg-gradient-to-r from-aflow-orange to-orange-500 bg-clip-text text-transparent">
+            <CardTitle className="text-3xl font-poppins font-bold text-center bg-gradient-to-r from-aflow-blue to-blue-500 bg-clip-text text-transparent">
               Iniciar Sesión
             </CardTitle>
             <CardDescription className="text-black text-center text-base font-medium">
@@ -133,14 +133,14 @@ export default function LoginPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-aflow-orange font-semibold">Email</FormLabel>
+                      <FormLabel className="text-aflow-blue font-semibold">Email</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="usuario@aflow.cl"
                           type="email"
                           autoComplete="email"
                           disabled={isLoading}
-                          className="bg-white/95 border-gray-300 text-black placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-aflow-orange focus-visible:ring-offset-0 focus-visible:border-aflow-orange transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="bg-white/95 border-gray-300 text-black placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-aflow-blue focus-visible:ring-offset-0 focus-visible:border-aflow-blue transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                           {...field}
                         />
                       </FormControl>
@@ -153,14 +153,14 @@ export default function LoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-aflow-orange font-semibold">Contraseña</FormLabel>
+                      <FormLabel className="text-aflow-blue font-semibold">Contraseña</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="••••••••"
                           type="password"
                           autoComplete="current-password"
                           disabled={isLoading}
-                          className="bg-white/95 border-gray-300 text-black placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-aflow-orange focus-visible:ring-offset-0 focus-visible:border-aflow-orange transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="bg-white/95 border-gray-300 text-black placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-aflow-blue focus-visible:ring-offset-0 focus-visible:border-aflow-blue transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                           {...field}
                         />
                       </FormControl>
@@ -170,7 +170,7 @@ export default function LoginPage() {
                 />
                 <Button
                   type="submit"
-                  className="w-full bg-aflow-orange hover:bg-orange-600 shadow-lg shadow-black/30"
+                  className="w-full bg-aflow-blue hover:bg-aflow-blue-light shadow-lg shadow-black/30"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -188,7 +188,7 @@ export default function LoginPage() {
           <CardFooter className="flex flex-col space-y-4">
             <div className="text-sm text-gray-300 text-center">
               <p className="mb-2 font-medium">Credenciales de prueba:</p>
-              <code className="bg-[#1a1c20] border border-[#3a3d43] px-3 py-2 rounded text-xs text-aflow-orange font-mono block">
+              <code className="bg-[#1a1c20] border border-[#3a3d43] px-3 py-2 rounded text-xs text-aflow-blue font-mono block">
                 test@aflow.cl / 123456
               </code>
             </div>

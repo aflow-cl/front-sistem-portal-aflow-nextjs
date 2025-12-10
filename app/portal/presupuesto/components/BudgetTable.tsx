@@ -41,7 +41,7 @@ export function BudgetTable({ data, loading }: BudgetTableProps) {
   if (data.length === 0) {
     return (
       <Card className="shadow-sm rounded-2xl border-none">
-        <CardHeader className="bg-gradient-to-r from-aflow-orange to-orange-600 text-white rounded-t-2xl">
+        <CardHeader className="bg-gradient-to-r from-aflow-blue to-blue-700 text-white rounded-t-2xl">
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
             Lista de Presupuestos
@@ -59,7 +59,7 @@ export function BudgetTable({ data, loading }: BudgetTableProps) {
 
   return (
     <Card className="shadow-sm rounded-2xl border-none overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-aflow-orange to-orange-600 text-white rounded-t-2xl">
+      <CardHeader className="bg-gradient-to-r from-aflow-blue to-blue-700 text-white rounded-t-2xl">
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
           Lista de Presupuestos
@@ -128,7 +128,7 @@ export function BudgetTable({ data, loading }: BudgetTableProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-aflow-orange hover:text-orange-700 hover:bg-orange-50"
+                      className="text-aflow-blue hover:text-aflow-blue-light hover:bg-blue-50"
                     >
                       <Eye className="h-4 w-4 mr-1" />
                       Ver

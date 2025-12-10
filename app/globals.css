@@ -10,7 +10,7 @@
     --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
-    --primary: 24 100% 50%;
+    --primary: 204 79% 22%;
     --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
@@ -22,7 +22,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 24 100% 50%;
+    --ring: 204 79% 22%;
     --radius: 0.5rem;
   }
 
@@ -33,7 +33,7 @@
     --card-foreground: 0 0% 98%;
     --popover: 0 0% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 24 100% 50%;
+    --primary: 204 79% 22%;
     --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 14.9%;
     --secondary-foreground: 0 0% 98%;
@@ -45,7 +45,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
-    --ring: 24 100% 50%;
+    --ring: 204 79% 22%;
   }
 }
    
@@ -69,8 +69,8 @@
 /* Fire Spark Particle Animation */
 @layer components {
   .particle-spark {
-    background: radial-gradient(circle, #FF7A00 0%, #FF9500 30%, transparent 70%);
-    box-shadow: 0 0 10px #FF7A00, 0 0 20px #FF7A00;
+    background: radial-gradient(circle, #0c3b64 0%, #0e4875 30%, transparent 70%);
+    box-shadow: 0 0 10px #0c3b64, 0 0 20px #0c3b64;
     animation: float-spark linear infinite, sparkle ease-in-out infinite;
     will-change: transform, opacity;
   }
