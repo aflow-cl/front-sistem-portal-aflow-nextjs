@@ -28,6 +28,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useAuth } from "@/hooks/useAuth";
+import { ParticleBackground } from "@/components/ui/ParticleBackground";
+import Image from "next/image";
 
 const loginSchema = z.object({
   email: z
@@ -84,30 +86,39 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-white p-4">
-      <div className="w-full max-w-md">
+    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0b0b0c] via-[#141518] to-[#0d0e10] text-foreground p-4">
+      {/* Background particles (subtle, behind content) */}
+      <div className="absolute inset-0 pointer-events-none">
+        <ParticleBackground />
+        {/* Readability overlay for serious tone */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+      </div>
+
+      <div className="relative w-full max-w-md">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-aflow-orange mb-8 transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-aflow-orange mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Volver al inicio
         </Link>
 
-        <Card className="shadow-xl border-gray-200">
-          <CardHeader className="space-y-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-aflow-orange rounded-md flex items-center justify-center">
-                <span className="text-white font-bold text-xl">A</span>
-              </div>
-              <span className="font-poppins font-bold text-2xl text-gray-dark">
-                AFLOW
-              </span>
+        <Card className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-2xl shadow-black/40">
+          <CardHeader className="space-y-3">
+            <div className="flex justify-center mb-2">
+              <Image
+                src="/images/company/LogoSinFondoTexto.png"
+                alt="AFLOW Logo"
+                width={80}
+                height={30}
+                className="object-contain"
+                priority
+              />
             </div>
-            <CardTitle className="text-2xl font-poppins">
+            <CardTitle className="text-3xl font-poppins font-bold text-center bg-gradient-to-r from-aflow-orange to-orange-500 bg-clip-text text-transparent">
               Iniciar Sesión
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-black text-center text-base font-medium">
               Ingresa tus credenciales para acceder al portal
             </CardDescription>
           </CardHeader>
@@ -122,17 +133,18 @@ export default function LoginPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel className="text-aflow-orange font-semibold">Email</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="usuario@aflow.cl"
                           type="email"
                           autoComplete="email"
                           disabled={isLoading}
+                          className="bg-white/95 border-gray-300 text-black placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-aflow-orange focus-visible:ring-offset-0 focus-visible:border-aflow-orange transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-red-600 text-xs mt-1 font-medium" />
                     </FormItem>
                   )}
                 />
@@ -141,23 +153,24 @@ export default function LoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Contraseña</FormLabel>
+                      <FormLabel className="text-aflow-orange font-semibold">Contraseña</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="••••••••"
                           type="password"
                           autoComplete="current-password"
                           disabled={isLoading}
+                          className="bg-white/95 border-gray-300 text-black placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-aflow-orange focus-visible:ring-offset-0 focus-visible:border-aflow-orange transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-red-600 text-xs mt-1 font-medium" />
                     </FormItem>
                   )}
                 />
                 <Button
                   type="submit"
-                  className="w-full bg-aflow-orange hover:bg-orange-600"
+                  className="w-full bg-aflow-orange hover:bg-orange-600 shadow-lg shadow-black/30"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -173,16 +186,16 @@ export default function LoginPage() {
             </Form>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <div className="text-sm text-gray-600 text-center">
-              <p className="mb-2">Credenciales de prueba:</p>
-              <code className="bg-gray-100 px-2 py-1 rounded text-xs">
+            <div className="text-sm text-gray-300 text-center">
+              <p className="mb-2 font-medium">Credenciales de prueba:</p>
+              <code className="bg-[#1a1c20] border border-[#3a3d43] px-3 py-2 rounded text-xs text-aflow-orange font-mono block">
                 test@aflow.cl / 123456
               </code>
             </div>
           </CardFooter>
         </Card>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="text-center text-sm text-gray-400 mt-6">
           © {new Date().getFullYear()} AFLOW. Todos los derechos reservados.
         </p>
       </div>

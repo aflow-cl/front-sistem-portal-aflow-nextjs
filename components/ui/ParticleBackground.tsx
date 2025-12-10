@@ -18,8 +18,8 @@ export function ParticleBackground() {
         id: i,
         left: Math.random() * 100,
         size: Math.random() * 4 + 2, // 2-6px
-        delay: Math.random() * 20, // 0-20s
-        duration: Math.random() * 10 + 15, // 15-25s
+        delay: Math.random() * 12, // 0-12s (40% faster)
+        duration: Math.random() * 6 + 9, // 9-15s (40% faster)
       }))
     );
   }, []);
