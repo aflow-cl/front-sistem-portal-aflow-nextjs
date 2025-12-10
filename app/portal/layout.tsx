@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, ChevronLeft, ChevronRight, Home, Calculator, LogOut, User } from "lucide-react";
+import { Loader2, Menu, Home, Calculator, LogOut, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { QueryProvider } from "@/providers/QueryProvider";
@@ -18,7 +18,7 @@ export default function PortalLayout({
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, isLoading, user, logout } = useAuth();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -61,27 +61,37 @@ export default function PortalLayout({
       {/* Header */}
       <header className="bg-white border-b shadow-sm fixed top-0 left-0 right-0 z-30 h-16">
         <div className="h-full px-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Image 
-              src="/images/company/LogoSinFondoTexto.png" 
-              alt="AFLOW Logo" 
-              width={60}
-              height={20}
-              className="object-contain"
-              priority
-            />
-            <span className="font-poppins font-bold text-lg text-blue-950">
-              AFLOW
-            </span>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="hover:bg-gray-100"
+            >
+              <Menu className="w-5 h-5" />
+            </Button>
+            <div className="flex items-center gap-2">
+              <Image 
+                src="/images/company/LogoSinFondoTexto.png" 
+                alt="AFLOW Logo" 
+                width={60}
+                height={20}
+                className="object-contain"
+                priority
+              />
+              <span className="font-poppins font-bold text-lg text-blue-950">
+                AFLOW
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2">
               <User className="w-4 h-4 text-gray-600" />
               <span className="text-sm font-medium text-gray-700">
                 {user?.nombre} {user?.apellido}
               </span>
             </div>
-            <Separator orientation="vertical" className="h-6" />
+            <Separator orientation="vertical" className="hidden md:block h-6" />
             <Button
               variant="ghost"
               size="sm"
@@ -95,26 +105,31 @@ export default function PortalLayout({
         </div>
       </header>
 
+      {/* Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 top-16"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-16 bottom-0 bg-white border-r shadow-sm transition-all duration-300 z-20 ${
-          sidebarCollapsed ? "w-16" : "w-64"
+        className={`fixed left-0 top-16 bottom-0 bg-white border-r shadow-lg transition-transform duration-300 z-50 w-64 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Toggle Button */}
-          <div className="p-2 flex justify-end border-b">
+          {/* Header del Sidebar */}
+          <div className="p-4 flex justify-between items-center border-b">
+            <h2 className="font-semibold text-gray-800">Menú</h2>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              onClick={() => setSidebarOpen(false)}
               className="hover:bg-gray-100"
             >
-              {sidebarCollapsed ? (
-                <ChevronRight className="w-4 h-4" />
-              ) : (
-                <ChevronLeft className="w-4 h-4" />
-              )}
+              <X className="w-4 h-4" />
             </Button>
           </div>
 
@@ -133,12 +148,10 @@ export default function PortalLayout({
                           ? "bg-aflow-blue text-white"
                           : "text-gray-700 hover:bg-gray-100"
                       }`}
-                      title={sidebarCollapsed ? item.title : undefined}
+                      onClick={() => setSidebarOpen(false)}
                     >
                       <Icon className="w-5 h-5 flex-shrink-0" />
-                      {!sidebarCollapsed && (
-                        <span className="font-medium text-sm">{item.title}</span>
-                      )}
+                      <span className="font-medium text-sm">{item.title}</span>
                     </div>
                   </Link>
                 );
@@ -149,11 +162,7 @@ export default function PortalLayout({
       </aside>
 
       {/* Main Content */}
-      <main
-        className={`pt-16 transition-all duration-300 ${
-          sidebarCollapsed ? "pl-16" : "pl-64"
-        }`}
-      >
+      <main className="pt-16">
         <QueryProvider>
           <div className="p-6">{children}</div>
         </QueryProvider>

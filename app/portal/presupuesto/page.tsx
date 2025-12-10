@@ -113,17 +113,18 @@ export default function PresupuestoPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Presupuesto</h1>
-          <p className="text-gray-600 mt-1">Gestión de presupuestos y cotizaciones</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Presupuesto</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Gestión de presupuestos y cotizaciones</p>
         </div>
         <Button
           onClick={() => setIsModalOpen(true)}
-          className="bg-aflow-blue hover:bg-aflow-blue-light text-white rounded-xl shadow-sm"
+          className="bg-aflow-blue hover:bg-aflow-blue-light text-white rounded-xl shadow-sm w-full sm:w-auto"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Nuevo Presupuesto
+          <span className="hidden sm:inline">Nuevo Presupuesto</span>
+          <span className="sm:hidden">Nuevo</span>
         </Button>
       </div>
 
