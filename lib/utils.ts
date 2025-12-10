@@ -2,117 +2,110 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 /**
- * Combina clases de Tailwind CSS de manera eficiente
+ * Merge Tailwind CSS classes with clsx
  */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
 /**
- * Formatea un RUT chileno
+ * Format Chilean RUT with dots and dash
+ * @param rut - RUT number (with or without formatting)
+ * @returns Formatted RUT (e.g., "12.345.678-9")
  */
 export function formatRut(rut: string): string {
-  const cleaned = rut.replace(/[^0-9kK]/g, "");
-  if (cleaned.length < 2) return cleaned;
-  
-  const body = cleaned.slice(0, -1);
-  const dv = cleaned.slice(-1).toUpperCase();
-  
-  const formatted = body.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  return `${formatted}-${dv}`;
+  // Remove all non-numeric characters except 'k' or 'K'
+  const clean = rut.replace(/[^0-9kK]/g, "");
+
+  if (clean.length < 2) return clean;
+
+  // Separate body and verification digit
+  const body = clean.slice(0, -1);
+  const dv = clean.slice(-1).toUpperCase();
+
+  // Add thousands separators
+  const formattedBody = body.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+  return `${formattedBody}-${dv}`;
 }
 
 /**
- * Valida un RUT chileno usando el algoritmo del módulo 11
+ * Validate Chilean RUT using Modulo 11 algorithm
+ * @param rut - RUT to validate
+ * @returns true if valid, false otherwise
  */
 export function validateRut(rut: string): boolean {
-  const cleaned = rut.replace(/[^0-9kK]/g, "");
-  if (cleaned.length < 2) return false;
-  
-  const body = cleaned.slice(0, -1);
-  const dv = cleaned.slice(-1).toUpperCase();
-  
+  // Remove formatting
+  const clean = rut.replace(/[^0-9kK]/g, "");
+
+  if (clean.length < 2) return false;
+
+  const body = clean.slice(0, -1);
+  const dv = clean.slice(-1).toUpperCase();
+
+  // Calculate verification digit
   let sum = 0;
   let multiplier = 2;
-  
+
   for (let i = body.length - 1; i >= 0; i--) {
     sum += parseInt(body[i]) * multiplier;
     multiplier = multiplier === 7 ? 2 : multiplier + 1;
   }
-  
+
   const expectedDv = 11 - (sum % 11);
-  const expectedDvStr = expectedDv === 11 ? "0" : expectedDv === 10 ? "K" : expectedDv.toString();
-  
-  return dv === expectedDvStr;
+  const dvString =
+    expectedDv === 11 ? "0" : expectedDv === 10 ? "K" : expectedDv.toString();
+
+  return dv === dvString;
 }
 
 /**
- * Formatea un número de teléfono chileno
+ * Debounce function to limit execution rate
+ * @param func - Function to debounce
+ * @param wait - Delay in milliseconds
+ * @returns Debounced function
  */
-export function formatPhone(phone: string): string {
-  const cleaned = phone.replace(/\D/g, "");
-  if (cleaned.length === 9) {
-    return `+56 9 ${cleaned.slice(0, 4)} ${cleaned.slice(4)}`;
-  }
-  return phone;
-}
-
-/**
- * Debounce para optimizar búsquedas
- */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: never[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout;
+  let timeout: NodeJS.Timeout | null = null;
+
   return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
+    if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
   };
 }
 
 /**
- * Capitaliza la primera letra de cada palabra
- */
-export function capitalize(str: string): string {
-  return str
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ");
-}
-
-/**
- * Formatea una fecha en formato chileno
+ * Format date to Chilean format (DD/MM/YYYY)
+ * @param date - Date to format
+ * @returns Formatted date string
  */
 export function formatDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return new Intl.DateTimeFormat("es-CL", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(d);
+  const day = d.getDate().toString().padStart(2, "0");
+  const month = (d.getMonth() + 1).toString().padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
 }
 
 /**
- * Trunca un texto a una longitud máxima
+ * Format currency to Chilean Peso (CLP)
+ * @param amount - Amount to format
+ * @returns Formatted currency string
  */
-export function truncate(str: string, length: number): string {
-  if (str.length <= length) return str;
-  return `${str.slice(0, length)}...`;
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+  }).format(amount);
 }
 
 /**
- * Genera un ID único simple
+ * Sleep utility for async operations
+ * @param ms - Milliseconds to sleep
  */
-export function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-}
-
-/**
- * Manejo de errores con mensaje amigable
- */
-export function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === "string") return error;
-  return "Ha ocurrido un error inesperado";
+export function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

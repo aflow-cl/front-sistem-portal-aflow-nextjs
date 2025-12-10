@@ -1,12 +1,13 @@
 /**
- * Tipos globales de la aplicación AFLOW Portal
+ * Core type definitions for AFLOW Portal
  */
 
-import { ROLES } from "@/lib/constants";
+// ============================================================================
+// User & Authentication
+// ============================================================================
 
-/**
- * Usuario del sistema
- */
+export type UserRole = "admin" | "analista" | "operador";
+
 export interface User {
   id: string;
   email: string;
@@ -21,14 +22,6 @@ export interface User {
   updatedAt: string;
 }
 
-/**
- * Roles de usuario
- */
-export type UserRole = (typeof ROLES)[keyof typeof ROLES];
-
-/**
- * Sesión de usuario
- */
 export interface Session {
   user: User;
   accessToken: string;
@@ -36,9 +29,15 @@ export interface Session {
   expiresAt: number;
 }
 
-/**
- * Item del menú
- */
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+// ============================================================================
+// Menu System
+// ============================================================================
+
 export interface MenuItem {
   id: string;
   label: string;
@@ -48,9 +47,6 @@ export interface MenuItem {
   order?: number;
 }
 
-/**
- * Grupo de menú
- */
 export interface MenuGroup {
   id: string;
   label: string;
@@ -58,10 +54,11 @@ export interface MenuGroup {
   items: MenuItem[];
 }
 
-/**
- * Respuesta de API genérica
- */
-export interface ApiResponse<T = any> {
+// ============================================================================
+// API Responses
+// ============================================================================
+
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -73,19 +70,6 @@ export interface ApiResponse<T = any> {
   };
 }
 
-/**
- * Parámetros de paginación
- */
-export interface PaginationParams {
-  page: number;
-  pageSize: number;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-}
-
-/**
- * Resultado paginado
- */
 export interface PaginatedResult<T> {
   data: T[];
   pagination: {
@@ -96,35 +80,41 @@ export interface PaginatedResult<T> {
   };
 }
 
-/**
- * Estado de carga
- */
+// ============================================================================
+// Utility Types
+// ============================================================================
+
 export type LoadingState = "idle" | "loading" | "success" | "error";
 
-/**
- * Opciones de Select
- */
 export interface SelectOption {
   value: string;
   label: string;
   disabled?: boolean;
 }
 
-/**
- * Breadcrumb
- */
 export interface Breadcrumb {
   label: string;
   href?: string;
 }
 
-/**
- * Notificación/Toast
- */
 export interface Toast {
   id: string;
   type: "success" | "error" | "warning" | "info";
   title: string;
   description?: string;
   duration?: number;
+}
+
+// ============================================================================
+// Form Types
+// ============================================================================
+
+export interface FormField {
+  name: string;
+  label: string;
+  type: "text" | "email" | "password" | "number" | "select" | "textarea";
+  placeholder?: string;
+  required?: boolean;
+  disabled?: boolean;
+  options?: SelectOption[];
 }

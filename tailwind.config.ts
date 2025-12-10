@@ -8,6 +8,7 @@ const config: Config = {
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
   ],
+  prefix: "",
   theme: {
     container: {
       center: true,
@@ -18,7 +19,6 @@ const config: Config = {
     },
     extend: {
       colors: {
-        // Paleta Corporativa AFLOW
         aflow: {
           orange: "#FF7A00",
           black: "#000000",
@@ -29,7 +29,6 @@ const config: Config = {
           medium: "#4D4D4D",
           light: "#EDEDED",
         },
-        // Shadcn UI colors
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -69,11 +68,11 @@ const config: Config = {
         inter: ["var(--font-inter)", "sans-serif"],
       },
       fontSize: {
-        "h1": ["3.5rem", { lineHeight: "1.2", fontWeight: "700" }], // 56px
-        "h2": ["2.25rem", { lineHeight: "1.3", fontWeight: "600" }], // 36px
-        "h3": ["1.75rem", { lineHeight: "1.4", fontWeight: "500" }], // 28px
-        "body": ["1.125rem", { lineHeight: "1.6", fontWeight: "400" }], // 18px
-        "small": ["0.875rem", { lineHeight: "1.5", fontWeight: "400" }], // 14px
+        h1: ["3.5rem", { lineHeight: "1.2", fontWeight: "700" }],
+        h2: ["2.25rem", { lineHeight: "1.3", fontWeight: "600" }],
+        h3: ["1.75rem", { lineHeight: "1.4", fontWeight: "500" }],
+        body: ["1.125rem", { lineHeight: "1.6", fontWeight: "400" }],
+        small: ["0.875rem", { lineHeight: "1.5", fontWeight: "400" }],
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -97,6 +96,6 @@ const config: Config = {
     },
   },
   plugins: [require("tailwindcss-animate")],
-};
+} satisfies Config;
 
 export default config;

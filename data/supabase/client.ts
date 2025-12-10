@@ -2,30 +2,20 @@ import { createClient } from "@supabase/supabase-js";
 import { env } from "@/lib/env";
 
 /**
- * Cliente de Supabase para el navegador
+ * Supabase client for browser usage
+ * 
+ * NOTE: This is configured for mock authentication.
+ * For production, ensure proper Supabase credentials are set in environment variables.
  */
+
 export const supabase = createClient(
-  env.supabase.url,
-  env.supabase.anonKey,
+  env.supabase.url || "https://mock.supabase.co",
+  env.supabase.anonKey || "mock-key",
   {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
-    },
-  }
-);
-
-/**
- * Cliente de Supabase con Service Role (solo servidor)
- */
-export const supabaseAdmin = createClient(
-  env.supabase.url,
-  env.supabase.serviceRoleKey,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
     },
   }
 );

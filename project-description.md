@@ -1,947 +1,1013 @@
-# AFLOW Portal - Descripción Técnica del Proyecto
+# AFLOW Portal - Documentación del Proyecto Base
 
-**Documento de Contexto Reutilizable para Continuación de Desarrollo**
+## 📋 Índice
 
----
-
-## 📌 Resumen Ejecutivo
-
-AFLOW Portal es un sistema empresarial modular desarrollado con Next.js 15 y TypeScript, diseñado para gestionar múltiples procesos de negocio (cotizaciones, comercio exterior, finanzas, clientes, guardias) desde una plataforma unificada con autenticación basada en roles y arquitectura limpia escalable.
-
-### Objetivos del Proyecto
-
-1. **Centralización:** Unificar gestión de procesos empresariales en un portal único
-2. **Modularidad:** Arquitectura de módulos independientes y reutilizables
-3. **Escalabilidad:** Clean Architecture preparada para crecimiento
-4. **Seguridad:** Control de acceso basado en roles (RBAC)
-5. **Experiencia de Usuario:** Diseño responsivo con paleta corporativa AFLOW
-6. **Trazabilidad:** Logging estructurado de todas las operaciones
+1. [Visión General](#visión-general)
+2. [Arquitectura](#arquitectura)
+3. [Estructura de Directorios](#estructura-de-directorios)
+4. [Sistema de Autenticación](#sistema-de-autenticación)
+5. [Componentes UI](#componentes-ui)
+6. [Estilos y Diseño](#estilos-y-diseño)
+7. [Utilidades](#utilidades)
+8. [Flujo de Navegación](#flujo-de-navegación)
+9. [Deployment](#deployment)
+10. [Extensión del Proyecto](#extensión-del-proyecto)
 
 ---
 
-## 🎯 Filosofía de Desarrollo
+## 🎯 Visión General
 
-### Principios Arquitectónicos
+### Propósito
 
-**Clean Architecture (Uncle Bob):**
-```
-Presentation → Application → Domain → Infrastructure
-```
+**AFLOW Portal Base** es la versión fundacional del sistema corporativo AFLOW, diseñada para ser:
 
-- **Independencia de frameworks:** La lógica de negocio no depende de Next.js
-- **Testabilidad:** Cada capa es testeable aisladamente
-- **Independencia de UI:** La interfaz puede cambiar sin afectar lógica
-- **Independencia de base de datos:** Repositorios abstraen el storage
+- ✅ Completamente funcional desde el día 1
+- ✅ Lista para despliegue en Vercel sin configuración adicional
+- ✅ Extensible para agregar nuevos módulos
+- ✅ Libre de errores y warnings de compilación
+- ✅ Optimizada para rendimiento y UX
 
-**Convenciones de Código:**
+### Alcance de la Versión Base
 
-1. **TypeScript Estricto:** Sin `any`, tipado completo
-2. **Functional First:** Preferir funciones puras sobre clases
-3. **Composition over Inheritance:** Hooks y composición de componentes
-4. **Single Responsibility:** Un componente = una responsabilidad
-5. **DRY (Don't Repeat Yourself):** Abstracciones en `lib/utils.ts`
+**Incluye:**
+- Landing Page profesional y responsiva
+- Sistema de autenticación mock funcional
+- Layout global y layout privado protegido
+- Componentes UI con shadcn/ui
+- Utilidades comunes (formateo, validación)
+- Logging estructurado
+- Configuración TypeScript estricta
+- Integración TailwindCSS con paleta corporativa
 
----
-
-## 🏗️ Arquitectura Técnica Detallada
-
-### Capas del Sistema
-
-#### 1. Domain Layer (`core/domain/`)
-**Responsabilidad:** Entidades de negocio, reglas, interfaces
-
-```typescript
-// Ejemplo: Entidad Contratante
-export interface Contratante {
-  id: string;
-  tipo: TipoContratante;
-  rut: string;
-  // ... campos de dominio
-}
-
-export type TipoContratante = "natural" | "juridica";
-```
-
-**Reglas de dominio:**
-- RUT chileno: Validación con algoritmo módulo 11
-- Email: Formato RFC 5322
-- Estados: `activo` determina disponibilidad
-
-#### 2. Application Layer (`core/usecases/`, `core/services/`)
-**Responsabilidad:** Casos de uso, orquestación de lógica
-
-```typescript
-// services/contratante.service.ts
-export const contratanteService = {
-  getAll: async (filters?: ContratanteFilters) => {
-    // Lógica de negocio: filtrado, búsqueda
-  },
-  create: async (data: ContratanteFormData) => {
-    // Validación + persistencia
-  },
-  // ... otros casos de uso
-};
-```
-
-**Casos de uso implementados:**
-- Autenticación con mock
-- Gestión de perfil de usuario
-- CRUD completo de Contratante
-- Menú dinámico por roles
-
-#### 3. Presentation Layer (`app/`, `components/`, `hooks/`)
-**Responsabilidad:** UI, interacción con usuario
-
-**Server Components (Next.js 15):**
-```typescript
-// app/(private)/modules/contratante/page.tsx
-export default function ContratantePage() {
-  // Renderiza UI, maneja estado local
-}
-```
-
-**Custom Hooks (Reutilización):**
-```typescript
-// hooks/useContratante.ts
-export function useContratante() {
-  const [contratantes, setContratantes] = useState<Contratante[]>([]);
-  const [loading, setLoading] = useState(false);
-  
-  const fetchAll = async () => { /* ... */ };
-  const create = async (data: ContratanteFormData) => { /* ... */ };
-  
-  return { contratantes, loading, fetchAll, create };
-}
-```
-
-#### 4. Infrastructure Layer (`data/`, `app/api/`)
-**Responsabilidad:** Acceso a datos, APIs externas
-
-**API Routes (Next.js):**
-```typescript
-// app/api/contratante/route.ts
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const query = searchParams.get("search");
-  
-  const contratantes = await contratanteService.getAll({ search: query });
-  
-  return NextResponse.json(ApiResponse.success(contratantes));
-}
-```
-
-**Supabase Mock:**
-```typescript
-// data/supabase/auth.ts
-const MOCK_USERS = [
-  { email: "test@aflow.cl", password: "123456", role: "admin" },
-  // ...
-];
-
-export async function signIn(email: string, password: string) {
-  const user = MOCK_USERS.find(u => u.email === email && u.password === password);
-  if (!user) throw new Error("Credenciales inválidas");
-  // ...
-}
-```
+**NO Incluye (extensiones futuras):**
+- Dashboard con métricas
+- Módulos CRUD (Contratante, Cotización, etc.)
+- API Routes backend
+- Integración Supabase real
+- Sistema de notificaciones avanzado
+- Gestión de roles y permisos granulares
 
 ---
 
-## 🔐 Sistema de Autenticación y Permisos
+## 🏗️ Arquitectura
 
-### Roles Disponibles
+### Principios de Diseño
 
-| Rol | Nivel | Módulos Accesibles |
-|-----|-------|-------------------|
-| **Admin** | 3 | Todos (8 módulos) |
-| **Analista** | 2 | Dashboard, Cotización, Clientes, Mi Cuenta (4 módulos) |
-| **Operador** | 1 | Dashboard, Mi Cuenta (2 módulos) |
+1. **Clean Architecture:** Separación de responsabilidades en capas
+2. **Server Components First:** Uso de RSC de Next.js 15
+3. **Client Components Only When Needed:** Hooks, estado, eventos
+4. **Type Safety:** TypeScript estricto en toda la aplicación
+5. **Mobile-First:** Diseño responsivo desde el inicio
 
-### Matriz de Permisos
+### Capas de la Aplicación
+
+```
+┌─────────────────────────────────────────┐
+│     Presentación (app/, components/)    │
+│  - Pages (RSC)                          │
+│  - Layouts                              │
+│  - UI Components                        │
+└─────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────┐
+│     Lógica de Negocio (hooks/, lib/)   │
+│  - Custom Hooks (useAuth)               │
+│  - Utilities                            │
+│  - Validaciones                         │
+└─────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────┐
+│     Datos (data/)                       │
+│  - Supabase Client                      │
+│  - Auth Mock                            │
+│  - (Future: API Services)               │
+└─────────────────────────────────────────┘
+```
+
+### Tecnologías Core
+
+| Categoría | Tecnología | Versión | Propósito |
+|-----------|-----------|---------|-----------|
+| Framework | Next.js | 15.0.3 | App Router, RSC, SSR |
+| Language | TypeScript | 5.3.3 | Type Safety |
+| Styling | TailwindCSS | 3.4.1 | Utility CSS |
+| UI Library | shadcn/ui | Latest | Component System |
+| Forms | React Hook Form | 7.49.3 | Form Management |
+| Validation | Zod | 3.22.4 | Schema Validation |
+| Backend | Supabase | 2.39.3 | Auth & Database |
+| Logging | Pino | 8.17.2 | Structured Logs |
+
+---
+
+## 📂 Estructura de Directorios
+
+### Descripción Detallada
+
+```
+aflow-portal/
+│
+├── app/                          # App Router de Next.js 15
+│   ├── (public)/                 # Route Group: Rutas públicas
+│   │   ├── page.tsx              # Landing Page (/)
+│   │   └── login/
+│   │       └── page.tsx          # Login Page (/login)
+│   │
+│   ├── (private)/                # Route Group: Rutas privadas
+│   │   ├── layout.tsx            # Layout con auth guard
+│   │   └── page.tsx              # Home privado (/)
+│   │
+│   ├── layout.tsx                # Root layout (fuentes, metadata)
+│   └── globals.css               # Estilos globales + Tailwind
+│
+├── components/
+│   ├── layout/                   # Componentes de layout
+│   │   ├── Header.tsx            # Header público
+│   │   ├── Footer.tsx            # Footer
+│   │   └── NavPublic.tsx         # Navegación pública
+│   │
+│   └── ui/                       # shadcn/ui components
+│       ├── button.tsx
+│       ├── input.tsx
+│       ├── card.tsx
+│       ├── form.tsx
+│       ├── label.tsx
+│       └── separator.tsx
+│
+├── hooks/
+│   └── useAuth.ts                # Hook de autenticación
+│
+├── lib/
+│   ├── utils.ts                  # Utilidades generales
+│   ├── env.ts                    # Variables de entorno
+│   └── pino-client.ts            # Logger configurado
+│
+├── data/
+│   └── supabase/
+│       ├── client.ts             # Cliente Supabase
+│       └── auth.ts               # Lógica de auth mock
+│
+├── types/
+│   └── index.d.ts                # Tipos TypeScript globales
+│
+├── public/
+│   ├── logo-aflow.svg            # Logo corporativo
+│   └── favicon.ico               # Favicon
+│
+├── .env.local                    # Variables de entorno (local)
+├── .env.example                  # Template de .env
+├── .gitignore                    # Git ignore
+├── components.json               # Config de shadcn/ui
+├── next.config.ts                # Config de Next.js
+├── package.json                  # Dependencies
+├── postcss.config.js             # PostCSS
+├── tailwind.config.ts            # Tailwind config
+├── tsconfig.json                 # TypeScript config
+└── README.md                     # Documentación principal
+```
+
+---
+
+## 🔐 Sistema de Autenticación
+
+### Flujo de Autenticación Mock
+
+```mermaid
+graph TD
+    A[Usuario ingresa a /login] --> B[Completa formulario]
+    B --> C{Validación Zod}
+    C -->|Error| D[Muestra errores]
+    C -->|Válido| E[Llama a useAuth.login]
+    E --> F[loginMock en auth.ts]
+    F --> G{Credenciales correctas?}
+    G -->|No| H[Error: Credenciales inválidas]
+    G -->|Sí| I[Crea Session]
+    I --> J[Guarda en localStorage]
+    J --> K[Redirige a /]
+    K --> L[Layout Privado verifica auth]
+    L -->|Auth OK| M[Muestra página privada]
+    L -->|No auth| N[Redirige a /login]
+```
+
+### Componentes del Sistema Auth
+
+#### 1. **useAuth Hook** (`hooks/useAuth.ts`)
+
+Hook principal para gestión de autenticación:
 
 ```typescript
-// lib/permissions.ts
-export const ROLE_PERMISSIONS: Record<UserRole, Module[]> = {
-  admin: [
-    "dashboard", "cotizacion", "comex", "guardia",
-    "finanzas", "clientes", "micuenta", "contratante"
-  ],
-  analista: ["dashboard", "cotizacion", "clientes", "micuenta"],
-  operador: ["dashboard", "micuenta"],
-};
+const { 
+  user,              // Usuario actual
+  session,           // Sesión activa
+  isLoading,         // Estado de carga
+  isAuthenticated,   // Boolean de auth
+  login,             // Función login
+  logout,            // Función logout
+  checkAuth          // Verificar auth
+} = useAuth();
 ```
 
-### Flujo de Autenticación
+#### 2. **Auth Mock** (`data/supabase/auth.ts`)
 
+Funciones de autenticación simulada:
+
+- `loginMock()` - Valida credenciales y crea sesión
+- `getSession()` - Obtiene sesión de localStorage
+- `logoutMock()` - Limpia sesión
+- `isAuthenticated()` - Verifica estado de auth
+
+#### 3. **Credenciales de Prueba**
+
+```typescript
+Email: test@aflow.cl
+Password: 123456
 ```
-1. Usuario ingresa credenciales en /login
-2. POST /api/auth/login valida contra MOCK_USERS
-3. Si válido: crea sesión en localStorage con expiración 24h
-4. Redirige a /dashboard
-5. Layout privado verifica sesión en cada request
-6. Si sesión válida: renderiza contenido
-7. Si sesión inválida: redirige a /login
+
+Usuario mock completo:
+
+```typescript
+{
+  id: "1",
+  email: "test@aflow.cl",
+  nombre: "Usuario",
+  apellido: "Demo",
+  role: "admin",
+  cargo: "Administrador",
+  departamento: "TI"
+}
 ```
 
 ### Protección de Rutas
 
+El layout privado (`app/(private)/layout.tsx`) verifica autenticación:
+
 ```typescript
-// app/(private)/layout.tsx
-export default function PrivateLayout({ children }: PrivateLayoutProps) {
-  const { user, loading } = useAuth();
+"use client";
+
+export default function PrivateLayout({ children }) {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, isLoading]);
+
+  // ... rest of component
+}
+```
+
+### Migración a Supabase Auth Real
+
+Para reemplazar el mock con Supabase real:
+
+1. **Actualizar `data/supabase/auth.ts`:**
+
+```typescript
+import { supabase } from './client';
+
+export async function login(credentials: LoginCredentials) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: credentials.email,
+    password: credentials.password,
+  });
   
-  if (loading) return <LoadingSpinner />;
-  if (!user) redirect("/login");
-  
+  return { session: data.session, error: error?.message };
+}
+
+export async function logout() {
+  await supabase.auth.signOut();
+}
+
+export function getSession() {
+  return supabase.auth.getSession();
+}
+```
+
+2. **Actualizar variables de entorno:**
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbG...
+```
+
+3. **Configurar políticas RLS en Supabase**
+
+---
+
+## 🎨 Componentes UI
+
+### shadcn/ui Components
+
+Todos los componentes siguen el patrón de shadcn/ui: copiables, customizables, accesibles.
+
+#### Button
+
+```tsx
+import { Button } from "@/components/ui/button";
+
+<Button variant="default">Click me</Button>
+<Button variant="destructive">Delete</Button>
+<Button variant="outline">Outline</Button>
+<Button variant="ghost">Ghost</Button>
+```
+
+#### Card
+
+```tsx
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+
+<Card>
+  <CardHeader>
+    <CardTitle>Título</CardTitle>
+  </CardHeader>
+  <CardContent>
+    Contenido
+  </CardContent>
+</Card>
+```
+
+#### Form (con React Hook Form + Zod)
+
+```tsx
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+
+const schema = z.object({
+  email: z.string().email(),
+});
+
+function MyForm() {
+  const form = useForm({
+    resolver: zodResolver(schema),
+  });
+
   return (
-    <div className="flex">
-      <Sidebar />
-      <main>{children}</main>
-    </div>
+    <Form {...form}>
+      <FormField
+        control={form.control}
+        name="email"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Email</FormLabel>
+            <FormControl>
+              <Input {...field} />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+    </Form>
   );
 }
 ```
 
----
+### Layout Components
 
-## 📊 Modelo de Datos
+#### Header
 
-### Entidades Principales
+- Logo AFLOW
+- Navegación pública
+- Sticky positioning
+- Backdrop blur effect
 
-#### User (Usuario del Sistema)
-```typescript
-interface User {
-  id: string;
-  email: string;
-  nombre: string;
-  apellido: string;
-  cargo: string;
-  departamento: string;
-  role: "admin" | "analista" | "operador";
-  avatar?: string;
-  createdAt: string;
-}
-```
+#### Footer
 
-#### Contratante (Cliente/Proveedor)
-```typescript
-interface Contratante {
-  id: string;
-  tipo: "natural" | "juridica";      // Persona Natural o Jurídica
-  nombreCompleto?: string;            // Solo para tipo "natural"
-  razonSocial?: string;               // Solo para tipo "juridica"
-  rut: string;                        // RUT chileno con dígito verificador
-  correo: string;
-  telefono: string;
-  direccion: string;
-  activo: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-```
+- Copyright dinámico
+- Links de utilidad
+- Responsive layout
 
-#### MenuItem (Menú de Navegación)
-```typescript
-interface MenuItem {
-  id: string;
-  label: string;
-  icon: LucideIcon;
-  href: string;
-  module: Module;
-  group: "principal" | "operaciones" | "gestion" | "usuario";
-  order: number;
-}
-```
+#### NavPublic
 
-### Relaciones
-
-```
-User 1:N Contratante (createdBy)
-User 1:N UserPreferences (settings)
-User M:N Module (via ROLE_PERMISSIONS)
-```
+- Link "Inicio"
+- Botón CTA "Iniciar Sesión"
 
 ---
 
-## 🎨 Sistema de Diseño AFLOW
+## 🎨 Estilos y Diseño
 
-### Paleta de Colores Corporativa
+### Paleta de Colores AFLOW
 
-```css
-/* Colores Primarios */
---aflow-orange: #FF7A00;    /* Solo para CTAs y acciones principales */
---aflow-black: #000000;     /* Texto principal, fondos oscuros */
---aflow-white: #FFFFFF;     /* Fondos claros, texto sobre oscuro */
+Definida en `tailwind.config.ts`:
 
-/* Grises Estructurales */
---gray-50: #FAFAFA;         /* Fondos sutiles */
---gray-100: #F5F5F5;        /* Hover states */
---gray-200: #EDEDED;        /* Bordes suaves */
---gray-300: #D4D4D4;        /* Bordes definidos */
---gray-500: #737373;        /* Texto secundario */
---gray-700: #404040;        /* Texto terciario */
---gray-900: #1A1A1A;        /* Casi negro */
+```typescript
+colors: {
+  aflow: {
+    orange: "#FF7A00",  // Color principal de marca
+    black: "#000000",
+    white: "#FFFFFF",
+  },
+  gray: {
+    dark: "#1A1A1A",    // Texto principal
+    medium: "#4D4D4D",   // Texto secundario
+    light: "#EDEDED",    // Fondos
+  },
+}
+```
 
-/* Estados Semánticos */
---success: #10B981;         /* Verde éxito */
---warning: #F59E0B;         /* Amarillo advertencia */
---error: #EF4444;           /* Rojo error */
---info: #3B82F6;            /* Azul información */
+### Uso en Componentes
+
+```tsx
+<div className="bg-aflow-orange text-white">
+  CTA Button
+</div>
+
+<p className="text-gray-dark">
+  Texto principal
+</p>
+
+<button className="hover:text-aflow-orange">
+  Hover effect
+</button>
 ```
 
 ### Tipografía
 
-**Familias:**
-- **Poppins** (Google Fonts) - Títulos, encabezados, navegación
-- **Inter** (Google Fonts) - Contenido, formularios, tablas
+Fuentes configuradas en `app/layout.tsx`:
 
-**Escalas:**
-```css
-/* Títulos */
-.h1 { font-size: 56px; font-weight: 700; line-height: 1.2; font-family: Poppins; }
-.h2 { font-size: 36px; font-weight: 600; line-height: 1.3; font-family: Poppins; }
-.h3 { font-size: 28px; font-weight: 500; line-height: 1.4; font-family: Poppins; }
+- **Poppins:** Títulos y encabezados (weights: 400, 500, 600, 700)
+- **Inter:** Texto de cuerpo
 
-/* Cuerpo */
-.body-large { font-size: 18px; font-weight: 400; line-height: 1.6; font-family: Inter; }
-.body-base { font-size: 16px; font-weight: 400; line-height: 1.6; font-family: Inter; }
-.body-small { font-size: 14px; font-weight: 400; line-height: 1.5; font-family: Inter; }
+Clases Tailwind personalizadas:
+
+```typescript
+fontSize: {
+  h1: ["3.5rem", { lineHeight: "1.2", fontWeight: "700" }],  // 56px
+  h2: ["2.25rem", { lineHeight: "1.3", fontWeight: "600" }], // 36px
+  h3: ["1.75rem", { lineHeight: "1.4", fontWeight: "500" }], // 28px
+  body: ["1.125rem", { lineHeight: "1.6", fontWeight: "400" }], // 18px
+  small: ["0.875rem", { lineHeight: "1.5", fontWeight: "400" }], // 14px
+}
 ```
 
-### Componentes shadcn/ui Integrados
+Uso:
 
-| Componente | Uso Principal | Variante AFLOW |
-|------------|---------------|----------------|
-| Button | Acciones, formularios | `variant="aflow"` (naranja) |
-| Input | Campos de texto | Bordes gray-300, focus:orange |
-| Card | Contenedores de contenido | Shadow-sm, rounded-lg |
-| Dialog | Modales (600px/fullscreen) | Responsive automático |
-| Select | Dropdowns | Chevron naranja |
-| Tabs | Navegación de contenido | Active state naranja |
-| Table | Datos tabulares | Striped rows, hover:gray-50 |
-| Badge | Estados, etiquetas | `variant="default"`, `"outline"` |
-| Switch | Toggles binarios | Checked:orange |
-
-### Espaciado y Layout
-
-**Contenedores:**
-```css
-.container { max-width: 1440px; padding: 0 24px; }  /* Mobile */
-.container { padding: 0 32px; }                      /* Desktop */
+```tsx
+<h1 className="text-h1 font-poppins">Título Grande</h1>
+<p className="text-body font-inter">Párrafo de texto</p>
 ```
 
-**Cards:**
+### CSS Variables (shadcn/ui)
+
+Definidas en `app/globals.css`:
+
 ```css
-.card { padding: 24px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+:root {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 3.9%;
+  --primary: 24 100% 50%;       /* AFLOW Orange */
+  --primary-foreground: 0 0% 100%;
+  /* ... más variables */
+}
 ```
 
-**Forms:**
-```css
-.form-field { margin-bottom: 20px; }
-.input { height: 44px; padding: 0 16px; }
-.button { height: 40px; padding: 0 24px; }
+Uso:
+
+```tsx
+<div className="bg-primary text-primary-foreground">
+  Usando variables CSS
+</div>
 ```
 
 ### Responsividad
 
-**Breakpoints:**
-```typescript
-const breakpoints = {
-  sm: 640px,   // Mobile landscape
-  md: 768px,   // Tablets
-  lg: 1024px,  // Desktop
-  xl: 1280px,  // Large desktop
-  "2xl": 1536px // Extra large
-};
-```
+Breakpoints de Tailwind:
 
-**Estrategia Mobile-First:**
+- **sm:** 640px
+- **md:** 768px
+- **lg:** 1024px
+- **xl:** 1280px
+- **2xl:** 1400px (custom en container)
+
+Ejemplo:
+
 ```tsx
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-  {/* 1 columna mobile, 2 tablet, 3 desktop */}
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+  {/* Mobile: 1 col, Tablet: 2 cols, Desktop: 3 cols */}
 </div>
 ```
 
 ---
 
-## 🔧 Utilidades y Helpers
+## 🛠️ Utilidades
 
-### Funciones Esenciales (`lib/utils.ts`)
+### `lib/utils.ts`
 
-#### 1. `formatRut(rut: string): string`
-Formatea RUT chileno a formato visual `XX.XXX.XXX-X`:
+#### cn() - Class Name Merger
 
 ```typescript
-formatRut("123456789"); // "12.345.678-9"
+import { cn } from "@/lib/utils";
+
+<div className={cn(
+  "base-class",
+  isActive && "active-class",
+  "hover:opacity-80"
+)}>
 ```
 
-#### 2. `validateRut(rut: string): boolean`
-Valida RUT chileno con algoritmo módulo 11:
+#### formatRut() - Formateo de RUT Chileno
 
 ```typescript
-validateRut("12.345.678-9"); // true/false
+import { formatRut } from "@/lib/utils";
+
+formatRut("123456789"); 
+// Output: "12.345.678-9"
 ```
 
-**Algoritmo módulo 11:**
+#### validateRut() - Validación Módulo 11
+
 ```typescript
-// 1. Invertir dígitos
-// 2. Multiplicar por serie 2,3,4,5,6,7,2,3...
-// 3. Sumar productos
-// 4. Módulo 11 de la suma
-// 5. 11 - módulo = dígito verificador
-// 6. Si resultado=11 → 0, si=10 → K
+import { validateRut } from "@/lib/utils";
+
+validateRut("12.345.678-9");
+// Output: true/false
 ```
 
-#### 3. `debounce(fn: Function, ms: number)`
-Retrasa ejecución de función para optimizar búsquedas:
+#### debounce() - Rate Limiting
 
 ```typescript
-const debouncedSearch = debounce((query: string) => {
-  fetchResults(query);
-}, 300);
+import { debounce } from "@/lib/utils";
+
+const handleSearch = debounce((query: string) => {
+  // API call
+}, 500);
 ```
 
-#### 4. `cn(...inputs: ClassValue[])`
-Combina clases Tailwind con condicionales:
+#### formatDate() - Fecha Chilena
 
 ```typescript
-cn("text-base", isActive && "font-bold", className);
+import { formatDate } from "@/lib/utils";
+
+formatDate(new Date());
+// Output: "09/12/2025"
 ```
 
-### Constantes Globales (`lib/constants.ts`)
+#### formatCurrency() - Pesos Chilenos
 
 ```typescript
-export const ROUTES = {
-  PUBLIC: {
-    LOGIN: "/login",
-  },
-  PRIVATE: {
-    DASHBOARD: "/dashboard",
-    MODULES: {
-      MI_CUENTA: "/modules/micuenta",
-      CONTRATANTE: "/modules/contratante",
-      // ...
-    },
-  },
-};
+import { formatCurrency } from "@/lib/utils";
 
-export const MESSAGES = {
-  SUCCESS: {
-    LOGIN: "Sesión iniciada correctamente",
-    SAVE: "Cambios guardados exitosamente",
-  },
-  ERROR: {
-    GENERIC: "Ocurrió un error inesperado",
-    NETWORK: "Error de conexión",
-  },
-};
-
-export const MOCK_CREDENTIALS = {
-  email: "test@aflow.cl",
-  password: "123456",
-};
+formatCurrency(1500000);
+// Output: "$1.500.000"
 ```
 
----
+### `lib/env.ts`
 
-## 📡 API Routes y Endpoints
-
-### Estructura de Respuesta Estándar
+Validación de variables de entorno:
 
 ```typescript
-interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  error?: {
-    code: string;
-    message: string;
-    details?: any;
-  };
-  timestamp: string;
-}
+import { env, validateEnv } from "@/lib/env";
 
-// Factory functions
-ApiResponse.success(data) → { success: true, data, timestamp }
-ApiResponse.error(message, code) → { success: false, error: {...}, timestamp }
+// Uso
+const supabaseUrl = env.supabase.url;
+const appUrl = env.app.url;
+
+// Validación
+validateEnv(); // Retorna true/false
 ```
 
-### Endpoints Implementados
+### `lib/pino-client.ts`
 
-#### Autenticación
+Logger estructurado:
 
-**POST `/api/auth/login`**
 ```typescript
-// Request
-{ email: string, password: string }
+import { log } from "@/lib/pino-client";
 
-// Response 200
-{ success: true, data: { user: User, token: string } }
-
-// Response 401
-{ success: false, error: { code: "INVALID_CREDENTIALS", message: "..." } }
-```
-
-**POST `/api/auth/logout`**
-```typescript
-// Response 200
-{ success: true, data: { message: "Sesión cerrada" } }
-```
-
-**GET `/api/auth/session`**
-```typescript
-// Response 200
-{ success: true, data: { user: User } }
-
-// Response 401
-{ success: false, error: { code: "UNAUTHORIZED", message: "..." } }
-```
-
-#### Menú Dinámico
-
-**GET `/api/menu`**
-```typescript
-// Response 200
-{
-  success: true,
-  data: {
-    items: MenuItem[],
-    groups: {
-      principal: MenuItem[],
-      operaciones: MenuItem[],
-      gestion: MenuItem[],
-      usuario: MenuItem[]
-    }
-  }
-}
-```
-
-#### Contratante (CRUD)
-
-**GET `/api/contratante?search=keyword&tipo=natural&activo=true`**
-```typescript
-// Response 200
-{ success: true, data: Contratante[] }
-```
-
-**POST `/api/contratante`**
-```typescript
-// Request
-{ tipo: "natural", nombreCompleto: "...", rut: "...", ... }
-
-// Response 201
-{ success: true, data: Contratante }
-```
-
-**GET `/api/contratante/:id`**
-```typescript
-// Response 200
-{ success: true, data: Contratante }
-
-// Response 404
-{ success: false, error: { code: "NOT_FOUND", message: "..." } }
-```
-
-**PUT `/api/contratante/:id`**
-```typescript
-// Request
-{ nombreCompleto: "...", ... }
-
-// Response 200
-{ success: true, data: Contratante }
-```
-
-**DELETE `/api/contratante/:id`**
-```typescript
-// Response 200
-{ success: true, data: { message: "Eliminado exitosamente" } }
-```
-
-#### Health Check
-
-**GET `/api/healthcheck`**
-```typescript
-// Response 200
-{
-  success: true,
-  data: {
-    status: "healthy",
-    timestamp: "2025-12-15T10:30:00Z",
-    version: "1.0.0"
-  }
-}
+log.info("Usuario autenticado", { userId: "123" });
+log.error("Error en login", new Error("Invalid credentials"));
+log.warn("Sesión por expirar");
+log.debug("Debug info");
 ```
 
 ---
 
-## 🔍 Sistema de Logging
+## 🗺️ Flujo de Navegación
 
-### Configuración Pino
+### Rutas Públicas
 
-```typescript
-// core/logging/logger.ts
-import pino from "pino";
+| Ruta | Componente | Descripción |
+|------|-----------|-------------|
+| `/` | `app/(public)/page.tsx` | Landing Page con Hero, Features, CTA |
+| `/login` | `app/(public)/login/page.tsx` | Formulario de autenticación |
 
-export const appLogger = pino({
-  level: process.env.LOG_LEVEL || "info",
-  transport: {
-    target: "pino-pretty",
-    options: {
-      colorize: true,
-      translateTime: "SYS:standard",
-      ignore: "pid,hostname",
-    },
-  },
-});
+### Rutas Privadas
+
+| Ruta | Componente | Descripción |
+|------|-----------|-------------|
+| `/` (autenticado) | `app/(private)/page.tsx` | Página maestra privada |
+
+### Flujo Completo
+
+1. **Usuario no autenticado accede a `/`:**
+   - Ve Landing Page pública
+   - Click en "Iniciar Sesión" → `/login`
+
+2. **Usuario en `/login`:**
+   - Completa formulario
+   - Validación con Zod
+   - Submit → `useAuth.login()`
+   - Si éxito → redirect a `/` (private)
+   - Si error → muestra toast de error
+
+3. **Usuario autenticado en `/`:**
+   - Layout privado verifica sesión
+   - Si válida → muestra página privada
+   - Si inválida → redirect a `/login`
+
+4. **Usuario cierra sesión:**
+   - Click en "Cerrar Sesión"
+   - `useAuth.logout()`
+   - Limpia localStorage
+   - Redirect a `/login`
+
+---
+
+## 🚀 Deployment
+
+### Despliegue en Vercel (Recomendado)
+
+#### Paso 1: Preparar Repositorio
+
+```bash
+git add .
+git commit -m "feat: AFLOW Portal base ready for deployment"
+git push origin main
 ```
 
-### Métodos Disponibles
+#### Paso 2: Importar en Vercel
 
-```typescript
-// Logging general
-appLogger.info("Message", { metadata });
-appLogger.warn("Warning", { metadata });
-appLogger.error("Error", { error });
-appLogger.debug("Debug info");
+1. Ve a [vercel.com/new](https://vercel.com/new)
+2. Conecta tu cuenta de GitHub
+3. Selecciona el repositorio `front-sistem-portal-aflow-nextjs`
+4. Click "Import"
 
-// Logging específico de dominio
-appLogger.auth("Login attempt", { email, success: true });
-appLogger.api("GET", "/api/users", 200, { duration: 150 });
-appLogger.db("Query", "users", { action: "SELECT", rows: 10 });
-appLogger.user("Profile updated", { userId, fields: ["nombre", "email"] });
+#### Paso 3: Configuración Automática
+
+Vercel detecta automáticamente:
+- ✅ Framework: Next.js
+- ✅ Build Command: `next build`
+- ✅ Output Directory: `.next`
+- ✅ Install Command: `npm install`
+
+#### Paso 4: Variables de Entorno (Opcional)
+
+Si usas Supabase real, agrega en Vercel Dashboard:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbG...
+NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
 ```
 
-### Middlewares de Logging
+#### Paso 5: Deploy
 
-```typescript
-// core/logging/middlewares.ts
+Click "Deploy" → Vercel compila y despliega automáticamente.
 
-// Wrap API routes
-export async function withLogging<T>(
-  operation: string,
-  fn: () => Promise<T>
-): Promise<T> {
-  const start = Date.now();
-  try {
-    const result = await fn();
-    appLogger.info(`${operation} completed`, { duration: Date.now() - start });
-    return result;
-  } catch (error) {
-    appLogger.error(`${operation} failed`, { error, duration: Date.now() - start });
-    throw error;
-  }
-}
+### Verificación Post-Deploy
 
-// Usage
-const contratantes = await withLogging("Fetch contratantes", async () => {
-  return await contratanteService.getAll();
-});
+1. **Homepage:** `https://your-domain.vercel.app/`
+2. **Login:** `https://your-domain.vercel.app/login`
+3. **Autenticación:** Probar con `test@aflow.cl` / `123456`
+4. **Área privada:** Verificar redirección post-login
+
+### CI/CD Automático
+
+Cada push a `main` dispara deploy automático en Vercel:
+
+```bash
+git push origin main  # Auto-deploy
+```
+
+Para crear preview deployments:
+
+```bash
+git checkout -b feature/nueva-funcionalidad
+git push origin feature/nueva-funcionalidad  # Preview URL generada
 ```
 
 ---
 
-## 🧩 Módulos del Sistema
+## 🔧 Extensión del Proyecto
 
-### 1. Dashboard
+### Roadmap de Módulos Futuros
 
-**Propósito:** Vista principal con métricas y acceso rápido
+#### 1. Dashboard Module
 
-**Componentes:**
-- Tarjeta de bienvenida con gradiente naranja
-- 4 Cards de estadísticas (cotizaciones, clientes, ingresos, operaciones)
-- Lista de actividad reciente (últimas 5 acciones)
-- Grid de acciones rápidas (shortcuts a módulos)
-
-**Datos Mostrados:**
-- Estadísticas con tendencias (↑ positivo, ↓ negativo)
-- Timestamps relativos ("Hace 5 minutos")
-- Badges de estado
-
-### 2. Mi Cuenta
-
-**Propósito:** Gestión de perfil, contraseña y preferencias del usuario
-
-**Secciones (Tabs):**
-
-#### Perfil
-- Campos: nombre, apellido, email, cargo, departamento
-- Validación: email formato válido, campos obligatorios
-- Acción: Guardar cambios
-
-#### Contraseña
-- Campos: contraseña actual, nueva contraseña, confirmar contraseña
-- Validación: mínimo 6 caracteres, contraseñas coinciden
-- Acción: Cambiar contraseña
-
-#### Preferencias
-- Notificaciones: Email, Push, Sistema (Switches)
-- Idioma: Español (Select)
-- Zona Horaria: Santiago/Chile (Select)
-- Tema: Claro/Oscuro (próximamente)
-
-**Hooks Usados:**
-```typescript
-const { updateProfile, changePassword, getPreferences, updatePreferences } = useMiCuenta();
+```
+app/(private)/
+└── dashboard/
+    ├── page.tsx              # Vista del dashboard
+    ├── components/
+    │   ├── MetricCard.tsx
+    │   ├── Chart.tsx
+    │   └── RecentActivity.tsx
+    └── hooks/
+        └── useDashboardData.ts
 ```
 
-### 3. Contratante (CRUD Completo)
+**Features:**
+- Métricas en tiempo real
+- Gráficos con Recharts
+- Tarjetas de resumen
+- Actividad reciente
 
-**Propósito:** Gestión de clientes y proveedores
+#### 2. Módulo Contratante (CRUD)
 
-**Funcionalidades:**
-- ✅ Crear contratante (modal)
-- ✅ Listar todos con tabla responsiva
-- ✅ Buscar por nombre/RUT/email
-- ✅ Filtrar por tipo (natural/jurídica)
-- ✅ Filtrar por estado (activo/inactivo)
-- ✅ Editar contratante (modal)
-- ✅ Eliminar con confirmación
+```
+app/(private)/
+└── contratante/
+    ├── page.tsx              # Lista de contratantes
+    ├── nuevo/
+    │   └── page.tsx          # Crear contratante
+    ├── [id]/
+    │   ├── page.tsx          # Ver detalle
+    │   └── editar/
+    │       └── page.tsx      # Editar contratante
+    └── components/
+        ├── ContratanteForm.tsx
+        ├── ContratanteTable.tsx
+        └── ContratanteFilters.tsx
+```
 
-**Validaciones Implementadas:**
+**Features:**
+- CRUD completo
+- Validación de RUT
+- Búsqueda y filtros
+- Paginación
+- Exportar a Excel
+
+#### 3. API Routes
+
+```
+app/api/
+├── auth/
+│   ├── login/route.ts
+│   ├── logout/route.ts
+│   └── session/route.ts
+├── contratante/
+│   ├── route.ts              # GET, POST
+│   └── [id]/
+│       └── route.ts          # GET, PUT, DELETE
+└── healthcheck/
+    └── route.ts
+```
+
+**Features:**
+- RESTful API
+- Middleware de autenticación
+- Rate limiting
+- Error handling
+
+#### 4. Sistema de Roles y Permisos
 
 ```typescript
-// RUT Chileno
-validateRut(rut) // Algoritmo módulo 11
-
-// Email
-/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-
-// Teléfono
-/^\+?[0-9]{9,15}$/.test(telefono)
-
-// Campos obligatorios según tipo
-if (tipo === "natural") {
-  required: ["nombreCompleto", "rut", "correo", "telefono"]
-} else {
-  required: ["razonSocial", "rut", "correo", "telefono"]
+// types/permissions.ts
+export interface Permission {
+  module: string;
+  actions: ("read" | "create" | "update" | "delete")[];
 }
+
+export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
+  admin: [
+    { module: "contratante", actions: ["read", "create", "update", "delete"] },
+    { module: "cotizacion", actions: ["read", "create", "update", "delete"] },
+  ],
+  analista: [
+    { module: "contratante", actions: ["read", "create", "update"] },
+    { module: "cotizacion", actions: ["read", "create"] },
+  ],
+  operador: [
+    { module: "contratante", actions: ["read"] },
+  ],
+};
 ```
 
-**Componentes Clave:**
+#### 5. Testing Suite
 
-```typescript
-// components/ContratanteTable.tsx
-- Búsqueda con debounce 300ms
-- Select para filtro tipo
-- Select para filtro activo/inactivo
-- Acciones: Editar (icon lápiz), Eliminar (icon basura)
-- Responsive: scroll horizontal en mobile
-
-// components/ContratanteForm.tsx
-- Campos condicionales según tipo
-- Validación en tiempo real
-- Switch para estado activo
-- Textarea para dirección
-
-// components/ContratanteModal.tsx
-- Dialog de shadcn/ui
-- 600px en desktop, fullscreen en mobile
-- Footer con botones Cancelar/Guardar
+```
+__tests__/
+├── unit/
+│   ├── utils.test.ts
+│   ├── auth.test.ts
+│   └── components/
+│       ├── Button.test.tsx
+│       └── Card.test.tsx
+├── integration/
+│   ├── login.test.tsx
+│   └── contratante-crud.test.tsx
+└── e2e/
+    └── user-journey.spec.ts
 ```
 
-### 4-8. Módulos Placeholder
+**Setup:**
 
-**Módulos con estructura base:**
-- Cotización (`/modules/cotizacion`)
-- Comex (`/modules/comex`)
-- Guardia (`/modules/guardia`)
-- Finanzas (`/modules/finanzas`)
-- Clientes (`/modules/clientes`)
+```bash
+npm install -D jest @testing-library/react @testing-library/jest-dom
+npm install -D @playwright/test  # E2E tests
+```
 
-**Estructura común:**
+### Patrón para Agregar Nuevos Módulos
+
+1. **Crear estructura de directorios:**
+
+```bash
+mkdir -p app/(private)/nuevo-modulo
+mkdir -p app/(private)/nuevo-modulo/components
+```
+
+2. **Crear página principal:**
+
 ```tsx
-export default function ModulePlaceholderPage() {
+// app/(private)/nuevo-modulo/page.tsx
+export default function NuevoModuloPage() {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <ModuleIcon className="h-10 w-10 text-aflow-orange" />
-        <h1 className="text-h2">Nombre del Módulo</h1>
-      </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Módulo en Desarrollo</CardTitle>
-          <CardDescription>
-            Este módulo estará disponible próximamente
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ul className="list-disc list-inside space-y-2">
-            <li>Funcionalidad 1</li>
-            <li>Funcionalidad 2</li>
-            <li>Funcionalidad 3</li>
-          </ul>
-        </CardContent>
-        <CardFooter>
-          <Button variant="aflow">Configurar Módulo</Button>
-        </CardFooter>
-      </Card>
+    <div>
+      <h1>Nuevo Módulo</h1>
     </div>
   );
 }
 ```
 
----
+3. **Agregar navegación:**
 
-## 🚀 Próximos Pasos Sugeridos
-
-### Fase 2: Implementación de Módulos Restantes
-
-1. **Cotización**
-   - CRUD completo de cotizaciones
-   - PDF generation con React-PDF
-   - Estados: Borrador, Enviado, Aprobado, Rechazado
-   - Versionamiento de cotizaciones
-
-2. **Comex (Comercio Exterior)**
-   - Gestión de importaciones/exportaciones
-   - Tracking de documentos aduaneros
-   - Cálculo de aranceles
-   - Integración con API de aduanas
-
-3. **Guardia**
-   - Turnos de guardias
-   - Calendario de disponibilidad
-   - Notificaciones de turnos
-   - Reportes de incidencias
-
-4. **Finanzas**
-   - Dashboard de ingresos/egresos
-   - Facturación electrónica (SII Chile)
-   - Conciliación bancaria
-   - Reportes financieros
-
-5. **Clientes (CRM)**
-   - Base de datos de clientes
-   - Historial de interacciones
-   - Segmentación
-   - Campañas de marketing
-
-### Fase 3: Mejoras de Infraestructura
-
-- **Migración a Supabase Real:**
-  - Configurar tablas PostgreSQL
-  - Row Level Security (RLS)
-  - Real-time subscriptions
-
-- **Testing:**
-  - Jest + React Testing Library (unit tests)
-  - Playwright (E2E tests)
-  - Coverage > 80%
-
-- **CI/CD:**
-  - GitHub Actions
-  - Deploy automático a Vercel
-  - Preview deployments
-
-- **Optimizaciones:**
-  - React Query para caché
-  - Optimistic updates
-  - Code splitting por módulo
-  - Image optimization
-
----
-
-## 📚 Glosario de Términos
-
-| Término | Definición |
-|---------|------------|
-| **AFLOW** | Nombre de la empresa/portal |
-| **Contratante** | Cliente o proveedor que firma contratos (Persona Natural o Jurídica) |
-| **Comex** | Comercio Exterior - módulo para operaciones de importación/exportación |
-| **RUT** | Rol Único Tributario - identificador fiscal chileno |
-| **Módulo 11** | Algoritmo matemático para validar dígito verificador del RUT |
-| **Clean Architecture** | Patrón arquitectónico de Robert C. Martin (Uncle Bob) |
-| **RBAC** | Role-Based Access Control - control de acceso basado en roles |
-| **shadcn/ui** | Colección de componentes UI reutilizables para React |
-| **Server Component** | Componente React que se renderiza en el servidor (Next.js 15) |
-| **API Route** | Endpoint serverless en Next.js bajo `/app/api` |
-
----
-
-## 🔗 Referencias y Recursos
-
-### Documentación Oficial
-- [Next.js 15 Docs](https://nextjs.org/docs)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [TailwindCSS](https://tailwindcss.com/docs)
-- [shadcn/ui](https://ui.shadcn.com/)
-- [Supabase Docs](https://supabase.com/docs)
-- [Pino Logging](https://getpino.io/)
-
-### Artículos Clave
-- [Clean Architecture - Uncle Bob](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-- [Next.js App Router Best Practices](https://nextjs.org/docs/app/building-your-application/routing)
-- [TypeScript Best Practices](https://www.typescriptlang.org/docs/handbook/declaration-files/do-s-and-don-ts.html)
-
----
-
-## 👨‍💻 Contexto para Nuevos Desarrolladores
-
-### Onboarding Checklist
-
-- [ ] Leer README.md completo
-- [ ] Leer project-description.md (este documento)
-- [ ] Ejecutar `npm install` y `npm run dev`
-- [ ] Explorar código en este orden:
-  1. `lib/constants.ts` - Entender constantes globales
-  2. `types/index.d.ts` - Revisar tipos TypeScript
-  3. `app/(private)/layout.tsx` - Entender flujo de autenticación
-  4. `components/shared/Sidebar.tsx` - Ver menú dinámico
-  5. `app/(private)/modules/contratante/` - Estudiar módulo completo
-- [ ] Probar login con `test@aflow.cl` / `123456`
-- [ ] Navegar todos los módulos
-- [ ] Revisar logs en consola del navegador y terminal
-- [ ] Leer código de `hooks/useContratante.ts` como ejemplo de patrón
-
-### Convenciones de Commits
-
-```bash
-# Formato: tipo(scope): mensaje
-
-feat(contratante): add export to Excel functionality
-fix(auth): correct session expiration validation
-docs(readme): update installation instructions
-style(ui): improve button hover states
-refactor(services): extract common API logic
-test(contratante): add unit tests for validation
-chore(deps): update Next.js to 15.0.4
+```tsx
+// components/layout/Sidebar.tsx (crear si no existe)
+<nav>
+  <Link href="/dashboard">Dashboard</Link>
+  <Link href="/nuevo-modulo">Nuevo Módulo</Link>
+</nav>
 ```
 
-### Workflow de Desarrollo
+4. **Crear tipos:**
 
-```bash
-# 1. Crear rama feature
-git checkout -b feature/modulo-cotizacion
+```typescript
+// types/nuevo-modulo.ts
+export interface NuevoModulo {
+  id: string;
+  nombre: string;
+  // ... más campos
+}
+```
 
-# 2. Desarrollar
-npm run dev  # Terminal 1
-npm run type-check  # Terminal 2 (watch mode)
+5. **Crear hook de datos:**
 
-# 3. Commit incremental
-git add .
-git commit -m "feat(cotizacion): add basic CRUD structure"
+```typescript
+// hooks/useNuevoModulo.ts
+export function useNuevoModulo() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-# 4. Push y PR
-git push origin feature/modulo-cotizacion
-# Crear Pull Request en GitHub
+  // ... lógica de fetch, create, update, delete
 
-# 5. Code Review
-# Esperar aprobación de al menos 1 reviewer
+  return { data, loading, create, update, remove };
+}
+```
 
-# 6. Merge
-# Squash and merge a main
+### Mejores Prácticas
+
+- ✅ Usa Server Components por defecto
+- ✅ Client Components solo cuando necesites interactividad
+- ✅ TypeScript estricto siempre
+- ✅ Validación con Zod en todos los forms
+- ✅ Error boundaries para manejo de errores
+- ✅ Loading states y Suspense
+- ✅ Optimistic updates en mutaciones
+- ✅ Logging estructurado con Pino
+- ✅ Tests unitarios para utilidades
+- ✅ Tests E2E para flujos críticos
+
+---
+
+## 📊 Métricas de Calidad
+
+### Checklist de Calidad del Proyecto Base
+
+- ✅ **Zero TypeScript Errors:** `npm run type-check` → Sin errores
+- ✅ **Zero ESLint Errors:** `npm run lint` → Sin errores
+- ✅ **Build Success:** `npm run build` → Compilación exitosa
+- ✅ **Dev Server:** `npm run dev` → Sin warnings
+- ✅ **Responsive Design:** Mobile, Tablet, Desktop
+- ✅ **Accessibility:** WCAG 2.1 Level AA
+- ✅ **Performance:** Lighthouse Score > 90
+- ✅ **SEO:** Meta tags configurados
+- ✅ **Security:** No secrets en código
+- ✅ **Documentation:** README + project-description completos
+
+---
+
+## 🎓 Convenciones de Código
+
+### Naming Conventions
+
+- **Componentes:** PascalCase (`LoginPage.tsx`)
+- **Hooks:** camelCase con prefijo `use` (`useAuth.ts`)
+- **Utilidades:** camelCase (`formatRut()`)
+- **Tipos:** PascalCase (`User`, `Session`)
+- **Constantes:** UPPER_SNAKE_CASE (`MOCK_USERS`)
+
+### Estructura de Componentes
+
+```tsx
+"use client"; // Solo si es Client Component
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import type { User } from "@/types";
+
+interface MyComponentProps {
+  user: User;
+  className?: string;
+}
+
+export function MyComponent({ user, className }: MyComponentProps) {
+  const [state, setState] = useState();
+
+  // Handlers
+  const handleClick = () => {
+    // ...
+  };
+
+  // Render
+  return (
+    <div className={cn("base-classes", className)}>
+      <Button onClick={handleClick}>
+        {user.nombre}
+      </Button>
+    </div>
+  );
+}
+```
+
+### Git Commit Conventions
+
+```
+feat: agregar módulo de cotizaciones
+fix: corregir validación de RUT
+docs: actualizar README con instrucciones de deploy
+style: formatear código con Prettier
+refactor: reorganizar estructura de componentes
+test: agregar tests para useAuth hook
+chore: actualizar dependencias
 ```
 
 ---
 
-## 📝 Notas Finales
+## 🔍 Troubleshooting
 
-Este documento debe ser actualizado cada vez que:
-- Se agregue un nuevo módulo completo
-- Se modifique la arquitectura base
-- Se introduzcan nuevos patrones o convenciones
-- Se actualicen dependencias mayores (Next.js, React, etc.)
+### Problemas Comunes
 
-**Última actualización:** Diciembre 2025  
-**Versión del proyecto:** 1.0.0  
-**Mantenedor:** Equipo AFLOW
+#### 1. Error: Module not found
+
+```bash
+# Reinstalar dependencias
+rm -rf node_modules package-lock.json
+npm install
+```
+
+#### 2. TypeScript errors en shadcn/ui
+
+```bash
+# Regenerar archivos de tipos
+npm run type-check
+```
+
+#### 3. Tailwind classes no aplican
+
+```bash
+# Verificar que postcss.config.js existe
+# Reiniciar dev server
+npm run dev
+```
+
+#### 4. useAuth no funciona en Server Component
+
+```tsx
+// Mover a Client Component
+"use client";
+
+import { useAuth } from "@/hooks/useAuth";
+```
+
+#### 5. Build falla en Vercel
+
+- Verificar Node.js version en `package.json` engines
+- Check build logs en Vercel dashboard
+- Asegurar que `.env.local` está en `.gitignore`
+
+---
+
+## 📞 Contacto y Soporte
+
+Para preguntas sobre el proyecto:
+
+- **Repositorio:** [GitHub - AFLOW Portal](https://github.com/jmardones96/front-sistem-portal-aflow-nextjs)
+- **Documentación:** Este archivo (`project-description.md`)
+- **Issues:** Abrir un issue en GitHub
+
+---
+
+**Última actualización:** 9 de Diciembre, 2025  
+**Versión del Proyecto:** 1.0.0 (Base)  
+**Autor:** Equipo AFLOW

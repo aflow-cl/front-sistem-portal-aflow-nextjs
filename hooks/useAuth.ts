@@ -1,107 +1,150 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/data/supabase/auth";
-import type { User, Session } from "@/types";
-import { ROUTES } from "@/lib/constants";
+import type { User, Session, LoginCredentials } from "@/types";
+import {
+  loginMock,
+  logoutMock,
+  getSession,
+  isAuthenticated,
+} from "@/data/supabase/auth";
+import { log } from "@/lib/pino-client";
+
+interface AuthState {
+  user: User | null;
+  session: Session | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+}
 
 /**
- * Hook personalizado para manejar la autenticación
+ * Custom hook for authentication management
+ * Handles login, logout, and session state
  */
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [authState, setAuthState] = useState<AuthState>({
+    user: null,
+    session: null,
+    isLoading: true,
+    isAuthenticated: false,
+  });
 
+  /**
+   * Initialize auth state on mount
+   */
   useEffect(() => {
-    checkSession();
+    const initAuth = () => {
+      try {
+        const session = getSession();
+        if (session) {
+          setAuthState({
+            user: session.user,
+            session,
+            isLoading: false,
+            isAuthenticated: true,
+          });
+          log.info("Session restored", { userId: session.user.id });
+        } else {
+          setAuthState({
+            user: null,
+            session: null,
+            isLoading: false,
+            isAuthenticated: false,
+          });
+        }
+      } catch (error) {
+        log.error("Error initializing auth", error as Error);
+        setAuthState({
+          user: null,
+          session: null,
+          isLoading: false,
+          isAuthenticated: false,
+        });
+      }
+    };
+
+    initAuth();
   }, []);
 
-  const checkSession = async () => {
-    try {
-      setLoading(true);
-      const currentSession = await auth.getSession();
-      setSession(currentSession);
-      setUser(currentSession?.user || null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al verificar sesión");
-    } finally {
-      setLoading(false);
-    }
-  };
+  /**
+   * Login function
+   */
+  const login = useCallback(
+    async (credentials: LoginCredentials) => {
+      try {
+        setAuthState((prev) => ({ ...prev, isLoading: true }));
 
-  const signIn = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      setError(null);
+        const { session, error } = await loginMock(credentials);
 
-      const newSession = await auth.signIn(email, password);
-      
-      if (!newSession) {
-        setError("Credenciales inválidas");
-        return false;
+        if (error || !session) {
+          setAuthState({
+            user: null,
+            session: null,
+            isLoading: false,
+            isAuthenticated: false,
+          });
+          return { success: false, error: error || "Error desconocido" };
+        }
+
+        setAuthState({
+          user: session.user,
+          session,
+          isLoading: false,
+          isAuthenticated: true,
+        });
+
+        log.info("Login successful via hook", { userId: session.user.id });
+
+        return { success: true, error: null };
+      } catch (error) {
+        log.error("Login error in hook", error as Error);
+        setAuthState({
+          user: null,
+          session: null,
+          isLoading: false,
+          isAuthenticated: false,
+        });
+        return { success: false, error: "Error al iniciar sesión" };
       }
+    },
+    []
+  );
 
-      setSession(newSession);
-      setUser(newSession.user);
-      
-      router.push(ROUTES.DASHBOARD);
-      return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al iniciar sesión");
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signOut = async () => {
+  /**
+   * Logout function
+   */
+  const logout = useCallback(async () => {
     try {
-      setLoading(true);
-      await auth.signOut();
-      setSession(null);
-      setUser(null);
-      router.push(ROUTES.LOGIN);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al cerrar sesión");
-    } finally {
-      setLoading(false);
+      await logoutMock();
+      setAuthState({
+        user: null,
+        session: null,
+        isLoading: false,
+        isAuthenticated: false,
+      });
+      log.info("Logout successful via hook");
+      router.push("/login");
+    } catch (error) {
+      log.error("Logout error", error as Error);
     }
-  };
+  }, [router]);
 
-  const updateProfile = async (data: Partial<User>) => {
-    try {
-      if (!user) throw new Error("No hay usuario autenticado");
-      
-      setLoading(true);
-      const updatedUser = await auth.updateProfile(user.id, data);
-      
-      if (updatedUser) {
-        setUser(updatedUser);
-        return true;
-      }
-      
-      return false;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al actualizar perfil");
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
+  /**
+   * Check authentication status
+   */
+  const checkAuth = useCallback(() => {
+    return isAuthenticated();
+  }, []);
 
   return {
-    user,
-    session,
-    loading,
-    error,
-    isAuthenticated: !!user,
-    signIn,
-    signOut,
-    updateProfile,
-    checkSession,
+    user: authState.user,
+    session: authState.session,
+    isLoading: authState.isLoading,
+    isAuthenticated: authState.isAuthenticated,
+    login,
+    logout,
+    checkAuth,
   };
 }

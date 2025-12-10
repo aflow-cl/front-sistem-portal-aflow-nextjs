@@ -1,226 +1,135 @@
-import { supabase } from "./client";
-import { appLogger } from "@/core/logging/logger";
-import { MOCK_CREDENTIALS } from "@/lib/constants";
-import type { User, Session } from "@/types";
+import type { User, Session, LoginCredentials } from "@/types";
+import { log } from "@/lib/pino-client";
 
 /**
- * Mock user data para desarrollo
+ * Mock user database for development
+ * This simulates authentication without a real backend
  */
-const MOCK_USERS: Record<string, User> = {
-  "test@aflow.cl": {
-    id: "user-001",
+const MOCK_USERS: User[] = [
+  {
+    id: "1",
     email: "test@aflow.cl",
     nombre: "Usuario",
-    apellido: "Administrador",
+    apellido: "Demo",
     role: "admin",
-    avatar: "",
-    telefono: "+56912345678",
-    cargo: "Administrador de Sistema",
+    cargo: "Administrador",
     departamento: "TI",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
-  "analista@aflow.cl": {
-    id: "user-002",
-    email: "analista@aflow.cl",
-    nombre: "María",
-    apellido: "González",
-    role: "analista",
-    avatar: "",
-    telefono: "+56987654321",
-    cargo: "Analista Senior",
-    departamento: "Operaciones",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  "operador@aflow.cl": {
-    id: "user-003",
-    email: "operador@aflow.cl",
-    nombre: "Juan",
-    apellido: "Pérez",
-    role: "operador",
-    avatar: "",
-    telefono: "+56911111111",
-    cargo: "Operador de Guardia",
-    departamento: "Seguridad",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-};
+];
 
 /**
- * Autenticación con Supabase (Mock)
+ * Mock password for test user
  */
-export const auth = {
-  /**
-   * Iniciar sesión
-   */
-  async signIn(email: string, password: string): Promise<Session | null> {
-    try {
-      appLogger.auth("Login attempt", { email });
+const MOCK_PASSWORD = "123456";
 
-      // Validación mock
-      if (email === MOCK_CREDENTIALS.EMAIL && password === MOCK_CREDENTIALS.PASSWORD) {
-        const user = MOCK_USERS[email];
-        const session: Session = {
-          user,
-          accessToken: `mock-token-${Date.now()}`,
-          expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 horas
-        };
+/**
+ * Session storage key
+ */
+const SESSION_KEY = "aflow_session";
 
-        // Guardar en localStorage
-        if (typeof window !== "undefined") {
-          localStorage.setItem("aflow_session", JSON.stringify(session));
-        }
+/**
+ * Mock login function
+ * Simulates authentication with predefined credentials
+ */
+export async function loginMock(
+  credentials: LoginCredentials
+): Promise<{ session: Session | null; error: string | null }> {
+  try {
+    log.info("Attempting mock login", { email: credentials.email });
 
-        appLogger.auth("Login successful", { email, userId: user.id });
-        return session;
-      }
+    // Simulate network delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Validar otros usuarios mock
-      const mockUser = MOCK_USERS[email];
-      if (mockUser && password === "123456") {
-        const session: Session = {
-          user: mockUser,
-          accessToken: `mock-token-${Date.now()}`,
-          expiresAt: Date.now() + 24 * 60 * 60 * 1000,
-        };
+    // Find user by email
+    const user = MOCK_USERS.find((u) => u.email === credentials.email);
 
-        if (typeof window !== "undefined") {
-          localStorage.setItem("aflow_session", JSON.stringify(session));
-        }
-
-        appLogger.auth("Login successful", { email, userId: mockUser.id });
-        return session;
-      }
-
-      appLogger.warn("Login failed - invalid credentials", { email });
-      return null;
-    } catch (error) {
-      appLogger.error("Login error", error);
-      return null;
-    }
-  },
-
-  /**
-   * Cerrar sesión
-   */
-  async signOut(): Promise<void> {
-    try {
-      appLogger.auth("Logout");
-
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("aflow_session");
-      }
-
-      await supabase.auth.signOut();
-    } catch (error) {
-      appLogger.error("Logout error", error);
-    }
-  },
-
-  /**
-   * Obtener sesión actual
-   */
-  async getSession(): Promise<Session | null> {
-    try {
-      if (typeof window === "undefined") return null;
-
-      const sessionData = localStorage.getItem("aflow_session");
-      if (!sessionData) return null;
-
-      const session: Session = JSON.parse(sessionData);
-
-      // Verificar expiración
-      if (session.expiresAt < Date.now()) {
-        localStorage.removeItem("aflow_session");
-        return null;
-      }
-
-      return session;
-    } catch (error) {
-      appLogger.error("Get session error", error);
-      return null;
-    }
-  },
-
-  /**
-   * Obtener usuario actual
-   */
-  async getCurrentUser(): Promise<User | null> {
-    try {
-      const session = await this.getSession();
-      return session?.user || null;
-    } catch (error) {
-      appLogger.error("Get current user error", error);
-      return null;
-    }
-  },
-
-  /**
-   * Verificar si hay una sesión activa
-   */
-  async isAuthenticated(): Promise<boolean> {
-    const session = await this.getSession();
-    return !!session;
-  },
-
-  /**
-   * Actualizar perfil de usuario
-   */
-  async updateProfile(userId: string, data: Partial<User>): Promise<User | null> {
-    try {
-      appLogger.user("Update profile", userId, data);
-
-      const session = await this.getSession();
-      if (!session || session.user.id !== userId) {
-        throw new Error("Unauthorized");
-      }
-
-      const updatedUser: User = {
-        ...session.user,
-        ...data,
-        updatedAt: new Date().toISOString(),
+    if (!user) {
+      log.warn("User not found", { email: credentials.email });
+      return {
+        session: null,
+        error: "Credenciales inválidas",
       };
+    }
 
-      // Actualizar mock user
-      MOCK_USERS[updatedUser.email] = updatedUser;
-
-      // Actualizar sesión
-      const updatedSession: Session = {
-        ...session,
-        user: updatedUser,
+    // Validate password
+    if (credentials.password !== MOCK_PASSWORD) {
+      log.warn("Invalid password", { email: credentials.email });
+      return {
+        session: null,
+        error: "Credenciales inválidas",
       };
+    }
 
-      if (typeof window !== "undefined") {
-        localStorage.setItem("aflow_session", JSON.stringify(updatedSession));
-      }
+    // Create session
+    const session: Session = {
+      user,
+      accessToken: `mock-token-${Date.now()}`,
+      expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+    };
 
-      return updatedUser;
-    } catch (error) {
-      appLogger.error("Update profile error", error);
+    // Store session
+    if (typeof window !== "undefined") {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    }
+
+    log.info("Login successful", { userId: user.id, email: user.email });
+
+    return {
+      session,
+      error: null,
+    };
+  } catch (error) {
+    log.error("Login error", error as Error);
+    return {
+      session: null,
+      error: "Error al iniciar sesión",
+    };
+  }
+}
+
+/**
+ * Get current session from localStorage
+ */
+export function getSession(): Session | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const stored = localStorage.getItem(SESSION_KEY);
+    if (!stored) return null;
+
+    const session: Session = JSON.parse(stored);
+
+    // Check if session is expired
+    if (session.expiresAt < Date.now()) {
+      localStorage.removeItem(SESSION_KEY);
       return null;
     }
-  },
 
-  /**
-   * Cambiar contraseña
-   */
-  async changePassword(currentPassword: string, newPassword: string): Promise<boolean> {
-    try {
-      appLogger.user("Change password");
+    return session;
+  } catch (error) {
+    log.error("Error reading session", error as Error);
+    return null;
+  }
+}
 
-      // Mock: siempre exitoso si la contraseña actual es correcta
-      if (currentPassword === "123456") {
-        return true;
-      }
+/**
+ * Logout and clear session
+ */
+export async function logoutMock(): Promise<void> {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(SESSION_KEY);
+  }
+  log.info("Logout successful");
+}
 
-      return false;
-    } catch (error) {
-      appLogger.error("Change password error", error);
-      return false;
-    }
-  },
-};
-
-export default auth;
+/**
+ * Check if user is authenticated
+ */
+export function isAuthenticated(): boolean {
+  const session = getSession();
+  return session !== null;
+}
