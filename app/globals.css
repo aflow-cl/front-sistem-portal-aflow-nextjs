@@ -65,3 +65,13 @@
     @apply font-poppins;
   }
 }
+
+/* Fire Spark Particle Animation */
+@layer components {
+  .particle-spark {
+    background: radial-gradient(circle, #FF7A00 0%, #FF9500 30%, transparent 70%);
+    box-shadow: 0 0 10px #FF7A00, 0 0 20px #FF7A00;
+    animation: float-spark linear infinite, sparkle ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+}

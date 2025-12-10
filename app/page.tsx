@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { ParticleBackground } from "@/components/ui/ParticleBackground";
 import { ArrowRight, Shield, Zap, Users } from "lucide-react";
 
 export default function HomePage() {
@@ -10,28 +11,29 @@ export default function HomePage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-gray-50 to-white py-20 md:py-32">
-          <div className="container mx-auto px-4">
+        <section className="relative bg-black py-20 md:py-32 overflow-hidden">
+          <ParticleBackground />
+          <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
-              <h1 className="text-4xl md:text-6xl font-poppins font-bold text-gray-dark mb-6">
+              <h1 className="text-4xl md:text-6xl font-poppins font-bold text-white mb-6">
                 Bienvenido a{" "}
                 <span className="text-aflow-orange">AFLOW Portal</span>
               </h1>
-              <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
                 Sistema Corporativo Modular Empresarial. Gestiona tu negocio de
                 manera eficiente, segura y escalable.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center gap-2 bg-aflow-orange text-white px-8 py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors"
+                  className="inline-flex items-center justify-center gap-2 bg-aflow-orange text-white px-8 py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors shadow-lg shadow-aflow-orange/30"
                 >
                   Iniciar Sesión
                   <ArrowRight className="w-5 h-5" />
                 </Link>
                 <a
                   href="#features"
-                  className="inline-flex items-center justify-center gap-2 bg-white text-gray-dark px-8 py-3 rounded-lg font-medium border border-gray-300 hover:border-aflow-orange hover:text-aflow-orange transition-colors"
+                  className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm text-white px-8 py-3 rounded-lg font-medium border border-white/30 hover:bg-white/20 hover:border-aflow-orange transition-colors"
                 >
                   Conocer más
                 </a>

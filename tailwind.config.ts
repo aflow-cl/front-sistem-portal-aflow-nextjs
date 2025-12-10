@@ -29,6 +29,13 @@ const config: Config = {
           medium: "#4D4D4D",
           light: "#EDEDED",
         },
+        space: {
+          blue: {
+            dark: "#0A1128",
+            DEFAULT: "#1B2845",
+            darker: "#001233",
+          },
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -88,10 +95,37 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "float-spark": {
+          "0%": {
+            transform: "translateY(0) translateX(0) scale(0)",
+            opacity: "0",
+          },
+          "10%": {
+            opacity: "1",
+            transform: "translateY(-10vh) translateX(10px) scale(1)",
+          },
+          "90%": {
+            opacity: "1",
+          },
+          "100%": {
+            transform: "translateY(-100vh) translateX(50px) scale(0.8)",
+            opacity: "0",
+          },
+        },
+        "sparkle": {
+          "0%, 100%": {
+            opacity: "0.3",
+          },
+          "50%": {
+            opacity: "1",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "float-spark": "float-spark 20s linear infinite",
+        "sparkle": "sparkle 3s ease-in-out infinite",
       },
     },
   },
