@@ -59,33 +59,33 @@ export function BudgetTable({ data, loading }: BudgetTableProps) {
 
   return (
     <Card className="shadow-sm rounded-2xl border-none overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-aflow-blue to-blue-700 text-white rounded-t-2xl">
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
+      <CardHeader className="bg-gradient-to-r from-aflow-blue to-blue-700 text-white rounded-t-2xl py-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <FileText className="h-4 w-4" />
           Lista de Presupuestos
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-6 px-0">
+      <CardContent className="pt-3 px-0">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Folio
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Cliente
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Fecha
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Monto
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Estado
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <th className="px-4 py-2 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Acciones
                 </th>
               </tr>
@@ -96,25 +96,25 @@ export function BudgetTable({ data, loading }: BudgetTableProps) {
                   key={budget.id}
                   className="hover:bg-gray-50 transition-colors"
                 >
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-2.5 whitespace-nowrap">
                     <span className="text-sm font-semibold text-gray-900">
                       {budget.folio}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-2.5 whitespace-nowrap">
                     <span className="text-sm text-gray-900">{budget.cliente}</span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-2.5 whitespace-nowrap">
                     <span className="text-sm text-gray-600">
                       {new Date(budget.fecha).toLocaleDateString("es-CL")}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-2.5 whitespace-nowrap">
                     <span className="text-sm font-medium text-gray-900">
                       ${budget.monto?.toLocaleString("es-CL") || "0"}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-2.5 whitespace-nowrap">
                     <span
                       className={cn(
                         "inline-flex px-2.5 py-1 rounded-full text-xs font-medium",
@@ -124,13 +124,13 @@ export function BudgetTable({ data, loading }: BudgetTableProps) {
                       {budget.estado}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                  <td className="px-4 py-2.5 whitespace-nowrap text-right">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-aflow-blue hover:text-aflow-blue-light hover:bg-blue-50"
+                      className="text-aflow-blue hover:text-aflow-blue-light hover:bg-blue-50 h-8 px-2"
                     >
-                      <Eye className="h-4 w-4 mr-1" />
+                      <Eye className="h-3.5 w-3.5 mr-1" />
                       Ver
                     </Button>
                   </td>

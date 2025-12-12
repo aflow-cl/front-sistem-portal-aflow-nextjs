@@ -69,8 +69,9 @@
 /* Fire Spark Particle Animation */
 @layer components {
   .particle-spark {
-    background: radial-gradient(circle, #0c3b64 0%, #0e4875 30%, transparent 70%);
-    box-shadow: 0 0 10px #0c3b64, 0 0 20px #0c3b64;
+    background: radial-gradient(circle, #ff8c00 0%, #ff6b00 30%, transparent 70%);
+    box-shadow: 0 0 10px #ff8c00, 0 0 20px #ff6b00;
+    border-radius: 50%;
     animation: float-spark linear infinite, sparkle ease-in-out infinite;
     will-change: transform, opacity;
   }

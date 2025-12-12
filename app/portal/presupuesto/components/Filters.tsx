@@ -5,13 +5,24 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Filter } from "lucide-react";
 import type { FilterState } from "@/types/presupuesto";
+import { useEffect, useRef } from "react";
 
 interface FiltersProps {
   filters: FilterState;
   onFilterChange: (filters: FilterState) => void;
+  highlightEstado?: boolean;
 }
 
-export function Filters({ filters, onFilterChange }: FiltersProps) {
+export function Filters({ filters, onFilterChange, highlightEstado = false }: FiltersProps) {
+  const estadoRef = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    if (highlightEstado && estadoRef.current) {
+      estadoRef.current.focus();
+      estadoRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [highlightEstado]);
+
   const handleInputChange = (field: keyof FilterState, value: string) => {
     onFilterChange({
       ...filters,
@@ -52,10 +63,13 @@ export function Filters({ filters, onFilterChange }: FiltersProps) {
               Estado
             </Label>
             <select
+              ref={estadoRef}
               id="filter-estado"
               value={filters.estado}
               onChange={(e) => handleInputChange("estado", e.target.value)}
-              className="w-full h-8 px-2 rounded-xl border border-gray-200 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-aflow-blue focus:border-aflow-blue"
+              className={`w-full h-8 px-2 rounded-xl border bg-white text-xs focus:outline-none focus:ring-2 focus:ring-aflow-blue focus:border-aflow-blue transition-all duration-300 ${
+                highlightEstado ? "border-aflow-blue ring-2 ring-aflow-blue shadow-lg" : "border-gray-200"
+              }`}
             >
               <option value="">Todos los estados</option>
               <option value="Borrador">Borrador</option>

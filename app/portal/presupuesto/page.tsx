@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -17,6 +17,7 @@ import type { FilterState, CreateBudgetInput, Budget } from "@/types/presupuesto
 export default function PresupuestoPage() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [highlightEstado, setHighlightEstado] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     cliente: "",
     estado: "",
@@ -84,6 +85,26 @@ export default function PresupuestoPage() {
     createBudgetMutation.mutate(data);
   };
 
+  // Handle filter by status from indicator
+  const handleFilterByStatus = (status: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      estado: status,
+    }));
+    setHighlightEstado(true);
+    toast.success("Filtro aplicado", {
+      description: `Mostrando presupuestos con estado: ${status}`,
+    });
+  };
+
+  // Remove highlight after animation
+  useEffect(() => {
+    if (highlightEstado) {
+      const timer = setTimeout(() => setHighlightEstado(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightEstado]);
+
   // Show error state
   if (budgetsError) {
     return (
@@ -129,10 +150,10 @@ export default function PresupuestoPage() {
       </div>
 
       {/* Indicators */}
-      <Indicators data={indicators} />
+      <Indicators data={indicators} onFilterByStatus={handleFilterByStatus} />
 
       {/* Filters */}
-      <Filters filters={filters} onFilterChange={setFilters} />
+      <Filters filters={filters} onFilterChange={setFilters} highlightEstado={highlightEstado} />
 
       {/* Budget Table */}
       <BudgetTable data={filteredBudgets} loading={isBudgetsLoading} />
