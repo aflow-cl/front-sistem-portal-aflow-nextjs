@@ -3,9 +3,13 @@ export interface Budget {
   folio: string;
   cliente: string;
   fecha: string;
-  estado: "Borrador" | "En revisión" | "En proceso" | "Finalizado" | "Cerrado";
+  estado: "Borrador" | "En revisión" | "En proceso" | "Finalizado" | "Cerrado" | "Aprobado" | "Rechazado" | "Pendiente";
   monto?: number;
+  neto?: number;
+  autor?: string;
+  fechaCierre?: string;
   descripcion?: string;
+  documentoUrl?: string;
 }
 
 export interface IndicatorData {
@@ -18,12 +22,31 @@ export interface FilterState {
   cliente: string;
   estado: string;
   fecha: string;
+  fechaInicio?: string;
+  fechaFin?: string;
+  autor?: string;
+  montoMin?: number;
+  montoMax?: number;
+  folio?: string;
+  fechaCierreInicio?: string;
+  fechaCierreFin?: string;
 }
+
+export type SortField = 'folio' | 'cliente' | 'fecha' | 'monto' | 'neto' | 'estado' | 'autor' | 'fechaCierre';
+export type SortDirection = 'asc' | 'desc';
 
 export interface CreateBudgetInput {
   cliente: string;
-  descripcion: string;
-  monto: number;
+  proyecto?: string;
+  estado?: "Borrador" | "En revisión" | "Aprobado" | "Rechazado" | "Enviado";
+  items?: any[];
+  subtotal?: number;
+  iva?: number;
+  total?: number;
+  moneda?: string;
+  observaciones?: string;
+  descripcion?: string;
+  monto?: number;
 }
 
 // ============================================
@@ -102,4 +125,35 @@ export interface BudgetFormData {
   // 6. Controles Internos (hidden)
   usuarioCreador?: string;
   fechaModificacion?: string;
+}
+
+// ============================================
+// TIPOS PARA HISTORIA DE ACCIONES
+// ============================================
+
+export type AccionTipo = 
+  | "creado" 
+  | "modificado" 
+  | "cambio_estado" 
+  | "enviado" 
+  | "aprobado" 
+  | "rechazado" 
+  | "comentario"
+  | "eliminado";
+
+export interface AccionHistoria {
+  id: string;
+  folio: string; // Folio del presupuesto relacionado
+  tipo: AccionTipo;
+  descripcion: string;
+  usuario: string;
+  fecha: string; // ISO string
+  detalles?: {
+    estadoAnterior?: string;
+    estadoNuevo?: string;
+    campo?: string;
+    valorAnterior?: string;
+    valorNuevo?: string;
+    [key: string]: any;
+  };
 }

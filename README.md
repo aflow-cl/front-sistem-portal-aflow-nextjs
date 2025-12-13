@@ -1,11 +1,12 @@
-# 🚀 AFLOW Portal - Sistema Corporativo
+# 🚀 AFLOW Portal - Sistema Corporativo Empresarial
 
 ![AFLOW Portal](https://img.shields.io/badge/Next.js-15.0.3-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.3.3-blue?style=for-the-badge&logo=typescript)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4.1-38bdf8?style=for-the-badge&logo=tailwind-css)
 ![React](https://img.shields.io/badge/React-18.3.1-61dafb?style=for-the-badge&logo=react)
+![React Query](https://img.shields.io/badge/React_Query-5.90-ff4154?style=for-the-badge&logo=react-query)
 
-Portal Corporativo AFLOW - Sistema Modular Empresarial construido con Next.js 15, TypeScript, TailwindCSS y shadcn/ui. Plataforma escalable y moderna diseñada para la gestión corporativa integral.
+Portal Corporativo AFLOW es una plataforma empresarial modular de última generación, construida con Next.js 15 (App Router), TypeScript estricto, React Query para gestión de estado del servidor, shadcn/ui para componentes de interfaz, y un sistema de diseño corporativo cohesivo. La arquitectura está diseñada para escalabilidad, mantenibilidad y experiencia de usuario excepcional.
 
 ---
 

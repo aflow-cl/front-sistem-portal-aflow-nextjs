@@ -20,6 +20,7 @@ const config: Config = {
     extend: {
       colors: {
         aflow: {
+          orange: "#FF7A00",
           blue: "#0c3b64",
           "blue-light": "#0e4875",
           "blue-dark": "#0a2f4f",

@@ -75,7 +75,7 @@ export function Indicators({ data, onFilterByStatus }: IndicatorsProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirm} className="bg-aflow-blue hover:bg-aflow-blue-light">
+            <AlertDialogAction onClick={handleConfirm} className="bg-[#244F82] hover:bg-[#1a3a5f]">
               Sí, filtrar
             </AlertDialogAction>
           </AlertDialogFooter>
