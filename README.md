@@ -9,8 +9,32 @@ Portal Corporativo AFLOW - Sistema Modular Empresarial construido con Next.js 15
 
 ---
 
+## ⚡ Quick Start (TL;DR)
+
+¿Necesitas arrancar rápido? Aquí está todo lo esencial:
+
+```powershell
+# Clonar e instalar
+git clone https://github.com/aflow-cl/front-sistem-portal-aflow-nextjs.git
+cd front-sistem-portal-aflow-nextjs
+npm install
+
+# Ejecutar en desarrollo
+npm run dev
+```
+
+**🌐 Abrir:** http://localhost:3000  
+**🔐 Login de prueba:** `test@aflow.cl` / `123456`  
+**📊 Ver módulo:** Navega a `/portal/presupuesto` después de login
+
+> **Nota:** No necesitas configurar Supabase - la autenticación mock funciona out-of-the-box.
+
+---
+
 ## 📋 Tabla de Contenidos
 
+- [Quick Start](#-quick-start-tldr)
+- [Estado del Proyecto](#-estado-del-proyecto)
 - [Características](#-características)
 - [Arquitectura](#-arquitectura)
 - [Requisitos Previos](#-requisitos-previos)
@@ -18,6 +42,7 @@ Portal Corporativo AFLOW - Sistema Modular Empresarial construido con Next.js 15
 - [Ejecución](#️-ejecución)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
 - [Sistema de Autenticación](#-sistema-de-autenticación)
+- [Módulo Presupuesto](#-módulo-presupuesto)
 - [Rutas y Navegación](#-rutas-y-navegación)
 - [Componentes UI](#-componentes-ui)
 - [Configuración de Estilos](#-configuración-de-estilos)
@@ -26,9 +51,38 @@ Portal Corporativo AFLOW - Sistema Modular Empresarial construido con Next.js 15
 - [Scripts Disponibles](#-scripts-disponibles)
 - [Stack Tecnológico](#-stack-tecnológico)
 - [Extensión del Proyecto](#-extensión-del-proyecto)
+- [Documentación Adicional](#-documentación-adicional)
+- [FAQ](#-faq-preguntas-frecuentes)
 - [Solución de Problemas](#-solución-de-problemas)
 - [Contribuciones](#-contribuciones)
 - [Licencia](#-licencia)
+
+---
+
+## 📊 Estado del Proyecto
+
+| Módulo/Feature | Estado | Detalles |
+|----------------|--------|----------|
+| **Autenticación** | ✅ Completo | Sistema mock con sesiones, migración a Supabase documentada |
+| **Landing Page** | ✅ Completo | Hero con partículas, sección features, diseño responsivo |
+| **Login Page** | ✅ Completo | Carousel informativo, validación con Zod, tema dark |
+| **Portal Layout** | ✅ Completo | Sidebar, header, protección de rutas, QueryProvider |
+| **Módulo Presupuesto** | ✅ Completo | CRUD completo con React Query, filtros, indicadores KPI |
+| **Dashboard Principal** | 🚧 Planificado | Métricas, gráficos, widgets personalizables |
+| **Módulo Contratante** | 📋 Futuro | CRUD, búsqueda avanzada, exportación |
+| **Módulo Cotización** | 📋 Futuro | Generación de cotizaciones, reportes PDF |
+| **API Routes** | 📋 Futuro | Endpoints RESTful, autenticación JWT |
+| **Testing Suite** | 📋 Futuro | Jest, React Testing Library, E2E |
+
+**Leyenda:** ✅ Completo | 🚧 En desarrollo | 📋 Planificado
+
+### Métricas de Calidad
+
+- ✅ **Build Status:** Sin errores de compilación
+- ✅ **TypeScript:** Strict mode, 100% tipado
+- ✅ **ESLint:** Configurado y sin errores bloqueantes
+- ✅ **Deployment:** Vercel-ready, CI/CD compatible
+- ✅ **Documentation:** 4 documentos técnicos completos
 
 ---
 
@@ -41,6 +95,8 @@ Portal Corporativo AFLOW - Sistema Modular Empresarial construido con Next.js 15
 - ✅ **TailwindCSS** con sistema de diseño corporativo AFLOW
 - ✅ **shadcn/ui** - Biblioteca de componentes modernos y accesibles
 - ✅ **Autenticación Mock** con sistema de sesiones completo
+- ✅ **React Query** para gestión de estado del servidor y caché
+- ✅ **Módulo Presupuesto** funcional con CRUD completo
 - ✅ **Diseño Responsivo** - Mobile-first approach
 - ✅ **Arquitectura Limpia** - Separación de responsabilidades
 - ✅ **Logging Estructurado** con Pino
@@ -326,6 +382,138 @@ Para implementar autenticación real:
 
 ---
 
+## 📊 Módulo Presupuesto
+
+### Descripción General
+
+Módulo completo de gestión de presupuestos con **React Query** para manejo de estado del servidor, actualizaciones optimistas y gestión de caché inteligente.
+
+**Ubicación:** `app/portal/presupuesto/`
+
+### Características del Módulo
+
+- ✅ **Indicadores KPI:** 4 cards con métricas en tiempo real (Activos, En Revisión, Finalizados, Cerrados)
+- ✅ **Filtros Avanzados:** Búsqueda por cliente, filtro por estado, rango de fechas
+- ✅ **Tabla de Datos:** Visualización completa con acciones CRUD
+- ✅ **Crear Presupuesto:** Modal con formulario validado (Zod)
+- ✅ **Actualizaciones Optimistas:** UI instantánea con React Query
+- ✅ **Gestión de Caché:** Invalidación y refetch automático
+- ✅ **Estados de Carga:** Skeletons y loading states
+- ✅ **Notificaciones:** Toast con Sonner para feedback
+- ✅ **Formateo:** Moneda CLP, badges de estado con colores
+- ✅ **Diseño Responsivo:** Mobile, tablet y desktop
+
+### Componentes del Módulo
+
+```
+app/portal/presupuesto/
+├── page.tsx                    # Página principal con React Query
+├── api/
+│   └── budgetService.ts       # Mock API con delays simulados
+└── components/
+    ├── Indicators.tsx          # 4 KPI cards
+    ├── Filters.tsx             # Buscador y filtros
+    ├── BudgetTable.tsx         # Tabla de presupuestos
+    ├── CreateBudgetModal.tsx   # Modal de creación
+    └── LoadingSkeleton.tsx     # Estados de carga
+```
+
+### Stack Tecnológico del Módulo
+
+| Tecnología | Uso |
+|------------|-----|
+| **React Query 5.x** | Server state management, cache, optimistic updates |
+| **Sonner** | Sistema de notificaciones toast |
+| **React Hook Form + Zod** | Validación de formularios |
+| **shadcn/ui** | Dialog, Input, Select, Button, Badge |
+| **Lucide React** | Iconografía |
+| **Mock API** | Simulación de backend con delays |
+
+### Configuración de React Query
+
+El módulo utiliza el `QueryProvider` configurado en `providers/QueryProvider.tsx`:
+
+```typescript
+// Configuración del QueryClient
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000,        // 60 segundos
+      retry: 1,                     // 1 reintento
+      refetchOnWindowFocus: false,  // No refetch en focus
+    },
+  },
+});
+```
+
+**DevTools:** Habilitados en desarrollo para debugging de queries.
+
+### Ejemplo de Uso de React Query
+
+```typescript
+// Fetch de presupuestos
+const { data: budgets, isLoading, error } = useQuery({
+  queryKey: ['budgets'],
+  queryFn: budgetService.getAll,
+});
+
+// Mutación para crear presupuesto
+const createMutation = useMutation({
+  mutationFn: budgetService.create,
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['budgets'] });
+    toast.success('Presupuesto creado exitosamente');
+  },
+});
+```
+
+### Mock API Service
+
+El servicio simula un backend real con delays y respuestas realistas:
+
+```typescript
+// budgetService.ts incluye:
+- getAll(): Promise<Budget[]>          // Obtener todos
+- getById(id): Promise<Budget>         // Obtener por ID
+- create(data): Promise<Budget>        // Crear nuevo
+- update(id, data): Promise<Budget>    // Actualizar
+- delete(id): Promise<void>            // Eliminar
+```
+
+**Delay simulado:** 800ms para simular latencia de red real.
+
+### Estados del Presupuesto
+
+| Estado | Color | Descripción |
+|--------|-------|-------------|
+| **Activo** | Verde | Presupuesto en proceso |
+| **En Revisión** | Amarillo | Pendiente de aprobación |
+| **Finalizado** | Azul | Completado exitosamente |
+| **Cerrado** | Gris | Archivado o cancelado |
+
+### Formateo de Datos
+
+```typescript
+// Moneda CLP
+formatCurrency(1500000) // → "$1.500.000"
+
+// Fechas
+new Date().toLocaleDateString('es-CL') // → "13/12/2024"
+```
+
+### Próximas Mejoras
+
+- 🚧 Exportación a PDF/Excel
+- 🚧 Edición inline en tabla
+- 🚧 Vista de detalle del presupuesto
+- 🚧 Historial de cambios
+- 🚧 Integración con API real
+- 🚧 Permisos por rol
+
+> **📚 Documentación detallada:** Ver [PRESUPUESTO_MODULE_README.md](./PRESUPUESTO_MODULE_README.md) para información técnica completa.
+
+---
+
 ## 🌐 Rutas y Navegación
 
 ### Rutas Públicas
@@ -424,6 +612,48 @@ import { ParticleBackground } from "@/components/ui/ParticleBackground";
 --gray-dark: #1A1A1A         /* Fondos oscuros */
 --gray-medium: #4D4D4D       /* Texto secundario */
 ```
+
+### Paleta de Colores del Login
+
+El módulo de login utiliza una paleta de colores específica para crear una experiencia visual moderna y consistente:
+
+```css
+/* Fondos y degradados */
+--bg-primary: #0b0b0c        /* Fondo principal oscuro */
+--bg-secondary: #141518      /* Fondo secundario */
+--bg-tertiary: #0d0e10       /* Fondo terciario */
+--card-bg: rgba(card, 0.95)  /* Fondo de tarjeta con transparencia */
+
+/* Colores de acento */
+--aflow-blue: #3B82F6        /* Azul corporativo AFLOW */
+--aflow-blue-light: #60A5FA  /* Azul claro (hover) */
+--orange-accent: #F97316     /* Naranja para hovers y detalles */
+
+/* Textos */
+--text-primary: #FFFFFF      /* Texto principal */
+--text-secondary: #D1D5DB    /* Texto secundario (gray-300) */
+--text-muted: #9CA3AF        /* Texto atenuado (gray-400) */
+--text-input: #000000        /* Texto en inputs */
+
+/* Bordes y separadores */
+--border-color: rgba(border, 0.6)  /* Bordes sutiles */
+--border-input: #D1D5DB      /* Bordes de inputs (gray-300) */
+
+/* Estados y efectos */
+--input-bg: rgba(255, 255, 255, 0.95)  /* Fondo de inputs */
+--input-placeholder: #6B7280  /* Placeholder (gray-500) */
+--shadow-dark: rgba(0, 0, 0, 0.4)      /* Sombras principales */
+--shadow-lg: rgba(0, 0, 0, 0.3)        /* Sombras de botones */
+```
+
+**Características del diseño:**
+- ✅ Fondo oscuro con degradados sutiles
+- ✅ Efectos de partículas animadas
+- ✅ Tarjetas con backdrop blur
+- ✅ Carousel informativo (desktop/tablet)
+- ✅ Diseño responsivo mobile-first
+- ✅ Hover states con naranja (#F97316)
+- ✅ Focus ring azul corporativo
 
 ### Uso en Tailwind
 
@@ -600,10 +830,17 @@ npm run format        # Formatear código con Prettier
 ### Core Framework
 
 | Tecnología | Versión | Propósito |
-|------------|---------|-----------|
+|------------|---------|-----------||
 | **Next.js** | 15.0.3 | Framework React con SSR/SSG |
 | **React** | 18.3.1 | Biblioteca UI |
 | **TypeScript** | 5.3.3 | Type Safety |
+
+### State Management
+
+| Tecnología | Versión | Propósito |
+|------------|---------|-----------||
+| **@tanstack/react-query** | 5.90.12 | Server state management y caché |
+| **@tanstack/react-query-devtools** | 5.91.1 | DevTools para debugging |
 
 ### Styling
 
@@ -689,6 +926,125 @@ Este es el **proyecto base funcional**. Para extenderlo:
 - **i18n:** Internacionalización
 - **PWA:** Progressive Web App
 - **E2E Testing:** Playwright o Cypress
+
+---
+
+## 📚 Documentación Adicional
+
+Este README es la guía principal del proyecto. Para información específica, consulta:
+
+| Documento | Descripción | Link |
+|-----------|-------------|------|
+| **Project Description** | Documentación técnica detallada del proyecto | [project-description.md](./project-description.md) |
+| **Presupuesto Module** | Documentación específica del módulo presupuesto | [PRESUPUESTO_MODULE_README.md](./PRESUPUESTO_MODULE_README.md) |
+| **Deployment Guide** | Guía rápida de despliegue | [DEPLOYMENT.md](./DEPLOYMENT.md) |
+| **Build Fixes** | Problemas conocidos y sus soluciones | [BUILD_FIXES.md](./BUILD_FIXES.md) |
+
+---
+
+## ❓ FAQ (Preguntas Frecuentes)
+
+### ¿Necesito configurar Supabase para usar el proyecto?
+
+**No.** El proyecto funciona completamente con autenticación mock. Las variables de Supabase son opcionales y solo se necesitan si deseas migrar a autenticación real.
+
+### ¿Cómo agrego un nuevo módulo como Presupuesto?
+
+1. **Crea la estructura de carpetas:**
+   ```
+   app/portal/tu-modulo/
+   ├── page.tsx
+   ├── api/
+   │   └── service.ts
+   └── components/
+   ```
+
+2. **Configura React Query** (si necesitas estado del servidor)
+
+3. **Crea los componentes** siguiendo el patrón de Presupuesto
+
+4. **Añade la ruta** en el sidebar de `app/portal/layout.tsx`
+
+5. **Documenta** en un README específico del módulo
+
+### ¿Cómo migro la autenticación mock a Supabase real?
+
+1. **Crea un proyecto en Supabase:**
+   - Ve a [supabase.com](https://supabase.com) y crea un proyecto
+   - Copia las credenciales (URL y anon key)
+
+2. **Configura variables de entorno:**
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=tu-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-key
+   ```
+
+3. **Actualiza `data/supabase/auth.ts`:**
+   - Reemplaza las funciones mock con llamadas a Supabase Auth
+   - Ejemplo: `supabase.auth.signInWithPassword()`
+
+4. **Configura políticas RLS** en Supabase para seguridad
+
+5. **Prueba** el flujo completo de autenticación
+
+> Ver documentación detallada en `project-description.md` sección "Migración a Autenticación Real".
+
+### ¿Qué es React Query y por qué se usa?
+
+**React Query** (@tanstack/react-query) es una biblioteca para gestionar el estado del servidor en React. Se usa porque:
+
+- ✅ **Caché automático:** Evita requests redundantes
+- ✅ **Actualizaciones optimistas:** UI instantánea
+- ✅ **Sincronización:** Mantiene datos actualizados
+- ✅ **DevTools:** Debugging fácil del estado
+- ✅ **Estados integrados:** Loading, error, success
+
+En el módulo Presupuesto, React Query gestiona el fetch, caché e invalidación de datos automáticamente.
+
+### ¿Cómo pruebo el módulo Presupuesto?
+
+1. **Inicia el servidor:** `npm run dev`
+2. **Login:** Usa `test@aflow.cl` / `123456`
+3. **Navega:** Ve a `/portal/presupuesto`
+4. **Prueba funcionalidades:**
+   - Visualiza los 4 indicadores KPI
+   - Filtra por cliente o estado
+   - Crea un nuevo presupuesto
+   - Observa las actualizaciones en tiempo real
+
+### ¿El proyecto está listo para producción?
+
+**Sí**, con consideraciones:
+
+- ✅ **Code quality:** Sin errores de TypeScript/ESLint
+- ✅ **Build:** Compila exitosamente para producción
+- ✅ **Deployment:** Vercel-ready
+- ⚠️ **Authentication:** Necesitas migrar a Supabase u otro sistema real
+- ⚠️ **API:** Los servicios son mock, requieren integración backend
+- ⚠️ **Testing:** No hay tests automatizados aún
+
+### ¿Qué puedo hacer si encuentro un error?
+
+1. **Revisa esta sección:** [Solución de Problemas](#-solución-de-problemas)
+2. **Consulta BUILD_FIXES.md:** Para errores conocidos
+3. **Verifica la consola:** Busca mensajes de error específicos
+4. **Limpia dependencias:**
+   ```powershell
+   Remove-Item -Recurse -Force node_modules
+   Remove-Item package-lock.json
+   npm install
+   ```
+5. **Abre un issue:** En GitHub si el problema persiste
+
+### ¿Cómo contribuyo al proyecto?
+
+Ver la sección [Contribuciones](#-contribuciones) para el proceso completo. En resumen:
+
+1. Fork el repositorio
+2. Crea una rama feature
+3. Haz tus cambios con commits convencionales
+4. Abre un Pull Request
+5. Espera review y feedback
 
 ---
 
@@ -840,6 +1196,7 @@ Desarrollado con ❤️ por el equipo de desarrollo AFLOW.
 
 ---
 
-**Última actualización:** Diciembre 2024  
+**Última actualización:** Diciembre 13, 2025  
 **Versión:** 1.0.0  
-**Estado:** ✅ Producción Ready
+**Estado:** ✅ Producción Ready  
+**Features:** Presupuesto Module con React Query ✅

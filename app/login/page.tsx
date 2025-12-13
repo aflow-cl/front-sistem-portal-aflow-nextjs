@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Loader2, ChevronLeft, ChevronRight, Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/form";
 import { useAuth } from "@/hooks/useAuth";
 import { ParticleBackground } from "@/components/ui/ParticleBackground";
+import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
 import Image from "next/image";
 
 const loginSchema = z.object({
@@ -44,20 +45,20 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 // Carousel images/slides
 const carouselSlides = [
-  {
+ {
     image: "/images/company/LogoSinFondoTexto.png",
-    title: "Bienvenido a AFLOW",
-    description: "Tu plataforma de gestión empresarial integral"
+    title: "Transforma tu Empresa con AFLOW",
+    description: "Automatiza, integra y acelera tus procesos clave."
   },
   {
     image: "/images/company/LogoSinFondoTexto.png",
-    title: "Gestión Eficiente",
-    description: "Optimiza tus procesos con nuestras herramientas"
+    title: "Procesos que Fluyen, Negocios que Escalan",
+    description: "Optimiza tu operación con flujos inteligentes."
   },
   {
     image: "/images/company/LogoSinFondoTexto.png",
-    title: "Presupuestos Inteligentes",
-    description: "Administra tus presupuestos de forma profesional"
+    title: "Presupuestos Inteligentes en Minutos",
+    description: "Crea y gestiona presupuestos con total agilidad."
   }
 ];
 
@@ -66,6 +67,7 @@ export default function LoginPage() {
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -124,6 +126,12 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-[#0b0b0c] via-[#141518] to-[#0d0e10] text-foreground">
+      <LoadingOverlay 
+        isLoading={isLoading} 
+        message="Iniciando sesión..." 
+        variant="orange" 
+      />
+      
       {/* Background particles */}
       <div className="absolute inset-0 pointer-events-none">
         <ParticleBackground />
@@ -135,7 +143,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-aflow-blue mb-8 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-[#F97316] mb-8 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Volver al inicio
@@ -149,7 +157,7 @@ export default function LoginPage() {
                   alt="AFLOW Logo"
                   width={80}
                   height={30}
-                  className="object-contain"
+                  className="object-contain animate-float"
                   priority
                 />
               </div>
@@ -178,7 +186,7 @@ export default function LoginPage() {
                             type="email"
                             autoComplete="email"
                             disabled={isLoading}
-                            className="bg-white/95 border-gray-300 text-black placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-aflow-blue focus-visible:ring-offset-0 focus-visible:border-aflow-blue transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                 className="h-10 bg-white/95 border-gray-300 text-black placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-aflow-blue focus-visible:ring-offset-0 focus-visible:border-aflow-blue transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             {...field}
                           />
                         </FormControl>
@@ -193,14 +201,29 @@ export default function LoginPage() {
                       <FormItem>
                         <FormLabel className="text-aflow-blue font-semibold">Contraseña</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="••••••••"
-                            type="password"
-                            autoComplete="current-password"
-                            disabled={isLoading}
-                            className="bg-white/95 border-gray-300 text-black placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-aflow-blue focus-visible:ring-offset-0 focus-visible:border-aflow-blue transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                            {...field}
-                          />
+                          <div className="relative">
+                            <Input
+                              placeholder="••••••••"
+                              type={showPassword ? "text" : "password"}
+                              autoComplete="current-password"
+                              disabled={isLoading}
+                              className="h-10 bg-white/95 border-gray-300 text-black placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-aflow-blue focus-visible:ring-offset-0 focus-visible:border-aflow-blue transition-all disabled:opacity-50 disabled:cursor-not-allowed pr-10"
+                              {...field}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-aflow-blue transition-colors"
+                              disabled={isLoading}
+                              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                            >
+                              {showPassword ? (
+                                <EyeOff className="w-4 h-4" />
+                              ) : (
+                                <Eye className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
                         </FormControl>
                         <FormMessage className="text-red-600 text-xs mt-1 font-medium" />
                       </FormItem>
@@ -246,7 +269,7 @@ export default function LoginPage() {
           <div className="w-full max-w-md">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-aflow-blue mb-8 transition-colors"
+              className="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-[#F97316] mb-8 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Volver al inicio
@@ -260,7 +283,7 @@ export default function LoginPage() {
                     alt="AFLOW Logo"
                     width={80}
                     height={30}
-                    className="object-contain"
+                    className="object-contain animate-float"
                     priority
                   />
                 </div>
@@ -304,14 +327,29 @@ export default function LoginPage() {
                         <FormItem>
                           <FormLabel className="text-aflow-blue font-semibold">Contraseña</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder="••••••••"
-                              type="password"
-                              autoComplete="current-password"
-                              disabled={isLoading}
-                              className="bg-white/95 border-gray-300 text-black placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-aflow-blue focus-visible:ring-offset-0 focus-visible:border-aflow-blue transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                              {...field}
-                            />
+                            <div className="relative">
+                              <Input
+                                placeholder="••••••••"
+                                type={showPassword ? "text" : "password"}
+                                autoComplete="current-password"
+                                disabled={isLoading}
+                                className="h-10 bg-white/95 border-gray-300 text-black placeholder:text-gray-500 focus-visible:ring-2 focus-visible:ring-aflow-blue focus-visible:ring-offset-0 focus-visible:border-aflow-blue transition-all disabled:opacity-50 disabled:cursor-not-allowed pr-10"
+                                {...field}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-aflow-blue transition-colors"
+                                disabled={isLoading}
+                                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                              >
+                                {showPassword ? (
+                                  <EyeOff className="w-4 h-4" />
+                                ) : (
+                                  <Eye className="w-4 h-4" />
+                                )}
+                              </button>
+                            </div>
                           </FormControl>
                           <FormMessage className="text-red-600 text-xs mt-1 font-medium" />
                         </FormItem>
