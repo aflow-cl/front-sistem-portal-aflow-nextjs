@@ -649,30 +649,31 @@ export default function CrearPresupuestoPage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-3">
             <Button
               variant="ghost"
               onClick={() => router.push('/portal/presupuesto/consultar')}
-              className="gap-2 text-gray-600 hover:text-gray-900"
+              className="gap-2 text-gray-600 hover:text-gray-900 w-full sm:w-auto justify-start text-sm sm:text-base"
             >
-              <ArrowLeft className="w-4 h-4" />
-              Volver a Presupuestos
+              <ArrowLeft className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden xs:inline">Volver a Presupuestos</span>
+              <span className="inline xs:hidden">Volver</span>
             </Button>
             
             <Button
               variant="outline"
               onClick={handleClearForm}
-              className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+              className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300 w-full sm:w-auto text-sm sm:text-base"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-4 h-4 flex-shrink-0" />
               Limpiar Formulario
             </Button>
           </div>
           
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1">
             Crear Nuevo Presupuesto
           </h1>
-          <p className="text-sm text-gray-600">
+          <p className="text-xs sm:text-sm text-gray-600">
             Complete el proceso paso a paso para generar un presupuesto profesional
           </p>
         </div>

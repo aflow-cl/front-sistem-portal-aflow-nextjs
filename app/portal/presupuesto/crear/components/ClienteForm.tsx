@@ -249,13 +249,13 @@ export function ClienteForm({ form }: ClienteFormProps) {
   return (
     <Card className="p-4 md:p-6 rounded-2xl shadow-lg border-gray-200">
       <div className="mb-4">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#003366] to-[#00AEEF] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#003366] to-[#00AEEF] flex items-center justify-center flex-shrink-0">
               <User className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
                 Datos del Contratante / Cliente
               </h2>
               <p className="text-xs text-gray-600">
@@ -270,10 +270,11 @@ export function ClienteForm({ form }: ClienteFormProps) {
               <Button
                 type="button"
                 variant="outline"
-                className="gap-2 border-[#003366] text-[#003366] hover:bg-blue-50"
+                className="gap-2 border-[#003366] text-[#003366] hover:bg-blue-50 w-full sm:w-auto text-sm sm:text-base"
               >
-                <Users className="w-4 h-4" />
-                Seleccionar Cliente Existente
+                <Users className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden xs:inline">Seleccionar Cliente Existente</span>
+                <span className="inline xs:hidden">Seleccionar Cliente</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">

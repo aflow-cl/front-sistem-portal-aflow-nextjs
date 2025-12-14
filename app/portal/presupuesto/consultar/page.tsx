@@ -155,10 +155,10 @@ export default function ConsultarPage() {
       <Indicators data={indicators} onFilterByStatus={handleFilterByStatus} />
 
       {/* Action Bar - Results Summary and Controls */}
-      <div className="flex items-center justify-between gap-4 bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 bg-white border border-gray-200 rounded-lg px-3 sm:px-4 py-3 shadow-sm">
         {/* Results Summary */}
-        <div className="flex items-center gap-3">
-          <p className="text-sm text-gray-600">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <p className="text-xs sm:text-sm text-gray-600">
             Mostrando{" "}
             <span className="font-semibold text-gray-900">
               {filteredAndSortedBudgets.length}
@@ -172,7 +172,7 @@ export default function ConsultarPage() {
               variant="ghost"
               size="sm"
               onClick={clearFilters}
-              className="text-[#244F82] hover:text-[#1a3a5f] hover:bg-blue-50 transition-colors"
+              className="text-[#244F82] hover:text-[#1a3a5f] hover:bg-blue-50 transition-colors w-fit text-xs sm:text-sm"
             >
               Limpiar filtros
             </Button>
@@ -180,16 +180,16 @@ export default function ConsultarPage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            className="border-gray-300 hover:bg-gray-50 transition-colors"
+            className="border-gray-300 hover:bg-gray-50 transition-colors flex-1 sm:flex-none"
             aria-label="Actualizar cotizaciones"
           >
             <RefreshCcw className="h-4 w-4" />
-            <span className="ml-2 hidden sm:inline">Actualizar</span>
+            <span className="ml-2">Actualizar</span>
           </Button>
           <AdvancedFilters
             filters={filters}
