@@ -16,11 +16,14 @@ export interface IndicatorData {
   label: string;
   value: number;
   color: string;
+  estados?: string[]; // Individual estados that belong to this indicator
+  description?: string;
 }
 
 export interface FilterState {
   cliente: string;
   estado: string;
+  estados?: string[]; // For filtering by multiple estados
   fecha: string;
   fechaInicio?: string;
   fechaFin?: string;

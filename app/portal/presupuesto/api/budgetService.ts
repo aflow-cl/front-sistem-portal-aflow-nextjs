@@ -5,6 +5,80 @@ import type { Budget, IndicatorData, CreateBudgetInput, AccionHistoria } from "@
  * Uses promises with delays to simulate real API behavior
  */
 
+// Estado configuration with colors and grouping
+export const ESTADO_CONFIG = {
+  "Borrador": {
+    label: "Borrador",
+    color: "bg-gray-500",
+    badgeClass: "bg-gray-100 text-gray-700 hover:bg-gray-100 border-gray-300",
+    group: "Activos",
+  },
+  "En revisión": {
+    label: "En revisión",
+    color: "bg-blue-500",
+    badgeClass: "bg-blue-50 text-blue-700 hover:bg-blue-50 border-blue-300",
+    group: "Activos",
+  },
+  "En proceso": {
+    label: "En proceso",
+    color: "bg-indigo-500",
+    badgeClass: "bg-indigo-50 text-indigo-700 hover:bg-indigo-50 border-indigo-300",
+    group: "Activos",
+  },
+  "Pendiente": {
+    label: "Pendiente",
+    color: "bg-yellow-500",
+    badgeClass: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-300",
+    group: "Pendientes",
+  },
+  "Aprobado": {
+    label: "Aprobado",
+    color: "bg-green-500",
+    badgeClass: "bg-green-100 text-green-800 hover:bg-green-100 border-green-300",
+    group: "Finalizados",
+  },
+  "Rechazado": {
+    label: "Rechazado",
+    color: "bg-red-500",
+    badgeClass: "bg-red-100 text-red-800 hover:bg-red-100 border-red-300",
+    group: "Finalizados",
+  },
+  "Finalizado": {
+    label: "Finalizado",
+    color: "bg-emerald-500",
+    badgeClass: "bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-emerald-300",
+    group: "Finalizados",
+  },
+  "Cerrado": {
+    label: "Cerrado",
+    color: "bg-slate-500",
+    badgeClass: "bg-slate-100 text-slate-700 hover:bg-slate-100 border-slate-300",
+    group: "Finalizados",
+  },
+} as const;
+
+// Indicator groups configuration
+export const INDICATOR_GROUPS = {
+  "Activos": {
+    estados: ["Borrador", "En revisión", "En proceso"] as const,
+    color: "bg-blue-500",
+    description: "En desarrollo",
+  },
+  "Pendientes": {
+    estados: ["Pendiente"] as const,
+    color: "bg-yellow-500",
+    description: "Esperando respuesta",
+  },
+  "Finalizados": {
+    estados: ["Aprobado", "Rechazado", "Finalizado", "Cerrado"] as const,
+    color: "bg-green-500",
+    description: "Completados",
+  },
+} as const;
+
+export type EstadoKey = keyof typeof ESTADO_CONFIG;
+export type IndicatorGroup = keyof typeof INDICATOR_GROUPS;
+
 // Mock data
 const MOCK_BUDGETS: Budget[] = [
   {

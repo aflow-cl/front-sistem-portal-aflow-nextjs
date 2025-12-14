@@ -52,30 +52,45 @@ const estadoConfig: Record<
   string,
   { label: string; variant: "default" | "secondary" | "destructive" | "outline"; className: string }
 > = {
-  "Aprobado": {
-    label: "Aprobado",
-    variant: "default",
-    className: "bg-green-100 text-green-800 hover:bg-green-100 border-green-300",
-  },
-  "Pendiente": {
-    label: "Pendiente",
-    variant: "secondary",
-    className: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-300",
-  },
-  "Rechazado": {
-    label: "Rechazado",
-    variant: "destructive",
-    className: "bg-red-100 text-red-800 hover:bg-red-100 border-red-300",
+  "Borrador": {
+    label: "Borrador",
+    variant: "outline",
+    className: "bg-gray-100 text-gray-700 hover:bg-gray-100 border-gray-300",
   },
   "En revisión": {
     label: "En revisión",
     variant: "outline",
     className: "bg-blue-50 text-blue-700 hover:bg-blue-50 border-blue-300",
   },
-  "Borrador": {
-    label: "Borrador",
+  "En proceso": {
+    label: "En proceso",
     variant: "outline",
-    className: "bg-gray-100 text-gray-700 hover:bg-gray-100 border-gray-300",
+    className: "bg-indigo-50 text-indigo-700 hover:bg-indigo-50 border-indigo-300",
+  },
+  "Pendiente": {
+    label: "Pendiente",
+    variant: "secondary",
+    className: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-300",
+  },
+  "Aprobado": {
+    label: "Aprobado",
+    variant: "default",
+    className: "bg-green-100 text-green-800 hover:bg-green-100 border-green-300",
+  },
+  "Rechazado": {
+    label: "Rechazado",
+    variant: "destructive",
+    className: "bg-red-100 text-red-800 hover:bg-red-100 border-red-300",
+  },
+  "Finalizado": {
+    label: "Finalizado",
+    variant: "default",
+    className: "bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-emerald-300",
+  },
+  "Cerrado": {
+    label: "Cerrado",
+    variant: "outline",
+    className: "bg-slate-100 text-slate-700 hover:bg-slate-100 border-slate-300",
   },
 };
 
@@ -188,35 +203,36 @@ export function BudgetTableEnhanced({
     <TooltipProvider>
       <div className="w-full">
         <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-          <ScrollArea className="w-full">
-            <Table>
+          {/* Contenedor con scroll horizontal para móvil */}
+          <div className="w-full overflow-x-auto">
+            <Table className="min-w-[1200px]">
               <TableHeader>
                 <TableRow className="bg-gray-50 hover:bg-gray-50">
-                  <TableHead className="font-semibold text-gray-700">
+                  <TableHead className="font-semibold text-gray-700 whitespace-nowrap">
                     <SortableHeader field="folio">Folio</SortableHeader>
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-700">
+                  <TableHead className="font-semibold text-gray-700 whitespace-nowrap">
                     <SortableHeader field="cliente">Cliente</SortableHeader>
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-700">
+                  <TableHead className="font-semibold text-gray-700 whitespace-nowrap">
                     <SortableHeader field="fecha">Fecha</SortableHeader>
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-700 text-right">
+                  <TableHead className="font-semibold text-gray-700 text-right whitespace-nowrap">
                     <SortableHeader field="monto">Monto</SortableHeader>
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-700 text-right">
+                  <TableHead className="font-semibold text-gray-700 text-right whitespace-nowrap">
                     <SortableHeader field="neto">Neto</SortableHeader>
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-700">
+                  <TableHead className="font-semibold text-gray-700 whitespace-nowrap">
                     <SortableHeader field="estado">Estado</SortableHeader>
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-700">
+                  <TableHead className="font-semibold text-gray-700 whitespace-nowrap">
                     <SortableHeader field="autor">Autor</SortableHeader>
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-700">
+                  <TableHead className="font-semibold text-gray-700 whitespace-nowrap">
                     <SortableHeader field="fechaCierre">Fecha Cierre</SortableHeader>
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-700 text-right">
+                  <TableHead className="font-semibold text-gray-700 text-right whitespace-nowrap sticky right-0 bg-gray-50 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.1)]">
                     Acciones
                   </TableHead>
                 </TableRow>
@@ -227,22 +243,22 @@ export function BudgetTableEnhanced({
                     key={budget.id}
                     className="hover:bg-gray-50 transition-colors"
                   >
-                    <TableCell className="font-medium text-[#244F82]">
+                    <TableCell className="font-medium text-[#244F82] whitespace-nowrap">
                       {budget.folio}
                     </TableCell>
                     <TableCell className="text-gray-900">
                       <div className="max-w-xs truncate">{budget.cliente}</div>
                     </TableCell>
-                    <TableCell className="text-gray-600 text-sm">
+                    <TableCell className="text-gray-600 text-sm whitespace-nowrap">
                       {formatDate(budget.fecha)}
                     </TableCell>
-                    <TableCell className="text-right font-medium text-gray-900">
+                    <TableCell className="text-right font-medium text-gray-900 whitespace-nowrap">
                       {formatCurrency(budget.monto || 0)}
                     </TableCell>
-                    <TableCell className="text-right text-gray-600">
+                    <TableCell className="text-right text-gray-600 whitespace-nowrap">
                       {formatCurrency(budget.neto || 0)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       <Badge
                         variant={estadoConfig[budget.estado]?.variant || "outline"}
                         className={estadoConfig[budget.estado]?.className}
@@ -250,13 +266,13 @@ export function BudgetTableEnhanced({
                         {estadoConfig[budget.estado]?.label || budget.estado}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-gray-700 text-sm">
+                    <TableCell className="text-gray-700 text-sm whitespace-nowrap">
                       {budget.autor || "-"}
                     </TableCell>
-                    <TableCell className="text-gray-600 text-sm">
+                    <TableCell className="text-gray-600 text-sm whitespace-nowrap">
                       {budget.fechaCierre ? formatDate(budget.fechaCierre) : "-"}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right sticky right-0 bg-white shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.05)] hover:bg-gray-50">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -300,7 +316,7 @@ export function BudgetTableEnhanced({
                 ))}
               </TableBody>
             </Table>
-          </ScrollArea>
+          </div>
         </div>
       </div>
 

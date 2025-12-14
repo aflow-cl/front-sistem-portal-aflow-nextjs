@@ -1,12 +1,11 @@
-# 🚀 AFLOW Portal - Sistema Corporativo Empresarial
+# 🚀 AFLOW Portal - Sistema Corporativo
 
 ![AFLOW Portal](https://img.shields.io/badge/Next.js-15.0.3-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.3.3-blue?style=for-the-badge&logo=typescript)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4.1-38bdf8?style=for-the-badge&logo=tailwind-css)
 ![React](https://img.shields.io/badge/React-18.3.1-61dafb?style=for-the-badge&logo=react)
-![React Query](https://img.shields.io/badge/React_Query-5.90-ff4154?style=for-the-badge&logo=react-query)
 
-Portal Corporativo AFLOW es una plataforma empresarial modular de última generación, construida con Next.js 15 (App Router), TypeScript estricto, React Query para gestión de estado del servidor, shadcn/ui para componentes de interfaz, y un sistema de diseño corporativo cohesivo. La arquitectura está diseñada para escalabilidad, mantenibilidad y experiencia de usuario excepcional.
+Portal Corporativo AFLOW - Sistema Modular Empresarial construido con Next.js 15, TypeScript, TailwindCSS y shadcn/ui. Plataforma escalable y moderna diseñada para la gestión corporativa integral.
 
 ---
 
@@ -26,7 +25,11 @@ npm run dev
 
 **🌐 Abrir:** http://localhost:3000  
 **🔐 Login de prueba:** `test@aflow.cl` / `123456`  
-**📊 Ver módulo:** Navega a `/portal/presupuesto` después de login
+**📊 Explora el sistema:**
+- **Dashboard:** `/portal` - Analytics con 3 gráficos interactivos y 4 KPIs
+- **Presupuestos Consultar:** `/portal/presupuesto/consultar` - Gestión completa con filtros
+- **Presupuestos Crear:** `/portal/presupuesto/crear` - Wizard de creación paso a paso
+- **Presupuestos Historia:** `/portal/presupuesto/historia` - Timeline completo
 
 > **Nota:** No necesitas configurar Supabase - la autenticación mock funciona out-of-the-box.
 
@@ -68,8 +71,11 @@ npm run dev
 | **Landing Page** | ✅ Completo | Hero con partículas, sección features, diseño responsivo |
 | **Login Page** | ✅ Completo | Carousel informativo, validación con Zod, tema dark |
 | **Portal Layout** | ✅ Completo | Sidebar, header, protección de rutas, QueryProvider |
-| **Módulo Presupuesto** | ✅ Completo | CRUD completo con React Query, filtros, indicadores KPI |
-| **Dashboard Principal** | 🚧 Planificado | Métricas, gráficos, widgets personalizables |
+| **Dashboard Principal** | ✅ Completo | Analytics con 3 gráficos (Recharts), Indicadores KPI, useBudgetAnalytics hook |
+| **Módulo Presupuesto** | ✅ Completo | CRUD completo con React Query, 3 sub-rutas funcionales |
+| **Módulo Consultar** | ✅ Completo | Tabla mejorada, filtros avanzados, indicadores, paginación |
+| **Módulo Crear** | ✅ Completo | Wizard completo, validación, modales, progreso |
+| **Módulo Historia** | ✅ Completo | Timeline de presupuestos, filtros por fecha/estado |
 | **Módulo Contratante** | 📋 Futuro | CRUD, búsqueda avanzada, exportación |
 | **Módulo Cotización** | 📋 Futuro | Generación de cotizaciones, reportes PDF |
 | **API Routes** | 📋 Futuro | Endpoints RESTful, autenticación JWT |
@@ -91,13 +97,14 @@ npm run dev
 
 ### Características Principales
 
-- ✅ **Next.js 15** con App Router y React Server Components
+- ✅ **Next.js 15.0.3** con App Router y React Server Components
 - ✅ **TypeScript Estricto** para máxima seguridad de tipos
-- ✅ **TailwindCSS** con sistema de diseño corporativo AFLOW
-- ✅ **shadcn/ui** - Biblioteca de componentes modernos y accesibles
+- ✅ **TailwindCSS 3.4.1** con sistema de diseño corporativo AFLOW
+- ✅ **shadcn/ui** - 20+ componentes modernos y accesibles
 - ✅ **Autenticación Mock** con sistema de sesiones completo
-- ✅ **React Query** para gestión de estado del servidor y caché
-- ✅ **Módulo Presupuesto** funcional con CRUD completo
+- ✅ **React Query v5** para gestión de estado del servidor y caché
+- ✅ **Módulo Presupuesto Completo** - 3 sub-rutas (Consultar, Crear, Historia)
+- ✅ **Dashboard con Analytics** - Gráficos interactivos con Recharts 3.5.1
 - ✅ **Diseño Responsivo** - Mobile-first approach
 - ✅ **Arquitectura Limpia** - Separación de responsabilidades
 - ✅ **Logging Estructurado** con Pino
@@ -105,14 +112,15 @@ npm run dev
 - ✅ **Optimizado para SEO** y rendimiento
 - ✅ **Listo para Producción** - Deploy inmediato en Vercel
 
-### Estado del Proyecto
+### Estado del Build Actual
 
-- ✅ Compilación exitosa sin errores
-- ✅ Sin warnings de TypeScript o ESLint
-- ✅ Todas las rutas funcionales
-- ✅ Autenticación implementada
-- ✅ Responsive design completo
-- ✅ Documentación exhaustiva
+- ✅ **Build Status:** Compilación exitosa sin errores (Last build: Diciembre 2025)
+- ✅ **TypeScript:** Zero errores con strict mode activado
+- ✅ **ESLint:** Sin warnings bloqueantes
+- ✅ **Todas las rutas funcionales:** 5+ rutas públicas y privadas
+- ✅ **Autenticación Mock:** Sistema completo con sesiones persistentes
+- ✅ **Responsive Design:** Optimizado para mobile, tablet y desktop
+- ✅ **Documentación:** 4 archivos técnicos completos (README, BUILD_FIXES, DEPLOYMENT, PROJECT_DESCRIPTION)
 
 ---
 
@@ -265,11 +273,55 @@ aflow-portal/
 │   │   ├── page.tsx            # Landing Page
 │   │   └── login/
 │   │       └── page.tsx        # Página de login
-│   ├── (private)/              # Rutas privadas (futuro)
+│   ├── login/                  # Alias para login (compatibilidad)
+│   │   └── page.tsx
 │   ├── portal/                 # Área protegida
-│   │   ├── layout.tsx         # Layout privado
-│   │   ├── page.tsx           # Dashboard
+│   │   ├── layout.tsx         # Layout privado con sidebar
+│   │   ├── page.tsx           # Dashboard con analytics y KPIs
+│   │   ├── components/        # Componentes del portal
+│   │   │   └── charts/        # Gráficos del dashboard
+│   │   │       ├── AmountVsIvaChart.tsx    # Gráfico de Monto vs IVA
+│   │   │       ├── BudgetStatusChart.tsx   # Gráfico por estados
+│   │   │       └── TimelineChart.tsx       # Gráfico temporal
+│   │   ├── hooks/             # Custom hooks del portal
+│   │   │   └── useBudgetAnalytics.ts  # Hook para analytics
 │   │   └── presupuesto/       # Módulo presupuesto
+│   │       ├── layout.tsx     # Layout con tabs de navegación
+│   │       ├── page.tsx       # Redirect a consultar
+│   │       ├── api/
+│   │       │   └── budgetService.ts  # Servicio API con React Query
+│   │       ├── components/    # Componentes del módulo
+│   │       │   ├── AdvancedFilters.tsx
+│   │       │   ├── BudgetTable.tsx
+│   │       │   ├── BudgetTableEnhanced.tsx
+│   │       │   ├── CreateBudgetModal.tsx
+│   │       │   ├── Filters.tsx
+│   │       │   ├── Indicators.tsx
+│   │       │   └── LoadingSkeleton.tsx
+│   │       ├── consultar/     # Sub-módulo consultar
+│   │       │   ├── page.tsx
+│   │       │   └── loading.tsx
+│   │       ├── crear/         # Sub-módulo crear
+│   │       │   ├── page.tsx   # Página principal de creación
+│   │       │   ├── page_new.tsx     # Nueva versión (desarrollo)
+│   │       │   ├── page.tsx.backup  # Backup
+│   │       │   ├── components/      # Componentes del wizard
+│   │       │   │   ├── ADD_SUCURSAL_README.md
+│   │       │   │   ├── AddSucursalModal.tsx
+│   │       │   │   ├── ClienteForm.tsx
+│   │       │   │   ├── PresupuestoTable.tsx
+│   │       │   │   ├── ProgressBar.tsx
+│   │       │   │   ├── ProyectoForm.tsx
+│   │       │   │   ├── ResumenFinal.tsx
+│   │       │   │   ├── ValidationAlert.tsx
+│   │       │   │   └── WizardNavigation.tsx
+│   │       │   └── data/              # Datos mock
+│   │       │       ├── clientesMock.ts
+│   │       │       └── regionesChile.ts
+│   │       ├── historia/      # Sub-módulo historia
+│   │       │   └── page.tsx
+│   │       └── hooks/         # Custom hooks del presupuesto
+│   │           └── useCotizaciones.ts
 │   ├── layout.tsx             # Layout global
 │   └── globals.css            # Estilos globales
 │
@@ -278,27 +330,97 @@ aflow-portal/
 │   │   ├── Header.tsx        # Header público
 │   │   ├── Footer.tsx        # Footer
 │   │   └── NavPublic.tsx     # Navegación pública
-│   └── ui/                   # Componentes shadcn/ui
+│   └── ui/                   # Componentes shadcn/ui (20+ componentes)
+│       ├── accordion.tsx
+│       ├── alert-dialog.tsx
+│       ├── alert.tsx
+│       ├── badge.tsx
 │       ├── button.tsx
 │       ├── card.tsx
+│       ├── checkbox.tsx
+│       ├── dialog.tsx
+│       ├── dropdown-menu.tsx
 │       ├── form.tsx
 │       ├── input.tsx
 │       ├── label.tsx
+│       ├── LoadingOverlay.tsx
+│       ├── ParticleBackground.tsx
+│       ├── scroll-area.tsx
+│       ├── select.tsx
 │       ├── separator.tsx
-│       └── ParticleBackground.tsx
+│       ├── sheet.tsx
+│       ├── skeleton.tsx
+│       ├── table.tsx
+│       ├── tabs.tsx
+│       ├── textarea.tsx
+│       └── tooltip.tsx
 │
 ├── hooks/                     # Custom React Hooks
 │   └── useAuth.ts            # Hook de autenticación
 │
 ├── lib/                       # Librerías y utilidades
-│   ├── utils.ts              # Utilidades (cn, formatRut, etc.)
+│   ├── utils.ts              # Utilidades (cn, formatRut, formatCurrency)
 │   ├── env.ts                # Validación de variables de entorno
-│   └── pino-client.ts        # Cliente de logging
+│   └── pino-client.ts        # Cliente de logging estructurado
 │
 ├── data/                      # Capa de datos
 │   └── supabase/
 │       ├── client.ts         # Cliente Supabase
 │       └── auth.ts           # Servicio de autenticación mock
+│
+├── providers/                 # React Context Providers
+│   └── QueryProvider.tsx     # React Query Provider con DevTools
+│
+├── types/                     # Definiciones TypeScript
+│   ├── index.d.ts            # Tipos globales
+│   └── presupuesto.ts        # Tipos del módulo presupuesto
+│
+├── public/                    # Archivos estáticos
+│   └── images/
+│       └── company/
+│
+├── BUILD_FIXES.md            # Soluciones a problemas de build
+├── DEPLOYMENT.md             # Guía de despliegue
+├── PRESUPUESTO_MODULE_README.md  # Doc del módulo presupuesto
+├── project-description.md    # Descripción técnica del proyecto
+├── components.json           # Configuración shadcn/ui
+├── next.config.ts           # Configuración Next.js
+├── tailwind.config.ts       # Configuración Tailwind
+├── tsconfig.json            # Configuración TypeScript
+└── package.json             # Dependencias del proyecto
+```
+
+### Estructura Detallada del Dashboard
+
+El dashboard principal en `/portal` incluye:
+
+**Componentes principales:**
+- `page.tsx` - Vista principal con KPIs y gráficos
+- `useBudgetAnalytics.ts` - Hook personalizado para analytics
+
+**Gráficos (Recharts):**
+- `AmountVsIvaChart.tsx` - Comparación Monto Neto vs IVA
+- `BudgetStatusChart.tsx` - Distribución por estados
+- `TimelineChart.tsx` - Evolución temporal
+
+**Características:**
+- 📊 3 gráficos interactivos con Recharts 3.5.1
+- 📈 4 indicadores KPI en tiempo real
+- 🎨 Diseño responsivo con Tailwind
+- ⚡ Datos calculados con React Query
+
+---
+│
+├── public/                    # Archivos estáticos
+│   └── images/
+│       └── company/
+│
+├── components.json            # Configuración shadcn/ui
+├── next.config.ts            # Configuración Next.js
+├── tailwind.config.ts        # Configuración Tailwind
+├── tsconfig.json             # Configuración TypeScript
+└── package.json              # Dependencias del proyecto
+```
 │
 ├── types/                     # Definiciones TypeScript
 │   └── index.d.ts            # Tipos globales
@@ -387,36 +509,80 @@ Para implementar autenticación real:
 
 ### Descripción General
 
-Módulo completo de gestión de presupuestos con **React Query** para manejo de estado del servidor, actualizaciones optimistas y gestión de caché inteligente.
+Módulo completo de gestión de presupuestos con **React Query** para manejo de estado del servidor, actualizaciones optimistas y gestión de caché inteligente. Incluye 3 sub-módulos funcionales.
 
 **Ubicación:** `app/portal/presupuesto/`
 
 ### Características del Módulo
 
+#### 1. Consultar (`/portal/presupuesto/consultar`)
 - ✅ **Indicadores KPI:** 4 cards con métricas en tiempo real (Activos, En Revisión, Finalizados, Cerrados)
 - ✅ **Filtros Avanzados:** Búsqueda por cliente, filtro por estado, rango de fechas
-- ✅ **Tabla de Datos:** Visualización completa con acciones CRUD
-- ✅ **Crear Presupuesto:** Modal con formulario validado (Zod)
+- ✅ **Tabla Mejorada (BudgetTableEnhanced):** Paginación, ordenamiento, acciones CRUD
 - ✅ **Actualizaciones Optimistas:** UI instantánea con React Query
 - ✅ **Gestión de Caché:** Invalidación y refetch automático
-- ✅ **Estados de Carga:** Skeletons y loading states
+
+#### 2. Crear (`/portal/presupuesto/crear`)
+- ✅ **Wizard Completo de 3 Pasos:** Cliente → Proyecto → Resumen
+- ✅ **Validación Avanzada:** React Hook Form + Zod en cada paso
+- ✅ **Gestión de Sucursales:** Modal para agregar múltiples sucursales dinámicamente
+- ✅ **Componentes del Wizard:**
+  - `ClienteForm.tsx` - Formulario de datos del cliente
+  - `ProyectoForm.tsx` - Formulario de datos del proyecto
+  - `ResumenFinal.tsx` - Vista previa antes de crear
+  - `WizardNavigation.tsx` - Navegación entre pasos
+  - `ProgressBar.tsx` - Indicador visual de progreso
+  - `AddSucursalModal.tsx` - Modal para agregar sucursales
+  - `PresupuestoTable.tsx` - Tabla de ítems del presupuesto
+  - `ValidationAlert.tsx` - Alertas de validación
+- ✅ **Datos Mock:** `clientesMock.ts`, `regionesChile.ts`
 - ✅ **Notificaciones:** Toast con Sonner para feedback
-- ✅ **Formateo:** Moneda CLP, badges de estado con colores
-- ✅ **Diseño Responsivo:** Mobile, tablet y desktop
+
+#### 3. Historia (`/portal/presupuesto/historia`)
+- ✅ **Historial Completo:** Timeline de todos los presupuestos
+- ✅ **Filtros:** Por fecha, estado y cliente
+- ✅ **Visualización:** Cards organizadas cronológicamente
 
 ### Componentes del Módulo
 
 ```
 app/portal/presupuesto/
-├── page.tsx                    # Página principal con React Query
+├── layout.tsx                  # Layout con navegación de tabs
+├── page.tsx                    # Redirect a /consultar
 ├── api/
-│   └── budgetService.ts       # Mock API con delays simulados
-└── components/
-    ├── Indicators.tsx          # 4 KPI cards
-    ├── Filters.tsx             # Buscador y filtros
-    ├── BudgetTable.tsx         # Tabla de presupuestos
-    ├── CreateBudgetModal.tsx   # Modal de creación
-    └── LoadingSkeleton.tsx     # Estados de carga
+│   └── budgetService.ts       # API service con React Query
+├── components/
+│   ├── AdvancedFilters.tsx    # Filtros avanzados reutilizables
+│   ├── Indicators.tsx          # 4 KPI cards
+│   ├── Filters.tsx             # Filtros básicos
+│   ├── BudgetTable.tsx         # Tabla básica
+│   ├── BudgetTableEnhanced.tsx # Tabla con paginación y ordenamiento
+│   ├── CreateBudgetModal.tsx   # Modal de creación
+│   └── LoadingSkeleton.tsx     # Estados de carga
+├── consultar/
+│   ├── page.tsx               # Página de consulta
+│   └── loading.tsx            # Loading state
+├── crear/
+│   ├── page.tsx               # Página principal de creación (wizard)
+│   ├── page_new.tsx           # Nueva versión en desarrollo
+│   ├── page.tsx.backup        # Backup de versión anterior
+│   ├── components/            # Componentes del wizard
+│   │   ├── ClienteForm.tsx           # Formulario paso 1: Cliente
+│   │   ├── ProyectoForm.tsx          # Formulario paso 2: Proyecto
+│   │   ├── ResumenFinal.tsx          # Vista paso 3: Resumen
+│   │   ├── WizardNavigation.tsx      # Navegación entre pasos
+│   │   ├── ProgressBar.tsx           # Barra de progreso visual
+│   │   ├── AddSucursalModal.tsx      # Modal agregar sucursales
+│   │   ├── PresupuestoTable.tsx      # Tabla de ítems
+│   │   ├── ValidationAlert.tsx       # Alertas de validación
+│   │   └── ADD_SUCURSAL_README.md    # Doc del modal sucursales
+│   └── data/                  # Datos mock
+│       ├── clientesMock.ts           # Base de clientes de prueba
+│       └── regionesChile.ts          # Regiones y comunas de Chile
+├── historia/
+│   └── page.tsx               # Página de historial
+└── hooks/
+    └── useCotizaciones.ts     # Hook para gestión de cotizaciones
 ```
 
 ### Stack Tecnológico del Módulo
@@ -504,14 +670,14 @@ new Date().toLocaleDateString('es-CL') // → "13/12/2024"
 
 ### Próximas Mejoras
 
-- 🚧 Exportación a PDF/Excel
-- 🚧 Edición inline en tabla
-- 🚧 Vista de detalle del presupuesto
-- 🚧 Historial de cambios
-- 🚧 Integración con API real
-- 🚧 Permisos por rol
+- 🚧 Exportación a PDF/Excel de reportes
+- 🚧 Gráficos estadísticos avanzados
+- 🚧 Notificaciones en tiempo real
+- 🚧 Integración con API REST real
+- 🚧 Sistema de permisos por rol
+- 🚧 Búsqueda full-text avanzada
 
-> **📚 Documentación detallada:** Ver [PRESUPUESTO_MODULE_README.md](./PRESUPUESTO_MODULE_README.md) para información técnica completa.
+> **📚 Documentación detallada:** Ver [PRESUPUESTO_MODULE_README.md](./PRESUPUESTO_MODULE_README.md) y [CONSULTAR_MODULE_README.md](./app/portal/presupuesto/CONSULTAR_MODULE_README.md) para información técnica completa.
 
 ---
 
@@ -528,8 +694,11 @@ new Date().toLocaleDateString('es-CL') // → "13/12/2024"
 
 | Ruta | Descripción | Componente |
 |------|-------------|------------|
-| `/portal` | Dashboard principal | `app/portal/page.tsx` |
-| `/portal/presupuesto` | Módulo de presupuesto | `app/portal/presupuesto/page.tsx` |
+| `/portal` | Dashboard principal con analytics | `app/portal/page.tsx` |
+| `/portal/presupuesto` | Módulo de presupuesto (redirect a consultar) | `app/portal/presupuesto/page.tsx` |
+| `/portal/presupuesto/consultar` | Consulta y gestión de presupuestos | `app/portal/presupuesto/consultar/page.tsx` |
+| `/portal/presupuesto/crear` | Crear nuevo presupuesto | `app/portal/presupuesto/crear/page.tsx` |
+| `/portal/presupuesto/historia` | Historial de presupuestos | `app/portal/presupuesto/historia/page.tsx` |
 
 ### Navegación Programática
 
@@ -554,18 +723,28 @@ router.back();
 
 ### Componentes shadcn/ui Instalados
 
+- ✅ **Accordion** - Acordeones desplegables
+- ✅ **Alert Dialog** - Diálogos de confirmación
+- ✅ **Badge** - Etiquetas de estado
 - ✅ **Button** - Botones con variantes
-- ✅ **Input** - Campos de entrada
 - ✅ **Card** - Tarjetas de contenido
-- ✅ **Label** - Etiquetas de formulario
-- ✅ **Form** - Formularios con validación
-- ✅ **Separator** - Divisores visuales
+- ✅ **Checkbox** - Casillas de verificación
 - ✅ **Dialog** - Modales
 - ✅ **Dropdown Menu** - Menús desplegables
+- ✅ **Form** - Formularios con validación
+- ✅ **Input** - Campos de entrada
+- ✅ **Label** - Etiquetas de formulario
+- ✅ **Scroll Area** - Áreas con scroll personalizado
 - ✅ **Select** - Selectores
+- ✅ **Separator** - Divisores visuales
+- ✅ **Sheet** - Paneles laterales
+- ✅ **Skeleton** - Estados de carga
 - ✅ **Switch** - Interruptores
+- ✅ **Table** - Tablas de datos
 - ✅ **Tabs** - Pestañas
+- ✅ **Textarea** - Áreas de texto
 - ✅ **Toast** - Notificaciones
+- ✅ **Tooltip** - Tooltips informativos
 
 ### Agregar Nuevos Componentes
 
@@ -597,6 +776,16 @@ import { ParticleBackground } from "@/components/ui/ParticleBackground";
     {/* Tu contenido aquí */}
   </div>
 </section>
+```
+
+#### LoadingOverlay
+
+Overlay de carga con spinner:
+
+```tsx
+import { LoadingOverlay } from "@/components/ui/LoadingOverlay";
+
+<LoadingOverlay isLoading={isLoading} message="Cargando datos..." />
 ```
 
 ---
@@ -873,6 +1062,7 @@ npm run format        # Formatear código con Prettier
 | Tecnología | Versión | Propósito |
 |------------|---------|-----------|
 | **Radix UI** | Various | Componentes accesibles |
+| **Recharts** | 3.5.1 | Gráficos y visualizaciones |
 | **Sonner** | 1.3.1 | Sistema de toasts |
 | **clsx** | 2.1.0 | Utilidad de clases |
 | **tailwind-merge** | 2.2.0 | Merge de clases Tailwind |
@@ -938,6 +1128,7 @@ Este README es la guía principal del proyecto. Para información específica, c
 |-----------|-------------|------|
 | **Project Description** | Documentación técnica detallada del proyecto | [project-description.md](./project-description.md) |
 | **Presupuesto Module** | Documentación específica del módulo presupuesto | [PRESUPUESTO_MODULE_README.md](./PRESUPUESTO_MODULE_README.md) |
+| **Consultar Module** | Guía del sub-módulo de consulta | [CONSULTAR_MODULE_README.md](./app/portal/presupuesto/CONSULTAR_MODULE_README.md) |
 | **Deployment Guide** | Guía rápida de despliegue | [DEPLOYMENT.md](./DEPLOYMENT.md) |
 | **Build Fixes** | Problemas conocidos y sus soluciones | [BUILD_FIXES.md](./BUILD_FIXES.md) |
 
@@ -1002,16 +1193,47 @@ Este README es la guía principal del proyecto. Para información específica, c
 
 En el módulo Presupuesto, React Query gestiona el fetch, caché e invalidación de datos automáticamente.
 
-### ¿Cómo pruebo el módulo Presupuesto?
+### ¿Cómo pruebo el proyecto completo?
 
-1. **Inicia el servidor:** `npm run dev`
-2. **Login:** Usa `test@aflow.cl` / `123456`
-3. **Navega:** Ve a `/portal/presupuesto`
-4. **Prueba funcionalidades:**
-   - Visualiza los 4 indicadores KPI
-   - Filtra por cliente o estado
-   - Crea un nuevo presupuesto
-   - Observa las actualizaciones en tiempo real
+1. **Inicia el servidor:** 
+   ```powershell
+   npm run dev
+   ```
+
+2. **Login:** 
+   - Ve a http://localhost:3000/login
+   - Usa `test@aflow.cl` / `123456`
+
+3. **Dashboard Principal (`/portal`):**
+   - 🎯 4 indicadores KPI en tiempo real
+   - 📊 3 gráficos interactivos: Monto vs IVA, Estados, Timeline
+   - 💡 Datos generados con `useBudgetAnalytics` hook
+
+4. **Módulo Presupuesto:**
+   - **Consultar** (`/portal/presupuesto/consultar`):
+     - Ver todos los presupuestos en tabla mejorada
+     - Filtrar por cliente, estado o rango de fechas
+     - Ver 4 indicadores resumen (Activos, En Revisión, Finalizados, Cerrados)
+     - Editar/Eliminar con actualizaciones optimistas
+     - Paginación y ordenamiento
+   
+   - **Crear** (`/portal/presupuesto/crear`):
+     - Wizard de 3 pasos (Cliente → Proyecto → Resumen)
+     - Validación con React Hook Form + Zod
+     - Formularios interactivos
+     - Agregar sucursales dinámicamente
+   
+   - **Historia** (`/portal/presupuesto/historia`):
+     - Ver historial completo en timeline
+     - Filtrar por fecha, estado y cliente
+     - Cards organizadas cronológicamente
+
+5. **Prueba funcionalidades avanzadas:**
+   - ✅ Actualizaciones optimistas con React Query
+   - ✅ Notificaciones toast con Sonner
+   - ✅ Estados de carga con skeletons
+   - ✅ Responsive design en mobile/tablet/desktop
+   - ✅ DevTools de React Query (abrir en desarrollo)
 
 ### ¿El proyecto está listo para producción?
 
@@ -1198,6 +1420,11 @@ Desarrollado con ❤️ por el equipo de desarrollo AFLOW.
 ---
 
 **Última actualización:** Diciembre 13, 2025  
-**Versión:** 1.0.0  
+**Versión:** 1.2.0  
 **Estado:** ✅ Producción Ready  
-**Features:** Presupuesto Module con React Query ✅
+**Features:**  
+- ✅ Dashboard Principal con Analytics (AmountVsIvaChart, BudgetStatusChart, TimelineChart)
+- ✅ Módulo Presupuesto Completo (Consultar + Crear + Historia)
+- ✅ React Query v5 con optimistic updates
+- ✅ 20+ componentes shadcn/ui  
+- ✅ Sistema de autenticación mock completo

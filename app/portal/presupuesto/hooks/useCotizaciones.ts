@@ -5,6 +5,7 @@ export function useCotizaciones(budgets: Budget[]) {
   const [filters, setFilters] = useState<FilterState>({
     cliente: "",
     estado: "",
+    estados: [],
     fecha: "",
   });
   
@@ -31,7 +32,10 @@ export function useCotizaciones(budgets: Budget[]) {
         ? budget.cliente.toLowerCase().includes(filters.cliente.toLowerCase())
         : true;
 
-      const matchesEstado = filters.estado
+      // Match estado: single estado OR multiple estados (from indicator groups)
+      const matchesEstado = filters.estados && filters.estados.length > 0
+        ? filters.estados.includes(budget.estado)
+        : filters.estado
         ? budget.estado === filters.estado
         : true;
 
@@ -134,6 +138,7 @@ export function useCotizaciones(budgets: Budget[]) {
     setFilters({
       cliente: "",
       estado: "",
+      estados: [],
       fecha: "",
     });
   };
@@ -142,6 +147,9 @@ export function useCotizaciones(budgets: Budget[]) {
     return Object.entries(filters).some(([key, value]) => {
       if (key === "cliente" || key === "estado" || key === "fecha") {
         return value !== "";
+      }
+      if (key === "estados") {
+        return Array.isArray(value) && value.length > 0;
       }
       return value !== undefined && value !== null;
     });

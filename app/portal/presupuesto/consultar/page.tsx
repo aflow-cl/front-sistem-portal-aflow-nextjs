@@ -5,27 +5,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-import { fetchBudgets, fetchIndicators, createBudget } from "../api/budgetService";
+import { fetchBudgets, createBudget, INDICATOR_GROUPS } from "../api/budgetService";
 import { Indicators } from "../components/Indicators";
 import { BudgetTableEnhanced } from "../components/BudgetTableEnhanced";
 import { AdvancedFilters } from "../components/AdvancedFilters";
 import { CreateBudgetModal } from "../components/CreateBudgetModal";
 import { LoadingSkeleton } from "../components/LoadingSkeleton";
 import { useCotizaciones } from "../hooks/useCotizaciones";
-import type { CreateBudgetInput, Budget } from "@/types/presupuesto";
-import { useState, useEffect } from "react";
+import type { CreateBudgetInput, Budget, IndicatorData } from "@/types/presupuesto";
+import { useState, useEffect, useMemo } from "react";
 import { RefreshCcw } from "lucide-react";
 
 export default function ConsultarPage() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [highlightEstado, setHighlightEstado] = useState(false);
-
-  // Fetch indicators
-  const { data: indicators = [] } = useQuery({
-    queryKey: ["indicators"],
-    queryFn: fetchIndicators,
-  });
 
   // Fetch budgets
   const {
@@ -36,6 +30,25 @@ export default function ConsultarPage() {
     queryKey: ["budgets"],
     queryFn: fetchBudgets,
   });
+
+  // Calculate indicators dynamically from budgets
+  const indicators: IndicatorData[] = useMemo(() => {
+    const grouped = Object.entries(INDICATOR_GROUPS).map(([groupName, config]) => {
+      const count = budgets.filter(budget => 
+        (config.estados as readonly string[]).includes(budget.estado)
+      ).length;
+      
+      return {
+        label: groupName,
+        value: count,
+        color: config.color,
+        estados: [...config.estados] as string[],
+        description: config.description,
+      };
+    });
+    
+    return grouped;
+  }, [budgets]);
 
   // Use custom hook for filtering and sorting
   const {
@@ -72,15 +85,22 @@ export default function ConsultarPage() {
     createBudgetMutation.mutate(data);
   };
 
-  // Handle filter by status from indicator
-  const handleFilterByStatus = (status: string) => {
+  // Handle filter by status from indicator (can be a group or single estado)
+  const handleFilterByStatus = (estados: string | string[]) => {
+    const estadosArray = Array.isArray(estados) ? estados : [estados];
+    
     setFilters((prev) => ({
       ...prev,
-      estado: status,
+      estados: estadosArray,
     }));
     setHighlightEstado(true);
+    
+    const description = estadosArray.length > 1
+      ? `Mostrando presupuestos: ${estadosArray.join(", ")}`
+      : `Mostrando presupuestos con estado: ${estadosArray[0]}`;
+    
     toast.success("Filtro aplicado", {
-      description: `Mostrando presupuestos con estado: ${status}`,
+      description,
     });
   };
 
@@ -131,50 +151,53 @@ export default function ConsultarPage() {
 
   return (
     <div className="space-y-6">
-      {/* Action Buttons Row - Clean and aligned */}
-      <div className="flex items-center justify-end gap-2 -mt-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          className="border-gray-300 hover:bg-gray-50 transition-colors"
-          aria-label="Actualizar cotizaciones"
-        >
-          <RefreshCcw className="h-4 w-4" />
-          <span className="ml-2 hidden sm:inline">Actualizar</span>
-        </Button>
-        <AdvancedFilters
-          filters={filters}
-          onApplyFilters={setFilters}
-          onClearFilters={clearFilters}
-          hasActiveFilters={hasActiveFilters}
-        />
-      </div>
-
       {/* Indicators */}
       <Indicators data={indicators} onFilterByStatus={handleFilterByStatus} />
 
-      {/* Results Summary */}
-      <div className="flex items-center justify-between text-sm">
-        <p className="text-gray-600">
-          Mostrando{" "}
-          <span className="font-semibold text-gray-900">
-            {filteredAndSortedBudgets.length}
-          </span>{" "}
-          de{" "}
-          <span className="font-semibold text-gray-900">{budgets.length}</span>{" "}
-          cotizaciones
-        </p>
-        {hasActiveFilters && (
+      {/* Action Bar - Results Summary and Controls */}
+      <div className="flex items-center justify-between gap-4 bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm">
+        {/* Results Summary */}
+        <div className="flex items-center gap-3">
+          <p className="text-sm text-gray-600">
+            Mostrando{" "}
+            <span className="font-semibold text-gray-900">
+              {filteredAndSortedBudgets.length}
+            </span>{" "}
+            de{" "}
+            <span className="font-semibold text-gray-900">{budgets.length}</span>{" "}
+            cotizaciones
+          </p>
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="text-[#244F82] hover:text-[#1a3a5f] hover:bg-blue-50 transition-colors"
+            >
+              Limpiar filtros
+            </Button>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            onClick={clearFilters}
-            className="text-[#244F82] hover:text-[#1a3a5f] hover:bg-blue-50 transition-colors"
+            onClick={handleRefresh}
+            className="border-gray-300 hover:bg-gray-50 transition-colors"
+            aria-label="Actualizar cotizaciones"
           >
-            Limpiar filtros
+            <RefreshCcw className="h-4 w-4" />
+            <span className="ml-2 hidden sm:inline">Actualizar</span>
           </Button>
-        )}
+          <AdvancedFilters
+            filters={filters}
+            onApplyFilters={setFilters}
+            onClearFilters={clearFilters}
+            hasActiveFilters={hasActiveFilters}
+          />
+        </div>
       </div>
 
       {/* Budget Table */}

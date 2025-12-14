@@ -18,32 +18,34 @@ import { useState } from "react";
 
 interface IndicatorsProps {
   data: IndicatorData[];
-  onFilterByStatus?: (status: string) => void;
+  onFilterByStatus?: (estados: string | string[]) => void;
 }
 
 export function Indicators({ data, onFilterByStatus }: IndicatorsProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedIndicator, setSelectedIndicator] = useState<IndicatorData | null>(null);
 
-  const handleIndicatorClick = (label: string) => {
-    setSelectedStatus(label);
+  const handleIndicatorClick = (indicator: IndicatorData) => {
+    setSelectedIndicator(indicator);
     setIsDialogOpen(true);
   };
 
   const handleConfirm = () => {
-    if (onFilterByStatus) {
-      onFilterByStatus(selectedStatus);
+    if (onFilterByStatus && selectedIndicator) {
+      // If indicator has specific estados, use them; otherwise use the label
+      const filterValue = selectedIndicator.estados || selectedIndicator.label;
+      onFilterByStatus(filterValue);
     }
     setIsDialogOpen(false);
   };
 
   return (
     <>
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
         {data.map((indicator, index) => (
           <Card
             key={index}
-            onClick={() => handleIndicatorClick(indicator.label)}
+            onClick={() => handleIndicatorClick(indicator)}
             className="shadow-[0_1px_2px_rgba(0,0,0,0.06),0_2px_4px_rgba(0,0,0,0.08),0_8px_16px_rgba(0,0,0,0.12)] hover:shadow-[0_4px_8px_rgba(0,0,0,0.08),0_8px_16px_rgba(0,0,0,0.12),0_16px_32px_rgba(0,0,0,0.16)] transition-all duration-300 rounded-xl border border-gray-100/50 hover:-translate-y-2 bg-white cursor-pointer active:scale-95"
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5 pt-4 px-4">
@@ -58,7 +60,7 @@ export function Indicators({ data, onFilterByStatus }: IndicatorsProps) {
               </div>
               <p className="text-[10px] text-gray-500 mt-0.5 flex items-center gap-1">
                 <TrendingUp className="h-2.5 w-2.5 text-emerald-600" />
-                Presupuestos {indicator.label.toLowerCase()}
+                {indicator.description || `Presupuestos ${indicator.label.toLowerCase()}`}
               </p>
             </CardContent>
           </Card>
@@ -70,7 +72,16 @@ export function Indicators({ data, onFilterByStatus }: IndicatorsProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Filtrar presupuestos</AlertDialogTitle>
             <AlertDialogDescription>
-              ¿Desea actualizar la grilla para mostrar únicamente los presupuestos con estado &quot;{selectedStatus}&quot;?
+              {selectedIndicator?.estados && selectedIndicator.estados.length > 1 ? (
+                <>
+                  ¿Desea filtrar los presupuestos del grupo &quot;{selectedIndicator.label}&quot;?
+                  <span className="block text-xs mt-2 text-gray-500">
+                    Estados: {selectedIndicator.estados.join(", ")}
+                  </span>
+                </>
+              ) : (
+                `¿Desea mostrar únicamente los presupuestos con estado "${selectedIndicator?.label}"?`
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
