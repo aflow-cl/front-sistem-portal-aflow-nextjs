@@ -8,9 +8,6 @@ import type {
   OpcionMenu,
   DashboardStats,
   ActividadReciente,
-  Sucursal,
-  UsuarioCliente,
-  ServicioContratado,
 } from "../types/ajustes";
 
 // ============================================

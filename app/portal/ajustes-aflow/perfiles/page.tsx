@@ -9,8 +9,6 @@ import {
   Edit2,
   Trash2,
   Users as UsersIcon,
-  CheckSquare,
-  Square,
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
@@ -232,7 +230,7 @@ export default function PerfilesPage() {
     const data: CreatePerfilInput = {
       nombre: formData.get("nombre") as string,
       descripcion: formData.get("descripcion") as string,
-      nivel: formData.get("nivel") as any,
+      nivel: formData.get("nivel") as "Administrador" | "Supervisor" | "Operador" | "Consulta",
       permisos: permisos.filter((p) => p.habilitado),
     };
 
@@ -424,7 +422,7 @@ export default function PerfilesPage() {
                   <Label htmlFor="nivel">Nivel *</Label>
                   <Select
                     name="nivel"
-                    defaultValue={editingPerfil?.nivel}
+                    defaultValue={editingPerfil?.nivel as string}
                     required
                   >
                     <SelectTrigger id="nivel">

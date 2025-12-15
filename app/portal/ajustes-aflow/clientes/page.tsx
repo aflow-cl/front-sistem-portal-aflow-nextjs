@@ -14,12 +14,12 @@ import {
   MapPin,
   Phone,
   Mail,
-  Globe,
   CheckCircle,
   XCircle,
   Building,
   UserPlus,
   Package,
+  Shield,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

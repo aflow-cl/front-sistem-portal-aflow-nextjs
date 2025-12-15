@@ -8,12 +8,10 @@ import {
   Search,
   Filter,
   Edit2,
-  Trash2,
   Users,
   DollarSign,
   CheckCircle,
   XCircle,
-  TrendingUp,
   Zap,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,19 +37,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
   fetchServicios,
-  createServicio,
-  updateServicio,
   toggleServicioStatus,
 } from "../api/ajustesService";
-import type { Servicio, CreateServicioInput, TarifaServicio } from "../types/ajustes";
+import type { Servicio } from "../types/ajustes";
 
 const CATEGORIAS = ["Software", "Consultoría", "Soporte", "Infraestructura"];
-
-const PLANES: Array<TarifaServicio["plan"]> = [
-  "Basic",
-  "Professional",
-  "Enterprise",
-];
 
 const CATEGORIA_COLORS: Record<string, string> = {
   Software: "bg-blue-100 text-blue-800 border-blue-300",
@@ -76,43 +66,6 @@ export default function ServiciosPage() {
   const { data: servicios, isLoading } = useQuery({
     queryKey: ["servicios"],
     queryFn: fetchServicios,
-  });
-
-  const createMutation = useMutation({
-    mutationFn: createServicio,
-    onSuccess: (newServicio) => {
-      queryClient.setQueryData(["servicios"], (old: Servicio[] = []) => [
-        ...old,
-        newServicio,
-      ]);
-      toast.success("Servicio creado exitosamente");
-      setDialogOpen(false);
-      setEditingServicio(null);
-    },
-    onError: () => {
-      toast.error("Error al crear servicio");
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: Partial<CreateServicioInput>;
-    }) => updateServicio(id, data),
-    onSuccess: (updatedServicio) => {
-      queryClient.setQueryData(["servicios"], (old: Servicio[] = []) =>
-        old.map((s) => (s.id === updatedServicio.id ? updatedServicio : s))
-      );
-      toast.success("Servicio actualizado exitosamente");
-      setDialogOpen(false);
-      setEditingServicio(null);
-    },
-    onError: () => {
-      toast.error("Error al actualizar servicio");
-    },
   });
 
   const toggleStatusMutation = useMutation({

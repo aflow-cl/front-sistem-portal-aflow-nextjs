@@ -46,7 +46,7 @@ import {
 } from "../api/ajustesService";
 import type { OpcionMenu } from "../types/ajustes";
 
-const ICON_MAP: Record<string, any> = {
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Home,
   Calculator,
   Briefcase,
