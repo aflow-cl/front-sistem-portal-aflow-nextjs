@@ -29,6 +29,7 @@ npm run dev
 - **Dashboard:** `/portal` - Analytics con 3 gráficos interactivos y 4 KPIs
 - **Presupuestos Consultar:** `/portal/presupuesto/consultar` - Gestión completa con filtros
 - **Presupuestos Crear:** `/portal/presupuesto/crear` - Wizard de creación paso a paso
+- **Presupuestos Editar:** `/portal/presupuesto/editar/[id]` - Edición con historial y notas
 - **Presupuestos Historia:** `/portal/presupuesto/historia` - Timeline completo
 
 > **Nota:** No necesitas configurar Supabase - la autenticación mock funciona out-of-the-box.
@@ -75,6 +76,7 @@ npm run dev
 | **Módulo Presupuesto** | ✅ Completo | CRUD completo con React Query, 3 sub-rutas funcionales |
 | **Módulo Consultar** | ✅ Completo | Tabla mejorada, filtros avanzados, indicadores, paginación |
 | **Módulo Crear** | ✅ Completo | Wizard completo, validación, modales, progreso |
+| **Módulo Editar** | ✅ Completo | Edición completa, historial, notas, duplicar, compartir |
 | **Módulo Historia** | ✅ Completo | Timeline de presupuestos, filtros por fecha/estado |
 | **Módulo Contratante** | 📋 Futuro | CRUD, búsqueda avanzada, exportación |
 | **Módulo Cotización** | 📋 Futuro | Generación de cotizaciones, reportes PDF |
@@ -103,7 +105,7 @@ npm run dev
 - ✅ **shadcn/ui** - 20+ componentes modernos y accesibles
 - ✅ **Autenticación Mock** con sistema de sesiones completo
 - ✅ **React Query v5** para gestión de estado del servidor y caché
-- ✅ **Módulo Presupuesto Completo** - 3 sub-rutas (Consultar, Crear, Historia)
+- ✅ **Módulo Presupuesto Completo** - 4 sub-rutas (Consultar, Crear, Editar, Historia)
 - ✅ **Dashboard con Analytics** - Gráficos interactivos con Recharts 3.5.1
 - ✅ **Diseño Responsivo** - Mobile-first approach
 - ✅ **Arquitectura Limpia** - Separación de responsabilidades
@@ -318,6 +320,17 @@ aflow-portal/
 │   │       │   └── data/              # Datos mock
 │   │       │       ├── clientesMock.ts
 │   │       │       └── regionesChile.ts
+│   │       ├── editar/        # Sub-módulo editar
+│   │       │   ├── README.md          # Documentación del módulo
+│   │       │   ├── [budgetId]/        # Ruta dinámica
+│   │       │   │   └── page.tsx       # Página de edición
+│   │       │   └── components/        # Componentes de edición
+│   │       │       ├── EditBudgetHeader.tsx       # Header con acciones
+│   │       │       ├── BudgetHistoryTimeline.tsx  # Timeline de historial
+│   │       │       ├── BudgetNotes.tsx            # Notas internas
+│   │       │       ├── DuplicateBudgetModal.tsx   # Modal duplicar
+│   │       │       ├── NotifyEmailModal.tsx       # Modal email
+│   │       │       └── ShareWhatsAppModal.tsx     # Modal WhatsApp
 │   │       ├── historia/      # Sub-módulo historia
 │   │       │   └── page.tsx
 │   │       └── hooks/         # Custom hooks del presupuesto
@@ -538,7 +551,27 @@ Módulo completo de gestión de presupuestos con **React Query** para manejo de 
 - ✅ **Datos Mock:** `clientesMock.ts`, `regionesChile.ts`
 - ✅ **Notificaciones:** Toast con Sonner para feedback
 
-#### 3. Historia (`/portal/presupuesto/historia`)
+#### 3. Editar (`/portal/presupuesto/editar/[budgetId]`)
+- ✅ **Navegación desde Tabla:** Click en fila o menú contextual "Editar"
+- ✅ **Header Inteligente:** Folio, estado, fecha, acciones (copiar link, duplicar, cancelar, guardar)
+- ✅ **Visualización por Tabs:** 3 pestañas (General, Cliente, Ítems)
+- ✅ **Historial del Presupuesto:** Timeline con audit log completo
+- ✅ **Notas Internas:** Sistema de comentarios para el equipo
+- ✅ **Acciones Avanzadas:**
+  - 📋 Duplicar presupuesto con modal de confirmación
+  - 📧 Notificar por email con vista previa
+  - 📱 Compartir por WhatsApp con mensaje personalizable
+  - 🔗 Copiar link público al portapapeles
+  - 💾 Guardado con detección de cambios
+- ✅ **Componentes del Módulo:**
+  - `EditBudgetHeader.tsx` - Header con información y acciones
+  - `BudgetHistoryTimeline.tsx` - Timeline de audit log
+  - `BudgetNotes.tsx` - Sistema de notas internas
+  - `DuplicateBudgetModal.tsx` - Modal de duplicación
+  - `NotifyEmailModal.tsx` - Modal para notificación email
+  - `ShareWhatsAppModal.tsx` - Modal para compartir WhatsApp
+
+#### 4. Historia (`/portal/presupuesto/historia`)
 - ✅ **Historial Completo:** Timeline de todos los presupuestos
 - ✅ **Filtros:** Por fecha, estado y cliente
 - ✅ **Visualización:** Cards organizadas cronológicamente
@@ -579,6 +612,17 @@ app/portal/presupuesto/
 │   └── data/                  # Datos mock
 │       ├── clientesMock.ts           # Base de clientes de prueba
 │       └── regionesChile.ts          # Regiones y comunas de Chile
+├── editar/
+│   ├── README.md              # Documentación completa del módulo
+│   ├── [budgetId]/
+│   │   └── page.tsx           # Página dinámica de edición
+│   └── components/            # Componentes de edición
+│       ├── EditBudgetHeader.tsx       # Header con info y acciones
+│       ├── BudgetHistoryTimeline.tsx  # Timeline de audit log
+│       ├── BudgetNotes.tsx            # Sistema de notas internas
+│       ├── DuplicateBudgetModal.tsx   # Modal de duplicación
+│       ├── NotifyEmailModal.tsx       # Modal notificación email
+│       └── ShareWhatsAppModal.tsx     # Modal compartir WhatsApp
 ├── historia/
 │   └── page.tsx               # Página de historial
 └── hooks/
@@ -698,6 +742,7 @@ new Date().toLocaleDateString('es-CL') // → "13/12/2024"
 | `/portal/presupuesto` | Módulo de presupuesto (redirect a consultar) | `app/portal/presupuesto/page.tsx` |
 | `/portal/presupuesto/consultar` | Consulta y gestión de presupuestos | `app/portal/presupuesto/consultar/page.tsx` |
 | `/portal/presupuesto/crear` | Crear nuevo presupuesto | `app/portal/presupuesto/crear/page.tsx` |
+| `/portal/presupuesto/editar/[id]` | Editar presupuesto existente | `app/portal/presupuesto/editar/[budgetId]/page.tsx` |
 | `/portal/presupuesto/historia` | Historial de presupuestos | `app/portal/presupuesto/historia/page.tsx` |
 
 ### Navegación Programática
@@ -1129,6 +1174,7 @@ Este README es la guía principal del proyecto. Para información específica, c
 | **Project Description** | Documentación técnica detallada del proyecto | [project-description.md](./project-description.md) |
 | **Presupuesto Module** | Documentación específica del módulo presupuesto | [PRESUPUESTO_MODULE_README.md](./PRESUPUESTO_MODULE_README.md) |
 | **Consultar Module** | Guía del sub-módulo de consulta | [CONSULTAR_MODULE_README.md](./app/portal/presupuesto/CONSULTAR_MODULE_README.md) |
+| **Editar Module** | Guía del sub-módulo de edición | [editar/README.md](./app/portal/presupuesto/editar/README.md) |
 | **Deployment Guide** | Guía rápida de despliegue | [DEPLOYMENT.md](./DEPLOYMENT.md) |
 | **Build Fixes** | Problemas conocidos y sus soluciones | [BUILD_FIXES.md](./BUILD_FIXES.md) |
 
@@ -1222,6 +1268,15 @@ En el módulo Presupuesto, React Query gestiona el fetch, caché e invalidación
      - Validación con React Hook Form + Zod
      - Formularios interactivos
      - Agregar sucursales dinámicamente
+   
+   - **Editar** (`/portal/presupuesto/editar/[budgetId]`):
+     - Navegación desde tabla (click en fila o menú "Editar")
+     - Visualización completa por tabs (General, Cliente, Ítems)
+     - Timeline de historial con audit log profesional
+     - Sistema de notas internas para el equipo
+     - Acciones: duplicar, notificar email, compartir WhatsApp
+     - Header inteligente con detección de cambios
+     - Componentes especializados para cada funcionalidad
    
    - **Historia** (`/portal/presupuesto/historia`):
      - Ver historial completo en timeline
@@ -1419,12 +1474,13 @@ Desarrollado con ❤️ por el equipo de desarrollo AFLOW.
 
 ---
 
-**Última actualización:** Diciembre 13, 2025  
-**Versión:** 1.2.0  
+**Última actualización:** Diciembre 15, 2025  
+**Versión:** 1.3.0  
 **Estado:** ✅ Producción Ready  
 **Features:**  
 - ✅ Dashboard Principal con Analytics (AmountVsIvaChart, BudgetStatusChart, TimelineChart)
-- ✅ Módulo Presupuesto Completo (Consultar + Crear + Historia)
+- ✅ Módulo Presupuesto Completo (Consultar + Crear + Editar + Historia)
+- ✅ Edición Avanzada con Historial, Notas y Compartir
 - ✅ React Query v5 con optimistic updates
 - ✅ 20+ componentes shadcn/ui  
 - ✅ Sistema de autenticación mock completo
