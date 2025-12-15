@@ -10,17 +10,13 @@ import { toast } from "sonner";
 import type { BudgetNote } from "@/types/presupuesto";
 
 interface BudgetNotesProps {
-  budgetId: string;
   notes: BudgetNote[];
-  currentUser: string;
   onAddNote: (content: string) => Promise<void>;
   loading?: boolean;
 }
 
 export function BudgetNotes({ 
-  budgetId: _budgetId, 
   notes, 
-  currentUser: _currentUser,
   onAddNote,
   loading = false 
 }: BudgetNotesProps) {

@@ -26,7 +26,7 @@ import { ProgressBar } from './components/ProgressBar';
 import { WizardNavigation } from './components/WizardNavigation';
 import { ClienteForm } from './components/ClienteForm';
 import { ProyectoForm } from './components/ProyectoForm';
-import { PresupuestoTable } from './components/PresupuestoTable';
+import { PresupuestoTable } from '../components/PresupuestoTable';
 import { ResumenFinal } from './components/ResumenFinal';
 import { createBudget } from '../api/budgetService';
 import { useAuth } from '@/hooks/useAuth';
@@ -646,7 +646,7 @@ export default function CrearPresupuestoPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-4">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full md:max-w-[90vw] 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-4 pt-0">
           <div className="mb-3">

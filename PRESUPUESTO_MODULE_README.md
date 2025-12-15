@@ -37,14 +37,16 @@ Se ha implementado exitosamente el módulo completo de Presupuesto para AFLOW Po
 - Border radius: rounded-xl
 - Focus states con color AFLOW orange
 
-#### `app/portal/presupuesto/components/BudgetTable.tsx`
-- Tabla HTML nativa con estilos TailwindCSS
-- Header con gradiente naranja AFLOW
+#### `app/portal/presupuesto/components/BudgetTableEnhanced.tsx`
+- Tabla avanzada con funcionalidad completa
 - Columnas: Folio, Cliente, Fecha, Monto, Estado, Acciones
+- Sorting y navegación integrada
+- Dropdown menus con opciones (Ver, Editar, Duplicar)
 - Badges de estado con colores semánticos
-- Botón "Ver" con icono Eye
+- Click en fila para navegar a editar
 - Hover effects y estados vacíos
 - Responsivo con overflow-x-auto
+- **Nota:** Supersede a `BudgetTable.tsx` (versión simple removida)
 
 #### `app/portal/presupuesto/components/CreateBudgetModal.tsx`
 - Modal custom con backdrop blur
@@ -60,6 +62,15 @@ Se ha implementado exitosamente el módulo completo de Presupuesto para AFLOW Po
 - Shimmer effect
 - Estructura idéntica al contenido real
 
+#### `app/portal/presupuesto/components/PresupuestoTable.tsx`
+- Tabla de items compartida entre crear y editar módulos
+- 532 líneas de lógica compleja para items, proveedores, productos
+- Cálculos automáticos: IVA, utilidad, bruto, total
+- Soporte para comentarios/observaciones
+- Grid con 11 columnas editables
+- Resumen de totales con métricas
+- **Consolidado** desde duplicados en crear/ y editar/ (dic 2025)
+
 ### 5. **Página Principal**
 - `app/portal/presupuesto/page.tsx` - Client component con React Query
   - useQuery para budgets e indicators
@@ -74,6 +85,38 @@ Se ha implementado exitosamente el módulo completo de Presupuesto para AFLOW Po
 - `app/portal/layout.tsx` - Envuelto con QueryProvider
   - Children wrapped en QueryProvider
   - Imports agregados
+
+### 7. **Módulo Editar (Implementado)**
+- `app/portal/presupuesto/editar/[budgetId]/page.tsx` - Página de edición
+  - Edición completa de presupuestos existentes
+  - Tabs para Presupuesto, Historia, Notas
+  - Timeline de acciones históricas
+  - Sistema de notas con timestamps
+  - Duplicación de presupuestos
+  - Validaciones y guardado con React Hook Form
+- Componentes especializados:
+  - `EditBudgetHeader.tsx` - Header con acciones
+  - `BudgetHistoryTimeline.tsx` - Línea de tiempo
+  - `BudgetNotes.tsx` - Sistema de notas
+  - `DuplicateBudgetModal.tsx` - Modal para duplicar
+- Ver documentación detallada en: `app/portal/presupuesto/editar/README.md`
+
+### 8. **Módulo Crear (Wizard Multi-Step)**
+- `app/portal/presupuesto/crear/page.tsx` - Wizard de 3 pasos
+  - Paso 1: Datos del Cliente (con validación RUT)
+  - Paso 2: Datos del Proyecto
+  - Paso 3: Items del Presupuesto (usa PresupuestoTable compartido)
+  - Paso 4: Resumen Final
+- Validación con Zod y React Hook Form
+- Navegación con botones Anterior/Siguiente
+- Barra de progreso visual
+- AlertDialog para confirmación de salida
+
+### 9. **Módulo Consultar**
+- `app/portal/presupuesto/consultar/page.tsx` - Lista y búsqueda
+- Filtros avanzados con AdvancedFilters component
+- Usa BudgetTableEnhanced para visualización
+- Ver: `app/portal/presupuesto/CONSULTAR_MODULE_README.md`
 
 ## 🎨 Lineamientos de Diseño AFLOW Aplicados
 
@@ -182,6 +225,29 @@ npm install @tanstack/react-query @tanstack/react-query-devtools
 - Composición sobre herencia
 - Client components explícitos
 - Event handlers desacoplados
+
+## 🧹 Limpieza de Código (Diciembre 2025)
+
+Se realizó una limpieza exhaustiva del módulo para mejorar mantenibilidad:
+
+### ✅ Archivos Eliminados (Dead Code)
+- `app/portal/presupuesto/crear/page_new.tsx` - Draft/backup sin uso (50 líneas)
+- `app/portal/presupuesto/crear/page.tsx.backup` - Versión antigua (736 líneas)
+- `app/portal/presupuesto/components/BudgetTable.tsx` - Supersedido por BudgetTableEnhanced (146 líneas)
+- `app/(private)/` - Carpeta vacía de route group abandonado
+
+### ✅ Componentes Consolidados
+- **PresupuestoTable.tsx** movido a `app/portal/presupuesto/components/`
+  - Antes duplicado en `crear/components/` y `editar/components/`
+  - Eliminó 532 líneas de código duplicado
+  - Ahora es fuente única compartida entre módulos
+
+### ✅ Impacto
+- **Total removido:** 1,464 líneas de código muerto
+- **Archivos eliminados:** 4 archivos
+- **Duplicación eliminada:** 532 líneas
+- **Mejor organización:** Componentes compartidos centralizados
+- **Sin breaking changes:** Todos los imports actualizados correctamente
 
 ## 🌐 Estado del Proyecto
 

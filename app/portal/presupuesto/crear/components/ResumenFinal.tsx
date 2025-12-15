@@ -121,7 +121,7 @@ export function ResumenFinal({ form, folio }: ResumenFinalProps) {
             <Building2 className="w-5 h-5 text-[#003366]" />
             Información del Cliente
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             <div>
               <p className="text-xs text-gray-600 mb-1">RUT</p>
               <p className="text-sm font-semibold text-gray-900">
@@ -187,8 +187,8 @@ export function ResumenFinal({ form, folio }: ResumenFinalProps) {
             <Calendar className="w-5 h-5 text-[#003366]" />
             Información del Proyecto
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="md:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            <div className="md:col-span-2 xl:col-span-3">
               <p className="text-xs text-gray-600 mb-1">Nombre del Proyecto</p>
               <p className="text-base font-bold text-gray-900">
                 {proyecto.nombre || 'N/A'}
@@ -241,7 +241,7 @@ export function ResumenFinal({ form, folio }: ResumenFinalProps) {
             <DollarSign className="w-5 h-5 text-[#22C55E]" />
             Resumen Financiero
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
             <div className="bg-white rounded-lg p-3 shadow-sm">
               <p className="text-xs text-gray-600 mb-1">Total de Ítems</p>
               <p className="text-2xl font-bold text-gray-900">{itemCount}</p>

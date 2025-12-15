@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -19,10 +18,11 @@ import {
 import { BudgetHistoryTimeline } from "../components/BudgetHistoryTimeline";
 import { BudgetNotes } from "../components/BudgetNotes";
 import { DuplicateBudgetModal } from "../components/DuplicateBudgetModal";
-import { PresupuestoTable } from "../components/PresupuestoTable";
+import { EditBudgetHeader } from "../components/EditBudgetHeader";
+import { PresupuestoTable } from "../../components/PresupuestoTable";
 import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, FileText, Building2, ArrowLeft, Save, Copy } from "lucide-react";
+import { AlertCircle, FileText, Building2 } from "lucide-react";
 import type { BudgetDetailedData, AccionHistoria, BudgetNote } from "@/types/presupuesto";
 import { use } from "react";
 
@@ -186,6 +186,37 @@ export default function EditBudgetPage({ params }: PageProps) {
     setNotes([newNote, ...notes]);
   };
 
+  const handleEstadoChange = async (newEstado: BudgetDetailedData["estado"], comentario?: string) => {
+    if (!budget) return;
+
+    try {
+      // Update budget estado
+      const updatedBudget = {
+        ...budget,
+        estado: newEstado,
+      };
+      
+      await updateBudget(budget.id, updatedBudget);
+      setBudget(updatedBudget);
+
+      // Add note with the comment if provided
+      if (comentario && user) {
+        const noteContent = `Estado cambiado a "${newEstado}": ${comentario}`;
+        const newNote = await addBudgetNote(budget.id, noteContent, user.email || "Usuario");
+        setNotes([newNote, ...notes]);
+      }
+    } catch (error) {
+      console.error("Error updating estado:", error);
+      throw error; // Re-throw to let EditBudgetHeader handle the error
+    }
+  };
+
+  const handleNotifyEmail = async (data: { to: string; subject: string; message: string }) => {
+    // For now, use mailto: link. In production, implement backend email service
+    const mailtoLink = `mailto:${encodeURIComponent(data.to)}?subject=${encodeURIComponent(data.subject)}&body=${encodeURIComponent(data.message)}`;
+    window.location.href = mailtoLink;
+  };
+
   // Watch form changes to detect modifications
   useEffect(() => {
     const subscription = form.watch(() => {
@@ -249,188 +280,156 @@ export default function EditBudgetPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => router.push("/portal/presupuesto/consultar")}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Editar Presupuesto #{budget.folio}
-                </h1>
-                <p className="text-sm text-gray-600">
-                  {budget.cliente}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowDuplicateModal(true)}
-                disabled={isSaving}
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                Duplicar
-              </Button>
-              <Button
-                onClick={handleSave}
-                disabled={isSaving || !hasChanges}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {isSaving ? "Guardando..." : "Guardar"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <EditBudgetHeader
+        budget={budget}
+        onSave={handleSave}
+        onDuplicate={() => setShowDuplicateModal(true)}
+        onEstadoChange={handleEstadoChange}
+        onNotifyEmail={handleNotifyEmail}
+        isSaving={isSaving}
+        hasChanges={hasChanges}
+      />
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Budget Details */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Budget Information */}
-            <Card className="rounded-xl shadow-sm border-gray-200">
-              <CardContent className="p-6">
-                <Tabs defaultValue="general" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="general">General</TabsTrigger>
-                    <TabsTrigger value="cliente">Cliente</TabsTrigger>
-                    <TabsTrigger value="items">Ítems</TabsTrigger>
-                  </TabsList>
+      <div className="w-full md:max-w-[90vw] 2xl:max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-6">
+          {/* Budget Information - Full Width */}
+          <Card className="rounded-xl shadow-sm border-gray-200">
+            <CardContent className="p-6">
+              <Tabs defaultValue="general" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="general">General</TabsTrigger>
+                  <TabsTrigger value="cliente">Cliente</TabsTrigger>
+                  <TabsTrigger value="items">Ítems</TabsTrigger>
+                </TabsList>
 
-                  {/* General Tab */}
-                  <TabsContent value="general" className="space-y-4 mt-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#003366] to-[#00AEEF] flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold text-gray-900">Información General</h2>
-                        <p className="text-xs text-gray-600">Datos principales del presupuesto</p>
-                      </div>
+                {/* General Tab */}
+                <TabsContent value="general" className="space-y-4 mt-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#003366] to-[#00AEEF] flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-white" />
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Folio</label>
-                        <p className="text-base text-gray-900 font-semibold">{budget.folio}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Estado</label>
-                        <p className="text-base text-gray-900">{budget.estado}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Fecha de Creación</label>
-                        <p className="text-base text-gray-900">
-                          {new Date(budget.fecha).toLocaleDateString("es-CL")}
-                        </p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Fecha de Cierre</label>
-                        <p className="text-base text-gray-900">
-                          {budget.fechaCierre 
-                            ? new Date(budget.fechaCierre).toLocaleDateString("es-CL")
-                            : "Sin definir"}
-                        </p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Autor</label>
-                        <p className="text-base text-gray-900">{budget.autor || "-"}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Proyecto</label>
-                        <p className="text-base text-gray-900">{budget.proyecto || "-"}</p>
-                      </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">Información General</h2>
+                      <p className="text-xs text-gray-600">Datos principales del presupuesto</p>
                     </div>
+                  </div>
 
-                    {budget.descripcion && (
-                      <div className="mt-4">
-                        <label className="text-sm font-medium text-gray-700">Descripción</label>
-                        <p className="text-sm text-gray-600 mt-1">{budget.descripcion}</p>
-                      </div>
-                    )}
-                  </TabsContent>
-
-                  {/* Cliente Tab */}
-                  <TabsContent value="cliente" className="space-y-4 mt-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                        <Building2 className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold text-gray-900">Datos del Cliente</h2>
-                        <p className="text-xs text-gray-600">Información de contacto</p>
-                      </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Folio</label>
+                      <p className="text-base text-gray-900 font-semibold">{budget.folio}</p>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="col-span-2">
-                        <label className="text-sm font-medium text-gray-700">Razón Social</label>
-                        <p className="text-base text-gray-900 font-semibold">
-                          {budget.cliente_info?.razonSocial || budget.cliente}
-                        </p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">RUT</label>
-                        <p className="text-base text-gray-900">{budget.cliente_info?.rut || "-"}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Giro</label>
-                        <p className="text-base text-gray-900">{budget.cliente_info?.giro || "-"}</p>
-                      </div>
-                      <div className="col-span-2">
-                        <label className="text-sm font-medium text-gray-700">Dirección</label>
-                        <p className="text-base text-gray-900">{budget.cliente_info?.direccion || "-"}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Ciudad</label>
-                        <p className="text-base text-gray-900">{budget.cliente_info?.ciudad || "-"}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Región</label>
-                        <p className="text-base text-gray-900">{budget.cliente_info?.region || "-"}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Email</label>
-                        <p className="text-base text-gray-900">{budget.cliente_info?.email || "-"}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Teléfono</label>
-                        <p className="text-base text-gray-900">{budget.cliente_info?.telefono || "-"}</p>
-                      </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Estado</label>
+                      <p className="text-base text-gray-900">{budget.estado}</p>
                     </div>
-                  </TabsContent>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Fecha de Creación</label>
+                      <p className="text-base text-gray-900">
+                        {new Date(budget.fecha).toLocaleDateString("es-CL")}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Fecha de Cierre</label>
+                      <p className="text-base text-gray-900">
+                        {budget.fechaCierre 
+                          ? new Date(budget.fechaCierre).toLocaleDateString("es-CL")
+                          : "Sin definir"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Autor</label>
+                      <p className="text-base text-gray-900">{budget.autor || "-"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Proyecto</label>
+                      <p className="text-base text-gray-900">{budget.proyecto || "-"}</p>
+                    </div>
+                  </div>
 
-                  {/* Items Tab */}
-                  <TabsContent value="items" className="space-y-4 mt-6">
-                    <Form {...form}>
-                      <PresupuestoTable form={form} />
-                    </Form>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-          </div>
+                  {budget.descripcion && (
+                    <div className="mt-4">
+                      <label className="text-sm font-medium text-gray-700">Descripción</label>
+                      <p className="text-sm text-gray-600 mt-1">{budget.descripcion}</p>
+                    </div>
+                  )}
+                </TabsContent>
 
-          {/* Right Column - History & Notes */}
-          <div className="space-y-6">
-            {/* History Timeline */}
-            <BudgetHistoryTimeline history={history} />
+                {/* Cliente Tab */}
+                <TabsContent value="cliente" className="space-y-4 mt-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                      <Building2 className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">Datos del Cliente</h2>
+                      <p className="text-xs text-gray-600">Información de contacto</p>
+                    </div>
+                  </div>
 
-            {/* Notes */}
-            <BudgetNotes
-              budgetId={budget.id}
-              notes={notes}
-              currentUser={user?.email || "Usuario"}
-              onAddNote={handleAddNote}
-            />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label className="text-sm font-medium text-gray-700">Razón Social</label>
+                      <p className="text-base text-gray-900 font-semibold">
+                        {budget.cliente_info?.razonSocial || budget.cliente}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">RUT</label>
+                      <p className="text-base text-gray-900">{budget.cliente_info?.rut || "-"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Giro</label>
+                      <p className="text-base text-gray-900">{budget.cliente_info?.giro || "-"}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="text-sm font-medium text-gray-700">Dirección</label>
+                      <p className="text-base text-gray-900">{budget.cliente_info?.direccion || "-"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Ciudad</label>
+                      <p className="text-base text-gray-900">{budget.cliente_info?.ciudad || "-"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Región</label>
+                      <p className="text-base text-gray-900">{budget.cliente_info?.region || "-"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Email</label>
+                      <p className="text-base text-gray-900">{budget.cliente_info?.email || "-"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Teléfono</label>
+                      <p className="text-base text-gray-900">{budget.cliente_info?.telefono || "-"}</p>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Items Tab */}
+                <TabsContent value="items" className="space-y-4 mt-6">
+                  <Form {...form}>
+                    <PresupuestoTable form={form} />
+                  </Form>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+
+          {/* History & Notes - Split 60/40 */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            {/* History Timeline - 60% */}
+            <div className="lg:col-span-3">
+              <BudgetHistoryTimeline history={history} />
+            </div>
+
+            {/* Notes - 40% */}
+            <div className="lg:col-span-2">
+              <BudgetNotes
+                notes={notes}
+                onAddNote={handleAddNote}
+              />
+            </div>
           </div>
         </div>
       </div>

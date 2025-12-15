@@ -469,7 +469,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
             <Building2 className="w-4 h-4 text-[#003366]" />
             Información de la Empresa
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             <FormField
               control={form.control}
               name="cliente.rut"
@@ -523,7 +523,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
               control={form.control}
               name="cliente.giro"
               render={({ field, fieldState }) => (
-                <FormItem className="md:col-span-2">
+                <FormItem className="md:col-span-2 xl:col-span-3">
                   <FormLabel className="text-gray-700 text-sm mb-1">
                     Giro <span className="text-red-500">*</span>
                   </FormLabel>
@@ -660,7 +660,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
           <h3 className="text-sm font-semibold text-gray-800 mb-3">
             Dirección Completa
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             <FormField
               control={form.control}
               name="cliente.tipoDireccion"
@@ -778,7 +778,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
             <Phone className="w-4 h-4 text-[#003366]" />
             Información de Contacto
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             <FormField
               control={form.control}
               name="cliente.email"

@@ -22,18 +22,21 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { 
-  Copy, 
   CopyCheck, 
   Files, 
   Save, 
   X,
   AlertCircle,
   RefreshCw,
-  MessageSquare
+  MessageSquare,
+  Mail,
+  Link
 } from "lucide-react";
 import { toast } from "sonner";
 import { ESTADO_CONFIG } from "@/app/portal/presupuesto/api/budgetService";
 import type { Budget } from "@/types/presupuesto";
+import { NotifyEmailModal } from "./NotifyEmailModal";
+import { ShareWhatsAppModal } from "./ShareWhatsAppModal";
 
 type EstadoPresupuesto = Budget["estado"];
 
@@ -42,6 +45,7 @@ interface EditBudgetHeaderProps {
   onSave: () => void;
   onDuplicate: () => void;
   onEstadoChange?: (newEstado: EstadoPresupuesto, comentario?: string) => void;
+  onNotifyEmail?: (data: { to: string; subject: string; message: string }) => Promise<void>;
   isSaving?: boolean;
   hasChanges?: boolean;
 }
@@ -51,6 +55,7 @@ export function EditBudgetHeader({
   onSave, 
   onDuplicate,
   onEstadoChange,
+  onNotifyEmail,
   isSaving = false,
   hasChanges = false
 }: EditBudgetHeaderProps) {
@@ -58,6 +63,8 @@ export function EditBudgetHeader({
   const [linkCopied, setLinkCopied] = useState(false);
   const [isChangingEstado, setIsChangingEstado] = useState(false);
   const [showComentarioModal, setShowComentarioModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
   const [pendingEstado, setPendingEstado] = useState<EstadoPresupuesto | null>(null);
   const [comentario, setComentario] = useState("");
   const [comentarioError, setComentarioError] = useState("");
@@ -94,7 +101,7 @@ export function EditBudgetHeader({
     if (!onEstadoChange) return;
     
     // Estados que requieren confirmación y comentario
-    const estadosConComentario: EstadoPresupuesto[] = ["Rechazado", "Finalizado"];
+    const estadosConComentario: EstadoPresupuesto[] = ["Rechazado", "Finalizado", "Aprobado"];
     
     if (estadosConComentario.includes(newEstado as EstadoPresupuesto)) {
       // Mostrar modal de confirmación
@@ -259,62 +266,100 @@ export function EditBudgetHeader({
         </div>
 
         {/* Right side - Actions */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Copy Link Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCopyLink}
-            className="gap-2"
-            disabled={isSaving}
-          >
-            {linkCopied ? (
-              <>
-                <CopyCheck className="h-4 w-4" />
-                Copiado
-              </>
-            ) : (
-              <>
-                <Copy className="h-4 w-4" />
-                Copiar link
-              </>
-            )}
-          </Button>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {/* Notification Actions Group */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Email Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowEmailModal(true)}
+              className="gap-1 sm:gap-2"
+              disabled={isSaving}
+              title="Notificar por correo"
+            >
+              <Mail className="h-4 w-4" />
+              <span className="hidden sm:inline">Correo</span>
+            </Button>
 
-          {/* Duplicate Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onDuplicate}
-            className="gap-2"
-            disabled={isSaving}
-          >
-            <Files className="h-4 w-4" />
-            Duplicar
-          </Button>
+            {/* WhatsApp Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowWhatsAppModal(true)}
+              className="gap-1 sm:gap-2"
+              disabled={isSaving}
+              title="Compartir por WhatsApp"
+            >
+              <svg className="h-4 w-4 text-green-600" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+              <span className="hidden sm:inline">WhatsApp</span>
+            </Button>
 
-          {/* Cancel Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleCancel}
-            className="gap-2"
-            disabled={isSaving}
-          >
-            <X className="h-4 w-4" />
-            Cancelar
-          </Button>
+            {/* Copy Link Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyLink}
+              className="gap-1 sm:gap-2"
+              disabled={isSaving}
+              title="Copiar link"
+            >
+              {linkCopied ? (
+                <>
+                  <CopyCheck className="h-4 w-4" />
+                  <span className="hidden sm:inline">Copiado</span>
+                </>
+              ) : (
+                <>
+                  <Link className="h-4 w-4" />
+                  <span className="hidden sm:inline">Copiar link</span>
+                </>
+              )}
+            </Button>
+          </div>
 
-          {/* Save Button */}
-          <Button
-            size="sm"
-            onClick={onSave}
-            className="gap-2 bg-[#244F82] hover:bg-[#1a3a5f]"
-            disabled={isSaving || !hasChanges}
-          >
-            <Save className="h-4 w-4" />
-            {isSaving ? "Guardando..." : "Guardar cambios"}
-          </Button>
+          {/* Separator for larger screens */}
+          <div className="hidden lg:block w-px h-6 bg-gray-300" />
+
+          {/* Main Actions Group */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Duplicate Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onDuplicate}
+              className="gap-2"
+              disabled={isSaving}
+            >
+              <Files className="h-4 w-4" />
+              <span className="hidden xs:inline">Duplicar</span>
+            </Button>
+
+            {/* Cancel Button - Hidden on smallest screens */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="gap-2 hidden sm:flex"
+              disabled={isSaving}
+            >
+              <X className="h-4 w-4" />
+              Cancelar
+            </Button>
+
+            {/* Save Button */}
+            <Button
+              size="sm"
+              onClick={onSave}
+              className="gap-2 bg-[#244F82] hover:bg-[#1a3a5f]"
+              disabled={isSaving || !hasChanges}
+            >
+              <Save className="h-4 w-4" />
+              <span className="hidden xs:inline">{isSaving ? "Guardando..." : "Guardar"}</span>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -326,11 +371,15 @@ export function EditBudgetHeader({
               <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                 pendingEstado === "Rechazado" 
                   ? "bg-red-100" 
+                  : pendingEstado === "Aprobado"
+                  ? "bg-blue-100"
                   : "bg-emerald-100"
               }`}>
                 <MessageSquare className={`h-6 w-6 ${
                   pendingEstado === "Rechazado" 
                     ? "text-red-600" 
+                    : pendingEstado === "Aprobado"
+                    ? "text-blue-600"
                     : "text-emerald-600"
                 }`} />
               </div>
@@ -343,6 +392,11 @@ export function EditBudgetHeader({
                 <>
                   Este cambio marcará el presupuesto como <strong>Rechazado</strong>.
                   Por favor, indica el motivo del rechazo para mantener un registro claro.
+                </>
+              ) : pendingEstado === "Aprobado" ? (
+                <>
+                  Este cambio marcará el presupuesto como <strong>Aprobado</strong>.
+                  Por favor, agrega un comentario confirmando la aprobación.
                 </>
               ) : (
                 <>
@@ -368,6 +422,8 @@ export function EditBudgetHeader({
                 placeholder={
                   pendingEstado === "Rechazado"
                     ? "Ej: El cliente decidió no continuar con el proyecto debido a..."
+                    : pendingEstado === "Aprobado"
+                    ? "Ej: Presupuesto aprobado por el cliente. Fecha de inicio..."
                     : "Ej: Presupuesto completado exitosamente. Cliente confirmó..."
                 }
                 className="min-h-[120px] resize-none"
@@ -393,6 +449,8 @@ export function EditBudgetHeader({
             <div className={`rounded-lg p-3 border-l-4 ${
               pendingEstado === "Rechazado"
                 ? "bg-red-50 border-red-500"
+                : pendingEstado === "Aprobado"
+                ? "bg-blue-50 border-blue-500"
                 : "bg-emerald-50 border-emerald-500"
             }`}>
               <p className="text-xs text-gray-700">
@@ -418,6 +476,8 @@ export function EditBudgetHeader({
               className={
                 pendingEstado === "Rechazado"
                   ? "bg-red-600 hover:bg-red-700"
+                  : pendingEstado === "Aprobado"
+                  ? "bg-blue-600 hover:bg-blue-700"
                   : "bg-emerald-600 hover:bg-emerald-700"
               }
             >
@@ -433,6 +493,21 @@ export function EditBudgetHeader({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Email Modal */}
+      <NotifyEmailModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        budget={budget}
+        onSend={onNotifyEmail}
+      />
+
+      {/* WhatsApp Modal */}
+      <ShareWhatsAppModal
+        isOpen={showWhatsAppModal}
+        onClose={() => setShowWhatsAppModal(false)}
+        budget={budget}
+      />
     </div>
   );
 }

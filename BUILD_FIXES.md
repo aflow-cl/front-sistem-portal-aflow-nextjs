@@ -1,5 +1,9 @@
 # Build Error Fixes
 
+> **Última actualización:** 15 de diciembre, 2025
+> 
+> **Estado:** La mayoría de estos errores pueden haber sido resueltos. Verificar antes de aplicar fixes.
+
 ## Critical Errors (Must Fix)
 
 ### 1. `app/(private)/modules/contratante/services/contratante.service.ts` - Line 9
