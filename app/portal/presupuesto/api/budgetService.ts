@@ -1,4 +1,4 @@
-import type { Budget, IndicatorData, CreateBudgetInput, AccionHistoria } from "@/types/presupuesto";
+import type { Budget, IndicatorData, CreateBudgetInput, AccionHistoria, BudgetDetailedData, BudgetNote, DuplicateBudgetResult } from "@/types/presupuesto";
 
 /**
  * Simulated API service for Budget operations
@@ -405,6 +405,224 @@ export async function fetchHistoria(folio?: string): Promise<AccionHistoria[]> {
       historia.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
       resolve(historia);
     }, 600);
+  });
+}
+
+// ============================================
+// MÉTODOS PARA MÓDULO DE EDICIÓN
+// ============================================
+
+/**
+ * Fetch budget by ID with detailed information
+ */
+export async function fetchBudgetById(id: string): Promise<BudgetDetailedData | null> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const budget = MOCK_BUDGETS.find(b => b.id === id);
+      
+      if (!budget) {
+        resolve(null);
+        return;
+      }
+
+      // Simulate detailed data with additional information
+      const detailedBudget: BudgetDetailedData = {
+        ...budget,
+        proyecto: `Proyecto ${budget.folio}`,
+        subtotal: budget.neto || 0,
+        ivaTotal: (budget.monto || 0) - (budget.neto || 0),
+        items: [
+          {
+            id: "item-1",
+            producto: "Consultoría Técnica",
+            descripcion: "Análisis y diseño de arquitectura",
+            unidadMedida: "HR",
+            cantidad: 120,
+            precioUnitario: 50000,
+            iva: 19,
+            utilidad: 25,
+            total: 6000000
+          },
+          {
+            id: "item-2",
+            producto: "Desarrollo Frontend",
+            descripcion: "Implementación de interfaz de usuario",
+            unidadMedida: "HR",
+            cantidad: 200,
+            precioUnitario: 45000,
+            iva: 19,
+            utilidad: 30,
+            total: 9000000
+          },
+          {
+            id: "item-3",
+            producto: "Desarrollo Backend",
+            descripcion: "API REST y base de datos",
+            unidadMedida: "HR",
+            cantidad: 180,
+            precioUnitario: 48000,
+            iva: 19,
+            utilidad: 28,
+            total: 8640000
+          }
+        ],
+        cliente_info: {
+          rut: "76.123.456-7",
+          razonSocial: budget.cliente,
+          giro: "Construcción y Servicios",
+          direccion: "Av. Libertador Bernardo O'Higgins 1234",
+          email: "contacto@empresa.cl",
+          telefono: "+56 2 2345 6789",
+          ciudad: "Santiago",
+          region: "Metropolitana"
+        },
+        proyecto_info: {
+          nombre: `Proyecto ${budget.folio}`,
+          descripcion: budget.descripcion,
+          tipoTrabajo: "Desarrollo",
+          fechaInicio: budget.fecha,
+          fechaTermino: budget.fechaCierre,
+          responsable: budget.autor
+        },
+        createdBy: budget.autor,
+        updatedBy: budget.autor,
+        updatedAt: new Date().toISOString()
+      };
+
+      resolve(detailedBudget);
+    }, 500);
+  });
+}
+
+/**
+ * Update budget
+ */
+export async function updateBudget(id: string, data: Partial<BudgetDetailedData>): Promise<BudgetDetailedData> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const budgetIndex = MOCK_BUDGETS.findIndex(b => b.id === id);
+      
+      if (budgetIndex === -1) {
+        throw new Error("Budget not found");
+      }
+
+      // Update the budget
+      MOCK_BUDGETS[budgetIndex] = {
+        ...MOCK_BUDGETS[budgetIndex],
+        ...data,
+        id, // Preserve ID
+      };
+
+      // Return detailed data
+      fetchBudgetById(id).then((result) => {
+        if (result) {
+          resolve(result);
+        } else {
+          reject(new Error("Budget not found after update"));
+        }
+      }).catch(reject);
+    }, 800);
+  });
+}
+
+/**
+ * Duplicate budget
+ */
+export async function duplicateBudget(id: string): Promise<DuplicateBudgetResult> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const originalBudget = MOCK_BUDGETS.find(b => b.id === id);
+      
+      if (!originalBudget) {
+        throw new Error("Budget not found");
+      }
+
+      // Generate new folio
+      const currentYear = new Date().getFullYear();
+      const maxNumber = MOCK_BUDGETS
+        .filter(b => b.folio.includes(`COT-${currentYear}`))
+        .reduce((max, b) => {
+          const num = parseInt(b.folio.split("-")[2]);
+          return num > max ? num : max;
+        }, 0);
+      
+      const newFolio = `COT-${currentYear}-${String(maxNumber + 1).padStart(3, "0")}`;
+      const newId = `${Date.now()}`;
+
+      // Create duplicate
+      const newBudget: Budget = {
+        ...originalBudget,
+        id: newId,
+        folio: newFolio,
+        fecha: new Date().toISOString(),
+        estado: "Borrador",
+        fechaCierre: undefined,
+      };
+
+      MOCK_BUDGETS.push(newBudget);
+
+      resolve({
+        id: newId,
+        folio: newFolio,
+        originalId: id,
+        createdAt: new Date().toISOString()
+      });
+    }, 800);
+  });
+}
+
+/**
+ * Fetch notes for a budget
+ */
+export async function fetchBudgetNotes(budgetId: string): Promise<BudgetNote[]> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Mock notes data
+      const notes: BudgetNote[] = [
+        {
+          id: "note-1",
+          budgetId,
+          content: "Cliente solicitó revisión de costos en el módulo de reportes.",
+          author: "María González",
+          createdAt: "2025-12-10T14:30:00Z"
+        },
+        {
+          id: "note-2",
+          budgetId,
+          content: "Coordinado reunión para el 15 de diciembre para presentación final.",
+          author: "Juan Pérez",
+          createdAt: "2025-12-11T09:15:00Z"
+        },
+        {
+          id: "note-3",
+          budgetId,
+          content: "Pendiente: Validar disponibilidad de recursos para enero 2026.",
+          author: "Carlos Ramírez",
+          createdAt: "2025-12-12T16:45:00Z"
+        }
+      ];
+
+      resolve(notes);
+    }, 400);
+  });
+}
+
+/**
+ * Add note to budget
+ */
+export async function addBudgetNote(budgetId: string, content: string, author: string): Promise<BudgetNote> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const newNote: BudgetNote = {
+        id: `note-${Date.now()}`,
+        budgetId,
+        content,
+        author,
+        createdAt: new Date().toISOString()
+      };
+
+      resolve(newNote);
+    }, 300);
   });
 }
 

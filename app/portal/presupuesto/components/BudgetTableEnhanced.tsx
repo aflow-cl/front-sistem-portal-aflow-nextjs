@@ -29,12 +29,12 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   MoreVertical,
-  Edit,
   Eye,
   Download,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  Edit,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -125,7 +125,11 @@ export function BudgetTableEnhanced({
 
   const handleEdit = (budget: Budget) => {
     toast.info(`Editando cotización ${budget.folio}`);
-    router.push(`/portal/presupuesto/crear?id=${budget.id}`);
+    router.push(`/portal/presupuesto/editar/${budget.id}`);
+  };
+
+  const handleRowClick = (budget: Budget) => {
+    router.push(`/portal/presupuesto/editar/${budget.id}`);
   };
 
   const handleViewDocument = (budget: Budget) => {
@@ -241,7 +245,8 @@ export function BudgetTableEnhanced({
                 {data.map((budget) => (
                   <TableRow
                     key={budget.id}
-                    className="hover:bg-gray-50 transition-colors"
+                    onClick={() => handleRowClick(budget)}
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
                   >
                     <TableCell className="font-medium text-[#244F82] whitespace-nowrap">
                       {budget.folio}
@@ -272,7 +277,10 @@ export function BudgetTableEnhanced({
                     <TableCell className="text-gray-600 text-sm whitespace-nowrap">
                       {budget.fechaCierre ? formatDate(budget.fechaCierre) : "-"}
                     </TableCell>
-                    <TableCell className="text-right sticky right-0 bg-white shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.05)] hover:bg-gray-50">
+                    <TableCell 
+                      className="text-right sticky right-0 bg-white shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.05)] hover:bg-gray-50"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -289,21 +297,30 @@ export function BudgetTableEnhanced({
                           </DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() => handleEdit(budget)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(budget);
+                            }}
                             className="cursor-pointer"
                           >
                             <Edit className="h-4 w-4 mr-2 text-blue-600" />
                             Editar
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => handleViewDocument(budget)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewDocument(budget);
+                            }}
                             className="cursor-pointer"
                           >
                             <Eye className="h-4 w-4 mr-2 text-green-600" />
                             Ver Documento
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => handleDownload(budget)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDownload(budget);
+                            }}
                             className="cursor-pointer"
                           >
                             <Download className="h-4 w-4 mr-2 text-gray-600" />

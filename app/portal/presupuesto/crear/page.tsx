@@ -8,7 +8,7 @@ import * as z from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Form } from '@/components/ui/form';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -645,11 +645,11 @@ export default function CrearPresupuestoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] py-4">
+    <div className="min-h-screen bg-[#F8FAFC] pb-4">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-3">
+        <div className="mb-4 pt-0">
+          <div className="mb-3">
             <Button
               variant="ghost"
               onClick={() => router.push('/portal/presupuesto/consultar')}
@@ -658,15 +658,6 @@ export default function CrearPresupuestoPage() {
               <ArrowLeft className="w-4 h-4 flex-shrink-0" />
               <span className="hidden xs:inline">Volver a Presupuestos</span>
               <span className="inline xs:hidden">Volver</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={handleClearForm}
-              className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300 w-full sm:w-auto text-sm sm:text-base"
-            >
-              <Trash2 className="w-4 h-4 flex-shrink-0" />
-              Limpiar Formulario
             </Button>
           </div>
           
@@ -700,6 +691,7 @@ export default function CrearPresupuestoPage() {
               onPrevious={handlePrevious}
               onNext={handleNext}
               onCancel={handleCancel}
+              onClearForm={handleClearForm}
               isNextDisabled={isNextDisabled()}
               isSubmitting={createBudgetMutation.isPending}
             />

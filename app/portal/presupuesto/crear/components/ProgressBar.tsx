@@ -32,8 +32,8 @@ export function ProgressBar({ currentStep, totalSteps, steps }: ProgressBarProps
             >
               <div
                 className={`
-                  w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm
-                  transition-all duration-300 border-4 border-white
+                  w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm
+                  transition-all duration-300 border-2 sm:border-4 border-white
                   ${
                     step.id < currentStep
                       ? 'bg-[#22C55E] text-white shadow-lg'
@@ -44,7 +44,7 @@ export function ProgressBar({ currentStep, totalSteps, steps }: ProgressBarProps
                 `}
               >
                 {step.id < currentStep ? (
-                  <Check className="w-5 h-5" />
+                  <Check className="w-4 h-4 sm:w-5 sm:h-5" />
                 ) : (
                   step.id + 1
                 )}
@@ -64,7 +64,7 @@ export function ProgressBar({ currentStep, totalSteps, steps }: ProgressBarProps
           >
             <h3
               className={`
-                text-xs md:text-sm font-semibold mb-1 transition-colors
+                text-[10px] sm:text-xs md:text-sm font-semibold mb-1 transition-colors
                 ${
                   step.id === currentStep
                     ? 'text-[#003366]'
@@ -76,7 +76,7 @@ export function ProgressBar({ currentStep, totalSteps, steps }: ProgressBarProps
             >
               {step.title}
             </h3>
-            <p className="text-xs text-gray-500 hidden md:block">
+            <p className="text-[9px] sm:text-xs text-gray-500 hidden sm:block">
               {step.description}
             </p>
           </div>

@@ -247,18 +247,19 @@ export function ClienteForm({ form }: ClienteFormProps) {
   };
 
   return (
-    <Card className="p-4 md:p-6 rounded-2xl shadow-lg border-gray-200">
-      <div className="mb-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#003366] to-[#00AEEF] flex items-center justify-center flex-shrink-0">
-              <User className="w-5 h-5 text-white" />
+    <div className="bg-gradient-to-br from-gray-50 to-gray-100/50 p-4 sm:p-6 rounded-xl">
+      <Card className="p-6 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.15)] transition-shadow duration-300 border-gray-200/60 bg-white">
+        <div className="mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#003366] to-[#00AEEF] flex items-center justify-center flex-shrink-0">
+              <User className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+              <h2 className="text-base font-semibold text-gray-900">
                 Datos del Contratante / Cliente
               </h2>
-              <p className="text-xs text-gray-600">
+              <p className="text-[11px] text-gray-600">
                 Registre la información completa del cliente
               </p>
             </div>
@@ -270,42 +271,42 @@ export function ClienteForm({ form }: ClienteFormProps) {
               <Button
                 type="button"
                 variant="outline"
-                className="gap-2 border-[#003366] text-[#003366] hover:bg-blue-50 w-full sm:w-auto text-sm sm:text-base"
+                className="gap-1.5 border-[#003366] text-[#003366] hover:bg-blue-50 w-full sm:w-auto text-xs sm:text-sm h-9"
               >
-                <Users className="w-4 h-4 flex-shrink-0" />
+                <Users className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="hidden xs:inline">Seleccionar Cliente Existente</span>
                 <span className="inline xs:hidden">Seleccionar Cliente</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-[#003366]" />
+                <DialogTitle className="flex items-center gap-2 text-base">
+                  <Users className="w-4 h-4 text-[#003366]" />
                   Seleccionar Cliente Existente
                 </DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="text-xs">
                   Busque y seleccione un cliente para autocompletar sus datos
                 </DialogDescription>
               </DialogHeader>
 
               {/* Search Bar */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                 <Input
                   placeholder="Buscar por razón social, RUT o email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-9 h-9"
                 />
               </div>
 
               {/* Clients List */}
-              <div className="space-y-2 mt-3">
+              <div className="space-y-1.5 mt-2">
                 {filteredClientes.length === 0 ? (
-                  <div className="text-center py-6 text-gray-500">
-                    <Users className="w-10 h-10 mx-auto mb-2 text-gray-300" />
-                    <p className="font-medium text-sm">No se encontraron clientes</p>
-                    <p className="text-xs">Intente con otros términos de búsqueda</p>
+                  <div className="text-center py-4 text-gray-500">
+                    <Users className="w-8 h-8 mx-auto mb-1.5 text-gray-300" />
+                    <p className="font-medium text-xs">No se encontraron clientes</p>
+                    <p className="text-[11px]">Intente con otros términos de búsqueda</p>
                   </div>
                 ) : (
                   filteredClientes.map((cliente) => (
@@ -313,19 +314,19 @@ export function ClienteForm({ form }: ClienteFormProps) {
                       key={cliente.id}
                       type="button"
                       onClick={() => handleSelectCliente(cliente)}
-                      className="w-full text-left p-4 rounded-lg border border-gray-200 hover:border-[#003366] hover:bg-blue-50 transition-all"
+                      className="w-full text-left p-2.5 rounded-lg border border-gray-200 hover:border-[#003366] hover:bg-blue-50 transition-all"
                     >
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-semibold text-gray-900">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 mb-1.5">
+                            <h3 className="font-semibold text-sm text-gray-900">
                               {cliente.razonSocial}
                             </h3>
-                            <Badge variant="outline" className="text-xs">
+                            <Badge className="bg-orange-500 text-white hover:bg-orange-500 text-[10px] font-bold px-2.5 py-0.5 border-0 w-fit rounded-full">
                               {cliente.rut}
                             </Badge>
                           </div>
-                          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-600">
+                          <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-gray-600">
                             <div className="flex items-center gap-1">
                               <Building2 className="w-3 h-3" />
                               {cliente.giro}
@@ -363,34 +364,36 @@ export function ClienteForm({ form }: ClienteFormProps) {
         />
       )}
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Sucursal Selection - Only shown when client is selected */}
         {selectedCliente && sucursalesDisponibles.length > 0 && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-[#003366] rounded-xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[#003366] flex items-center justify-center">
-                <Building className="w-6 h-6 text-white" />
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-[#003366] rounded-xl p-3">
+            <div className="flex flex-col sm:flex-row items-start gap-2">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center">
+                <Building className="w-4 h-4 text-white" />
               </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-bold text-gray-900">
+              <div className="flex-1 w-full">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 mb-1.5">
+                  <h3 className="text-sm font-semibold text-gray-900">
                     Seleccione la Sucursal
                   </h3>
                   {form.watch('cliente.sucursalId') && (
-                    <Badge className="bg-green-500 text-white">
+                    <Badge className="bg-green-500 text-white text-[10px] w-fit">
                       ✓ Listo para avanzar
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm text-gray-600 mb-4">
-                  Cliente: <strong>{selectedCliente.razonSocial}</strong> - Elija la sucursal para este presupuesto
+                <p className="text-[11px] text-gray-600 mb-2">
+                  Cliente: <strong className="block sm:inline mt-0.5 sm:mt-0">{selectedCliente.razonSocial}</strong>
+                  <span className="hidden sm:inline"> - </span>
+                  <span className="block sm:inline">Elija la sucursal para este presupuesto</span>
                 </p>
                 <FormField
                   control={form.control}
                   name="cliente.sucursalId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-700 font-semibold">
+                      <FormLabel className="text-gray-700 font-semibold text-sm mb-1">
                         Sucursal <span className="text-red-500">*</span>
                       </FormLabel>
                       <Select 
@@ -403,29 +406,31 @@ export function ClienteForm({ form }: ClienteFormProps) {
                         <FormControl>
                           <SelectTrigger 
                             ref={sucursalSelectRef}
-                            className="ring-2 ring-[#003366] focus:ring-[#00AEEF] rounded-lg h-12 text-base font-medium"
+                            className="ring-2 ring-[#003366] focus:ring-[#00AEEF] rounded-lg h-9 text-sm font-medium"
                           >
                             <SelectValue placeholder="👉 Seleccione una sucursal..." />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className="max-h-[300px] w-[var(--radix-select-trigger-width)] min-w-[280px] max-w-[calc(100vw-2rem)]">
                           {sucursalesDisponibles.map((sucursal) => (
                             <SelectItem 
                               key={sucursal.id} 
                               value={sucursal.id}
-                              className="py-3"
+                              className="py-1.5 px-2 cursor-pointer"
                             >
-                              <div className="flex items-center gap-2">
-                                <Building className="w-4 h-4 text-[#003366]" />
-                                <span className="font-medium">{sucursal.nombre}</span>
-                                {sucursal.esPrincipal && (
-                                  <Badge variant="default" className="bg-[#00AEEF] text-xs">
-                                    Principal
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="text-xs text-gray-500 mt-1 ml-6">
-                                {sucursal.calle} {sucursal.numero}, {sucursal.comuna}
+                              <div className="flex flex-col gap-1.5 w-full">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <Building className="w-3.5 h-3.5 text-[#003366] flex-shrink-0" />
+                                  <span className="font-medium text-sm break-words flex-1 min-w-0">{sucursal.nombre}</span>
+                                  {sucursal.esPrincipal && (
+                                    <Badge variant="default" className="bg-[#00AEEF] text-[10px] px-1.5 py-0.5 flex-shrink-0">
+                                      Principal
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="text-[11px] text-gray-500 pl-5 break-words">
+                                  {sucursal.calle} {sucursal.numero}, {sucursal.comuna}
+                                </div>
                               </div>
                             </SelectItem>
                           ))}
@@ -437,7 +442,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
                 />
                 
                 {/* Add New Sucursal Button */}
-                <div className="mt-3">
+                <div className="mt-2">
                   <AddSucursalModal 
                     form={form}
                     clienteRut={selectedCliente.rut}
@@ -456,21 +461,21 @@ export function ClienteForm({ form }: ClienteFormProps) {
           </div>
         )}
 
-        <Separator />
+        <Separator className="my-4" />
 
         {/* Información Básica */}
-        <div>
-          <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-800 mb-4">
-            <Building2 className="w-5 h-5 text-[#003366]" />
+        <div className="bg-white p-4 rounded-lg">
+          <h3 className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 mb-3">
+            <Building2 className="w-4 h-4 text-[#003366]" />
             Información de la Empresa
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <FormField
               control={form.control}
               name="cliente.rut"
               render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">
+                  <FormLabel className="text-gray-700 text-sm mb-1">
                     RUT <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
@@ -478,14 +483,14 @@ export function ClienteForm({ form }: ClienteFormProps) {
                       placeholder="12.345.678-9"
                       {...field}
                       onChange={handleRUTChange}
-                      className={`ring-1 rounded-lg transition-all ${
+                      className={`ring-1 rounded-lg transition-all h-9 ${
                         fieldState.error 
                           ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
                           : 'ring-gray-300 focus:ring-blue-500'
                       }`}
                     />
                   </FormControl>
-                  <FormMessage className="text-red-600 text-xs font-medium flex items-center gap-1 mt-1" />
+                  <FormMessage className="text-red-600 text-xs font-medium" />
                 </FormItem>
               )}
             />
@@ -495,21 +500,21 @@ export function ClienteForm({ form }: ClienteFormProps) {
               name="cliente.razonSocial"
               render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">
+                  <FormLabel className="text-gray-700 text-sm mb-1">
                     Razón Social <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Empresa S.A."
                       {...field}
-                      className={`ring-1 rounded-lg transition-all ${
+                      className={`ring-1 rounded-lg transition-all h-9 ${
                         fieldState.error 
                           ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
                           : 'ring-gray-300 focus:ring-blue-500'
                       }`}
                     />
                   </FormControl>
-                  <FormMessage className="text-red-600 text-xs font-medium flex items-center gap-1 mt-1" />
+                  <FormMessage className="text-red-600 text-xs font-medium" />
                 </FormItem>
               )}
             />
@@ -519,21 +524,21 @@ export function ClienteForm({ form }: ClienteFormProps) {
               name="cliente.giro"
               render={({ field, fieldState }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel className="text-gray-700">
+                  <FormLabel className="text-gray-700 text-sm mb-1">
                     Giro <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Construcción y servicios generales"
                       {...field}
-                      className={`ring-1 rounded-lg transition-all ${
+                      className={`ring-1 rounded-lg transition-all h-9 ${
                         fieldState.error 
                           ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
                           : 'ring-gray-300 focus:ring-blue-500'
                       }`}
                     />
                   </FormControl>
-                  <FormMessage className="text-red-600 text-xs font-medium flex items-center gap-1 mt-1" />
+                  <FormMessage className="text-red-600 text-xs font-medium" />
                 </FormItem>
               )}
             />
@@ -541,29 +546,33 @@ export function ClienteForm({ form }: ClienteFormProps) {
         </div>
 
         {/* Ubicación */}
-        <div>
-          <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-800 mb-4">
-            <MapPin className="w-5 h-5 text-[#003366]" />
+        <div className="bg-gray-50/60 p-4 rounded-lg">
+          <h3 className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 mb-3">
+            <MapPin className="w-4 h-4 text-[#003366]" />
             Ubicación
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <FormField
               control={form.control}
               name="cliente.regionId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">
+                  <FormLabel className="text-gray-700 text-sm mb-1">
                     Región <span className="text-red-500">*</span>
                   </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg">
+                      <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9 text-sm">
                         <SelectValue placeholder="Seleccione región" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="max-h-[300px] w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)]">
                       {regionesChile.map((region) => (
-                        <SelectItem key={region.id} value={region.id.toString()}>
+                        <SelectItem 
+                          key={region.id} 
+                          value={region.id.toString()}
+                          className="text-sm py-1.5 px-2 cursor-pointer"
+                        >
                           {region.nombre}
                         </SelectItem>
                       ))}
@@ -579,7 +588,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
               name="cliente.ciudadId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">
+                  <FormLabel className="text-gray-700 text-sm mb-1">
                     Ciudad <span className="text-red-500">*</span>
                   </FormLabel>
                   <Select
@@ -588,13 +597,17 @@ export function ClienteForm({ form }: ClienteFormProps) {
                     disabled={!watchRegion}
                   >
                     <FormControl>
-                      <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg">
+                      <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9 text-sm disabled:opacity-50">
                         <SelectValue placeholder="Seleccione ciudad" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="max-h-[300px] w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)]">
                       {ciudades.map((ciudad) => (
-                        <SelectItem key={ciudad.id} value={ciudad.id.toString()}>
+                        <SelectItem 
+                          key={ciudad.id} 
+                          value={ciudad.id.toString()}
+                          className="text-sm py-1.5 px-2 cursor-pointer"
+                        >
                           {ciudad.nombre}
                         </SelectItem>
                       ))}
@@ -610,7 +623,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
               name="cliente.comuna"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">
+                  <FormLabel className="text-gray-700 text-sm mb-1">
                     Comuna <span className="text-red-500">*</span>
                   </FormLabel>
                   <Select
@@ -619,13 +632,17 @@ export function ClienteForm({ form }: ClienteFormProps) {
                     disabled={!watchCiudad}
                   >
                     <FormControl>
-                      <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg">
+                      <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9 text-sm disabled:opacity-50">
                         <SelectValue placeholder="Seleccione comuna" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="max-h-[300px] w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)]">
                       {comunas.map((comuna) => (
-                        <SelectItem key={comuna} value={comuna}>
+                        <SelectItem 
+                          key={comuna} 
+                          value={comuna}
+                          className="text-sm py-1.5 px-2 cursor-pointer"
+                        >
                           {comuna}
                         </SelectItem>
                       ))}
@@ -639,28 +656,32 @@ export function ClienteForm({ form }: ClienteFormProps) {
         </div>
 
         {/* Dirección */}
-        <div>
-          <h3 className="text-base font-semibold text-gray-800 mb-4">
+        <div className="bg-white p-4 rounded-lg">
+          <h3 className="text-sm font-semibold text-gray-800 mb-3">
             Dirección Completa
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <FormField
               control={form.control}
               name="cliente.tipoDireccion"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">
+                  <FormLabel className="text-gray-700 text-sm mb-1">
                     Tipo de Dirección <span className="text-red-500">*</span>
                   </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg">
+                      <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9 text-sm">
                         <SelectValue placeholder="Seleccione tipo" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="max-h-[300px] w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)]">
                       {TIPOS_DIRECCION.map((tipo) => (
-                        <SelectItem key={tipo.value} value={tipo.value}>
+                        <SelectItem 
+                          key={tipo.value} 
+                          value={tipo.value}
+                          className="text-sm py-1.5 px-2 cursor-pointer"
+                        >
                           {tipo.label}
                         </SelectItem>
                       ))}
@@ -676,14 +697,14 @@ export function ClienteForm({ form }: ClienteFormProps) {
               name="cliente.descripcionDireccion"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">
+                  <FormLabel className="text-gray-700 text-sm mb-1">
                     Descripción Dirección <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Ej: Oficina central"
                       {...field}
-                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg"
+                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
                     />
                   </FormControl>
                   <FormMessage className="text-red-500 text-xs" />
@@ -696,14 +717,14 @@ export function ClienteForm({ form }: ClienteFormProps) {
               name="cliente.calle"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">
+                  <FormLabel className="text-gray-700 text-sm mb-1">
                     Calle <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Av. Libertador Bernardo O'Higgins"
                       {...field}
-                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg"
+                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
                     />
                   </FormControl>
                   <FormMessage className="text-red-500 text-xs" />
@@ -716,14 +737,14 @@ export function ClienteForm({ form }: ClienteFormProps) {
               name="cliente.numero"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">
+                  <FormLabel className="text-gray-700 text-sm mb-1">
                     Número <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="1234"
                       {...field}
-                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg"
+                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
                     />
                   </FormControl>
                   <FormMessage className="text-red-500 text-xs" />
@@ -736,12 +757,12 @@ export function ClienteForm({ form }: ClienteFormProps) {
               name="cliente.complemento"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel className="text-gray-700">Complemento (Opcional)</FormLabel>
+                  <FormLabel className="text-gray-700 text-sm mb-1">Complemento (Opcional)</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Ej: Oficina 501, Piso 5"
                       {...field}
-                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg"
+                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
                     />
                   </FormControl>
                   <FormMessage className="text-red-500 text-xs" />
@@ -752,19 +773,19 @@ export function ClienteForm({ form }: ClienteFormProps) {
         </div>
 
         {/* Contacto */}
-        <div>
-          <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-800 mb-4">
-            <Phone className="w-5 h-5 text-[#003366]" />
+        <div className="bg-gray-50/60 p-4 rounded-lg">
+          <h3 className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 mb-3">
+            <Phone className="w-4 h-4 text-[#003366]" />
             Información de Contacto
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <FormField
               control={form.control}
               name="cliente.email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
+                  <FormLabel className="text-gray-700 text-sm mb-1 flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5" />
                     Correo Electrónico <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
@@ -772,7 +793,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
                       type="email"
                       placeholder="contacto@empresa.cl"
                       {...field}
-                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg"
+                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
                     />
                   </FormControl>
                   <FormMessage className="text-red-500 text-xs" />
@@ -785,8 +806,8 @@ export function ClienteForm({ form }: ClienteFormProps) {
               name="cliente.celular"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
+                  <FormLabel className="text-gray-700 text-sm mb-1 flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5" />
                     Número Celular <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
@@ -794,7 +815,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
                       type="tel"
                       placeholder="+56 9 1234 5678"
                       {...field}
-                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg"
+                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
                     />
                   </FormControl>
                   <FormMessage className="text-red-500 text-xs" />
@@ -807,7 +828,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
               name="cliente.telefono"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700">
+                  <FormLabel className="text-gray-700 text-sm mb-1">
                     Número Teléfono (Opcional)
                   </FormLabel>
                   <FormControl>
@@ -815,7 +836,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
                       type="tel"
                       placeholder="+56 2 1234 5678"
                       {...field}
-                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg"
+                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
                     />
                   </FormControl>
                   <FormMessage className="text-red-500 text-xs" />
@@ -825,6 +846,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
           </div>
         </div>
       </div>
-    </Card>
+      </Card>
+    </div>
   );
 }

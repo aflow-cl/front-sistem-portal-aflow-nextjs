@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Trash2 } from 'lucide-react';
 
 interface WizardNavigationProps {
   currentStep: number;
@@ -7,6 +7,7 @@ interface WizardNavigationProps {
   onPrevious: () => void;
   onNext: () => void;
   onCancel: () => void;
+  onClearForm: () => void;
   isNextDisabled?: boolean;
   isSubmitting?: boolean;
   nextButtonText?: string;
@@ -18,6 +19,7 @@ export function WizardNavigation({
   onPrevious,
   onNext,
   onCancel,
+  onClearForm,
   isNextDisabled = false,
   isSubmitting = false,
   nextButtonText,
@@ -37,51 +39,80 @@ export function WizardNavigation({
   };
 
   return (
-    <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-      <div>
-        {!isFirstStep && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onPrevious}
-            disabled={isSubmitting}
-            className="gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Volver
-          </Button>
-        )}
-      </div>
-
-      <div className="flex gap-3">
+    <div className="pt-6 border-t border-gray-200 space-y-3">
+      {/* Clear Form Button - Mobile Only (Top) */}
+      <div className="flex md:hidden">
         <Button
           type="button"
           variant="outline"
-          onClick={onCancel}
+          onClick={onClearForm}
           disabled={isSubmitting}
-          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300 w-full text-sm"
         >
-          Cancelar
+          <Trash2 className="w-4 h-4 flex-shrink-0" />
+          Limpiar Formulario
         </Button>
+      </div>
 
-        <Button
-          type="button"
-          onClick={onNext}
-          disabled={isNextDisabled || isSubmitting}
-          className="bg-[#003366] hover:bg-[#00AEEF] transition-colors gap-2"
-        >
-          {isSubmitting ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Procesando...
-            </>
-          ) : (
-            <>
-              {getNextButtonText()}
-              {getNextButtonIcon()}
-            </>
+      {/* Navigation Buttons */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+          {!isFirstStep && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onPrevious}
+              disabled={isSubmitting}
+              className="gap-2 w-full md:w-auto"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Volver
+            </Button>
           )}
-        </Button>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-3">
+          {/* Clear Form Button - Desktop Only (Inline) */}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClearForm}
+            disabled={isSubmitting}
+            className="hidden md:flex gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300 text-sm"
+          >
+            <Trash2 className="w-4 h-4 flex-shrink-0" />
+            Limpiar Formulario
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isSubmitting}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full md:w-auto"
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            type="button"
+            onClick={onNext}
+            disabled={isNextDisabled || isSubmitting}
+            className="bg-[#003366] hover:bg-[#00AEEF] transition-colors gap-2 w-full md:w-auto"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Procesando...
+              </>
+            ) : (
+              <>
+                {getNextButtonText()}
+                {getNextButtonIcon()}
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -71,6 +71,7 @@ export interface BudgetItem {
   iva: number; // Porcentaje (ej: 19)
   utilidad: number; // Porcentaje de margen
   total: number; // Calculado automáticamente
+  proveedor?: string; // Proveedor del item
 }
 
 export interface ClienteInfo {
@@ -159,4 +160,52 @@ export interface AccionHistoria {
     valorNuevo?: string;
     [key: string]: any;
   };
+}
+// ============================================
+// TIPOS PARA MÓDULO DE EDICIÓN
+// ============================================
+
+export interface BudgetNote {
+  id: string;
+  budgetId: string;
+  content: string;
+  author: string;
+  createdAt: string; // ISO string
+  updatedAt?: string;
+}
+
+export interface BudgetDetailedData extends Budget {
+  // Datos completos del presupuesto para edición
+  proyecto?: string;
+  items?: BudgetItem[];
+  subtotal?: number;
+  ivaTotal?: number;
+  cliente_info?: {
+    rut?: string;
+    razonSocial?: string;
+    giro?: string;
+    direccion?: string;
+    email?: string;
+    telefono?: string;
+    ciudad?: string;
+    region?: string;
+  };
+  proyecto_info?: {
+    nombre?: string;
+    descripcion?: string;
+    tipoTrabajo?: string;
+    fechaInicio?: string;
+    fechaTermino?: string;
+    responsable?: string;
+  };
+  createdBy?: string;
+  updatedBy?: string;
+  updatedAt?: string;
+}
+
+export interface DuplicateBudgetResult {
+  id: string;
+  folio: string;
+  originalId: string;
+  createdAt: string;
 }
