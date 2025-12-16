@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Menu, Home, Calculator, LogOut, User, X, Settings } from "lucide-react";
+import { Loader2, Menu, Home, Calculator, LogOut, User, X, Settings, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { QueryProvider } from "@/providers/QueryProvider";
@@ -55,7 +55,13 @@ export default function PortalLayout({
       section: "presupuesto"
     },
     {
-      title: "Ajustes",
+      title: "Maestro de Negocio",
+      icon: Briefcase,
+      href: "/portal/maestro-negocio",
+      section: "maestro-negocio"
+    },
+    {
+      title: "Portal Aflow",
       icon: Settings,
       href: "/portal/ajustes-aflow",
       section: "ajustes"

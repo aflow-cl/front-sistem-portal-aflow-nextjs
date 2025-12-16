@@ -31,6 +31,7 @@ npm run dev
 - **Presupuestos Crear:** `/portal/presupuesto/crear` - Wizard de creación paso a paso
 - **Presupuestos Editar:** `/portal/presupuesto/editar/[id]` - Edición con historial y notas
 - **Presupuestos Historia:** `/portal/presupuesto/historia` - Timeline completo
+- **Ajustes AFLOW:** `/portal/ajustes-aflow` - Configuración y administración del sistema
 
 > **Nota:** No necesitas configurar Supabase - la autenticación mock funciona out-of-the-box.
 
@@ -48,6 +49,7 @@ npm run dev
 - [Estructura del Proyecto](#-estructura-del-proyecto)
 - [Sistema de Autenticación](#-sistema-de-autenticación)
 - [Módulo Presupuesto](#-módulo-presupuesto)
+- [Módulo Ajustes AFLOW](#-módulo-ajustes-aflow)
 - [Rutas y Navegación](#-rutas-y-navegación)
 - [Componentes UI](#-componentes-ui)
 - [Configuración de Estilos](#-configuración-de-estilos)
@@ -73,11 +75,17 @@ npm run dev
 | **Login Page** | ✅ Completo | Carousel informativo, validación con Zod, tema dark |
 | **Portal Layout** | ✅ Completo | Sidebar, header, protección de rutas, QueryProvider |
 | **Dashboard Principal** | ✅ Completo | Analytics con 3 gráficos (Recharts), Indicadores KPI, useBudgetAnalytics hook |
-| **Módulo Presupuesto** | ✅ Completo | CRUD completo con React Query, 3 sub-rutas funcionales |
+| **Módulo Presupuesto** | ✅ Completo | CRUD completo con React Query, 4 sub-rutas funcionales |
 | **Módulo Consultar** | ✅ Completo | Tabla mejorada, filtros avanzados, indicadores, paginación |
 | **Módulo Crear** | ✅ Completo | Wizard completo, validación, modales, progreso |
 | **Módulo Editar** | ✅ Completo | Edición completa, historial, notas, duplicar, compartir |
 | **Módulo Historia** | ✅ Completo | Timeline de presupuestos, filtros por fecha/estado |
+| **Módulo Ajustes AFLOW** | ✅ Completo | Dashboard, Clientes, Perfiles, Opciones Menú, Servicios |
+| **Ajustes - Dashboard** | ✅ Completo | Métricas sistema, actividad reciente, KPIs administración |
+| **Ajustes - Clientes** | ✅ Completo | CRUD completo, sucursales, usuarios, servicios contratados |
+| **Ajustes - Perfiles** | ✅ Completo | Gestión roles, permisos granulares, asignación usuarios |
+| **Ajustes - Opciones Menú** | ✅ Completo | Configuración menú, visibilidad por perfil, ordenamiento |
+| **Ajustes - Servicios** | ✅ Completo | Catálogo servicios, planes, tarifas, clientes activos |
 | **Módulo Contratante** | 📋 Futuro | CRUD, búsqueda avanzada, exportación |
 | **Módulo Cotización** | 📋 Futuro | Generación de cotizaciones, reportes PDF |
 | **API Routes** | 📋 Futuro | Endpoints RESTful, autenticación JWT |
@@ -106,6 +114,7 @@ npm run dev
 - ✅ **Autenticación Mock** con sistema de sesiones completo
 - ✅ **React Query v5** para gestión de estado del servidor y caché
 - ✅ **Módulo Presupuesto Completo** - 4 sub-rutas (Consultar, Crear, Editar, Historia)
+- ✅ **Módulo Ajustes AFLOW Completo** - 5 sub-rutas (Dashboard, Clientes, Perfiles, Opciones Menú, Servicios)
 - ✅ **Dashboard con Analytics** - Gráficos interactivos con Recharts 3.5.1
 - ✅ **Diseño Responsivo** - Mobile-first approach
 - ✅ **Arquitectura Limpia** - Separación de responsabilidades
@@ -744,6 +753,12 @@ new Date().toLocaleDateString('es-CL') // → "13/12/2024"
 | `/portal/presupuesto/crear` | Crear nuevo presupuesto | `app/portal/presupuesto/crear/page.tsx` |
 | `/portal/presupuesto/editar/[id]` | Editar presupuesto existente | `app/portal/presupuesto/editar/[budgetId]/page.tsx` |
 | `/portal/presupuesto/historia` | Historial de presupuestos | `app/portal/presupuesto/historia/page.tsx` |
+| `/portal/ajustes-aflow` | Módulo de ajustes (redirect a dashboard) | `app/portal/ajustes-aflow/page.tsx` |
+| `/portal/ajustes-aflow/dashboard` | Dashboard de configuración | `app/portal/ajustes-aflow/dashboard/page.tsx` |
+| `/portal/ajustes-aflow/clientes` | Gestión de clientes | `app/portal/ajustes-aflow/clientes/page.tsx` |
+| `/portal/ajustes-aflow/perfiles` | Gestión de perfiles y permisos | `app/portal/ajustes-aflow/perfiles/page.tsx` |
+| `/portal/ajustes-aflow/opciones-menu` | Configuración de menú | `app/portal/ajustes-aflow/opciones-menu/page.tsx` |
+| `/portal/ajustes-aflow/servicios` | Catálogo de servicios | `app/portal/ajustes-aflow/servicios/page.tsx` |
 
 ### Navegación Programática
 

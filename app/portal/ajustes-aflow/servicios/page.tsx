@@ -35,10 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import {
-  fetchServicios,
-  toggleServicioStatus,
-} from "../api/ajustesService";
+import { fetchServicios, toggleServicioStatus } from "../api/ajustesService";
 import type { Servicio } from "../types/ajustes";
 
 const CATEGORIAS = ["Software", "Consultoría", "Soporte", "Infraestructura"];
