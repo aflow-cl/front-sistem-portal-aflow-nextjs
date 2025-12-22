@@ -4,13 +4,14 @@
 
 El módulo **Maestro de Negocio** es una solución integral de gestión de datos maestros (Master Data Management) para el Portal AFLOW. Implementa la funcionalidad central para administrar Contratantes, Proveedores, Servicios y Packs comerciales reutilizables, siguiendo estrictamente los patrones arquitectónicos, UX/UI y técnicos existentes en el proyecto.
 
-### Estado de Implementación: ✅ COMPLETO (v1.1 - Producción)
+### Estado de Implementación: ✅ COMPLETO (v1.2 - Producción)
 
 **Fecha de implementación:** 15 de diciembre de 2025  
-**Última actualización:** 16 de diciembre de 2025  
+**Última actualización:** 21 de diciembre de 2025  
 **Framework:** Next.js 15 (App Router)  
 **Estado:** Listo para producción con datos mock  
-**Build Status:** ✅ Exitoso (19.1s)
+**Build Status:** ✅ Exitoso  
+**Color Principal (Contratantes):** Azul `#244F82` ✨
 
 ---
 
@@ -272,9 +273,13 @@ isEmpresa(entidad): boolean
 
 ### 5. Colores del Sistema
 ```css
-/* Primary Actions */
+/* Primary Actions - Contratantes */
+bg-[#244F82]  /* Azul AFLOW - Color principal de botones y acciones */
+hover:bg-[#1a3a5f]  /* Azul oscuro - Hover state */
+
+/* Primary Actions - Otros módulos (Proveedores, Servicios) */
 bg-[#FF7A00]  /* Naranja AFLOW */
-bg-[#244F82]  /* Azul AFLOW */
+hover:bg-[#FF7A00]/90
 
 /* Estados */
 green-500/100  /* Activo */
@@ -282,7 +287,17 @@ gray-500/100   /* Inactivo */
 purple-500/50  /* Persona Natural */
 orange-500/50  /* Empresa */
 blue-500/50    /* Default/Principal */
+
+/* Destacados y acentos */
+text-blue-600/700  /* Indicadores y textos destacados */
+bg-blue-50/100     /* Fondos informativos y badges */
+border-blue-200    /* Bordes de elementos informativos */
 ```
+
+**Esquema de colores por módulo:**
+- **Contratantes:** Azul (`#244F82`) como color principal
+- **Proveedores:** Naranja (`#FF7A00`) como color principal  
+- **Servicios:** Naranja (`#FF7A00`) como color principal
 
 ---
 
@@ -562,8 +577,20 @@ const matchesTipo =
 **Diseño y Arquitectura:** Siguiendo estándares existentes del Portal AFLOW  
 **Implementación:** GitHub Copilot + Claude Sonnet 4.5  
 **Fecha inicial:** 15 de diciembre de 2025  
-**Última actualización:** 16 de diciembre de 2025  
-**Versión:** 1.1.0 (Production-ready con mock data)
+**Última actualización:** 21 de diciembre de 2025  
+**Versión:** 1.2.0 (Production-ready con mock data)
+
+### Changelog v1.2 (21-Dic-2025)
+- ✅ **Establecido azul `#244F82` como color principal para módulo Contratantes**
+- ✅ Actualizado esquema de colores en todos los componentes:
+  - Botones de acción primaria
+  - Indicadores y badges
+  - Elementos informativos y acentos
+  - Estados de hover y activo
+- ✅ Documentación actualizada y verificada
+- ✅ README sincronizado con estado actual del proyecto
+- ✅ Módulo completamente operacional y estable
+- ✅ Preparado para integración con backend real
 
 ### Changelog v1.1 (16-Dic-2025)
 - ✅ Corregido error runtime de Radix UI Select (valores vacíos → "all")

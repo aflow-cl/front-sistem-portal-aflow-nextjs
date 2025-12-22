@@ -15,17 +15,25 @@ interface FormItem {
 }
 
 interface ClienteData {
+  tipoPersona?: 'persona-natural' | 'empresa';
   rut?: string;
+  primerNombre?: string;
+  segundoNombre?: string;
+  apellidoPaterno?: string;
+  apellidoMaterno?: string;
   razonSocial?: string;
   giro?: string;
+  estado?: 'Activo' | 'Inactivo';
   email?: string;
   celular?: string;
+  telefono?: string;
   regionId?: string;
   comuna?: string;
   sucursalNombre?: string;
   calle?: string;
   numero?: string;
   complemento?: string;
+  notas?: string;
 }
 
 interface ProyectoData {
@@ -44,8 +52,23 @@ interface ResumenFinalProps {
 
 export function ResumenFinal({ form, folio }: ResumenFinalProps) {
   const formData = form.getValues();
-  const cliente = (formData.cliente || {}) as ClienteData;
+  const clienteData = useMemo(() => (formData.cliente || {}) as ClienteData, [formData.cliente]);
   const proyecto = (formData.proyecto || {}) as ProyectoData;
+
+  // Generate client display name
+  const clienteName = useMemo(() => {
+    if (clienteData.tipoPersona === 'persona-natural') {
+      return `${clienteData.primerNombre || ''} ${clienteData.segundoNombre || ''} ${clienteData.apellidoPaterno || ''} ${clienteData.apellidoMaterno || ''}`.trim();
+    }
+    return clienteData.razonSocial || 'N/A';
+  }, [clienteData]);
+
+  const clienteGiro = useMemo(() => {
+    if (clienteData.tipoPersona === 'persona-natural') {
+      return 'Persona Natural';
+    }
+    return clienteData.giro || 'N/A';
+  }, [clienteData]);
 
   // Calculate totals from items
   const totales = useMemo(() => {
@@ -85,10 +108,10 @@ export function ResumenFinal({ form, folio }: ResumenFinalProps) {
 
   // Get region name
   const regionNombre = useMemo(() => {
-    const regionId = parseInt(cliente.regionId || '0');
+    const regionId = parseInt(clienteData.regionId || '0');
     const region = regionesChile.find(r => r.id === regionId);
     return region?.nombre || 'N/A';
-  }, [cliente.regionId]);
+  }, [clienteData.regionId]);
 
   // Count items
   const itemCount = useMemo(() => {
@@ -123,46 +146,60 @@ export function ResumenFinal({ form, folio }: ResumenFinalProps) {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             <div>
-              <p className="text-xs text-gray-600 mb-1">RUT</p>
+              <p className="text-xs text-gray-600 mb-1">Tipo</p>
               <p className="text-sm font-semibold text-gray-900">
-                {cliente.rut || 'N/A'}
+                {clienteData.tipoPersona === 'persona-natural' ? 'Persona Natural' : 'Empresa'}
               </p>
             </div>
             <div>
-              <p className="text-xs text-gray-600 mb-1">Razón Social</p>
+              <p className="text-xs text-gray-600 mb-1">RUT</p>
               <p className="text-sm font-semibold text-gray-900">
-                {cliente.razonSocial || 'N/A'}
+                {clienteData.rut || 'N/A'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-600 mb-1">
+                {clienteData.tipoPersona === 'persona-natural' ? 'Nombre Completo' : 'Razón Social'}
+              </p>
+              <p className="text-sm font-semibold text-gray-900">
+                {clienteName}
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-600 mb-1">Giro</p>
               <p className="text-sm font-semibold text-gray-900">
-                {cliente.giro || 'N/A'}
+                {clienteGiro}
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-600 mb-1">Email</p>
               <p className="text-sm font-semibold text-gray-900">
-                {cliente.email || 'N/A'}
+                {clienteData.email || 'N/A'}
               </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-600 mb-1">Estado</p>
+              <Badge className={`${clienteData.estado === 'Activo' ? 'bg-green-500' : 'bg-gray-400'} text-white`}>
+                {clienteData.estado || 'N/A'}
+              </Badge>
             </div>            
             {/* Sucursal Information */}
-            {cliente.sucursalNombre && (
+            {clienteData.sucursalNombre && (
               <div className="md:col-span-2 bg-blue-50 rounded-lg p-4 border border-blue-200">
                 <p className="flex items-center gap-2 text-xs text-blue-700 mb-2 font-semibold">
                   <MapPin className="w-4 h-4" />
                   Sucursal
                 </p>
                 <p className="text-sm font-bold text-blue-900 mb-2">
-                  {cliente.sucursalNombre}
+                  {clienteData.sucursalNombre}
                 </p>
                 <p className="text-xs text-gray-700">
-                  {cliente.calle && cliente.numero
-                    ? `${cliente.calle} ${cliente.numero}${cliente.complemento ? `, ${cliente.complemento}` : ''}`
+                  {clienteData.calle && clienteData.numero
+                    ? `${clienteData.calle} ${clienteData.numero}${clienteData.complemento ? `, ${clienteData.complemento}` : ''}`
                     : 'Dirección no disponible'}
                 </p>
                 <p className="text-xs text-gray-600 mt-1">
-                  {cliente.comuna || 'N/A'}, {regionNombre}
+                  {clienteData.comuna || 'N/A'}, {regionNombre}
                 </p>
               </div>
             )}
@@ -175,7 +212,7 @@ export function ResumenFinal({ form, folio }: ResumenFinalProps) {
             <div>
               <p className="text-xs text-gray-600 mb-1">Comuna</p>
               <p className="text-sm font-semibold text-gray-900">
-                {cliente.comuna || 'N/A'}
+                {clienteData.comuna || 'N/A'}
               </p>
             </div>
           </div>

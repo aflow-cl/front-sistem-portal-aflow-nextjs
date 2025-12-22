@@ -138,8 +138,7 @@ export function BudgetTableEnhanced({
 
   const handleDownload = (budget: Budget) => {
     toast.success(`Descargando documento ${budget.folio}.pdf`);
-    // Simular descarga
-    console.log("Downloading:", budget.documentoUrl);
+    // Simular descarga - implementar llamada a API
   };
 
   const getSortIcon = (field: SortField) => {

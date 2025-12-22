@@ -13,24 +13,37 @@ export interface Sucursal {
 
 export interface ClienteExistente {
   id: string;
+  tipoPersona: 'persona-natural' | 'empresa';
   rut: string;
-  razonSocial: string;
-  giro: string;
+  // Persona Natural
+  primerNombre?: string;
+  segundoNombre?: string;
+  apellidoPaterno?: string;
+  apellidoMaterno?: string;
+  // Empresa
+  razonSocial?: string;
+  giro?: string;
+  // Común
+  estado: 'Activo' | 'Inactivo';
   email: string;
   celular: string;
   telefono?: string;
+  notas?: string;
   sucursales: Sucursal[];
 }
 
 export const clientesExistentes: ClienteExistente[] = [
   {
     id: '1',
+    tipoPersona: 'empresa',
     rut: '76.123.456-0',
     razonSocial: 'Constructora Los Andes S.A.',
     giro: 'Construcción y servicios de ingeniería',
+    estado: 'Activo',
     email: 'contacto@constructoralosandes.cl',
     celular: '+56 9 8765 4321',
     telefono: '+56 2 2234 5678',
+    notas: 'Cliente preferencial con más de 10 años de trayectoria',
     sucursales: [
       {
         id: 's1-1',
@@ -68,9 +81,11 @@ export const clientesExistentes: ClienteExistente[] = [
   },
   {
     id: '2',
+    tipoPersona: 'empresa',
     rut: '78.456.789-K',
     razonSocial: 'Inmobiliaria Central Ltda.',
     giro: 'Compraventa y arriendo de bienes raíces',
+    estado: 'Activo',
     email: 'ventas@inmobiliariacentral.cl',
     celular: '+56 9 7654 3210',
     telefono: '+56 2 2345 6789',
@@ -100,9 +115,11 @@ export const clientesExistentes: ClienteExistente[] = [
   },
   {
     id: '3',
+    tipoPersona: 'empresa',
     rut: '99.876.543-K',
     razonSocial: 'Servicios Industriales del Sur SpA',
     giro: 'Mantención industrial y servicios técnicos',
+    estado: 'Activo',
     email: 'operaciones@sisdelsur.cl',
     celular: '+56 9 6543 2109',
     sucursales: [
@@ -132,9 +149,11 @@ export const clientesExistentes: ClienteExistente[] = [
   },
   {
     id: '4',
+    tipoPersona: 'empresa',
     rut: '85.234.567-K',
     razonSocial: 'Tecnología y Desarrollo Ltda.',
     giro: 'Desarrollo de software y consultoría TI',
+    estado: 'Activo',
     email: 'info@tecnodesarrollo.cl',
     celular: '+56 9 5432 1098',
     telefono: '+56 2 2456 7890',
@@ -154,9 +173,11 @@ export const clientesExistentes: ClienteExistente[] = [
   },
   {
     id: '5',
+    tipoPersona: 'empresa',
     rut: '81.345.678-4',
     razonSocial: 'Comercial del Pacífico S.A.',
     giro: 'Importación y distribución de productos',
+    estado: 'Activo',
     email: 'comercial@pacifico.cl',
     celular: '+56 9 4321 0987',
     sucursales: [
@@ -182,6 +203,32 @@ export const clientesExistentes: ClienteExistente[] = [
       },
     ],
   },
+  {
+    id: '6',
+    tipoPersona: 'persona-natural',
+    rut: '16.789.456-K',
+    primerNombre: 'Juan',
+    segundoNombre: 'Carlos',
+    apellidoPaterno: 'González',
+    apellidoMaterno: 'Martínez',
+    estado: 'Activo',
+    email: 'juan.gonzalez@gmail.com',
+    celular: '+56 9 3210 9876',
+    notas: 'Cliente frecuente de proyectos de remodelación',
+    sucursales: [
+      {
+        id: 's6-1',
+        nombre: 'Domicilio Particular',
+        regionId: '7',
+        ciudadId: '701',
+        comuna: 'Ñuñoa',
+        calle: 'Av. Irarrázaval',
+        numero: '4567',
+        complemento: 'Depto. 302',
+        esPrincipal: true,
+      },
+    ],
+  },
 ];
 
 // Search function
@@ -192,9 +239,20 @@ export function buscarClientes(query: string): ClienteExistente[] {
 
   const searchTerm = query.toLowerCase();
   return clientesExistentes.filter(
-    (cliente) =>
-      cliente.razonSocial.toLowerCase().includes(searchTerm) ||
-      cliente.rut.includes(searchTerm) ||
-      cliente.email.toLowerCase().includes(searchTerm)
+    (cliente) => {
+      const rutMatch = cliente.rut.includes(searchTerm);
+      const emailMatch = cliente.email.toLowerCase().includes(searchTerm);
+      
+      // For persona natural, search by name
+      if (cliente.tipoPersona === 'persona-natural') {
+        const nombreCompleto = `${cliente.primerNombre || ''} ${cliente.segundoNombre || ''} ${cliente.apellidoPaterno || ''} ${cliente.apellidoMaterno || ''}`.toLowerCase();
+        const nombreMatch = nombreCompleto.includes(searchTerm);
+        return rutMatch || emailMatch || nombreMatch;
+      }
+      
+      // For empresa, search by razon social
+      const razonSocialMatch = cliente.razonSocial?.toLowerCase().includes(searchTerm) || false;
+      return razonSocialMatch || rutMatch || emailMatch;
+    }
   );
 }

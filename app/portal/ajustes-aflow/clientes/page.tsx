@@ -47,7 +47,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -58,12 +57,12 @@ import {
 import { toast } from "sonner";
 import {
   fetchClientes,
-  createCliente,
-  updateCliente,
   deleteCliente,
   toggleClienteStatus,
 } from "../api/ajustesService";
-import type { Cliente, CreateClienteInput } from "../types/ajustes";
+import type { Cliente } from "../types/ajustes";
+import { ClienteWizardModal } from "./components/ClienteWizardModal";
+import { EditClienteModal } from "./components/EditClienteModal";
 
 const REGIONES_CHILE = [
   "Arica y Parinacota",
@@ -88,9 +87,9 @@ export default function ClientesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRegion, setFilterRegion] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [wizardDialogOpen, setWizardDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
 
   const queryClient = useQueryClient();
@@ -100,37 +99,7 @@ export default function ClientesPage() {
     queryFn: fetchClientes,
   });
 
-  const createMutation = useMutation({
-    mutationFn: createCliente,
-    onSuccess: (newCliente) => {
-      queryClient.setQueryData(["clientes"], (old: Cliente[] = []) => [
-        ...old,
-        newCliente,
-      ]);
-      toast.success("Cliente creado exitosamente");
-      setDialogOpen(false);
-      setEditingCliente(null);
-    },
-    onError: () => {
-      toast.error("Error al crear cliente");
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<CreateClienteInput> }) =>
-      updateCliente(id, data),
-    onSuccess: (updatedCliente) => {
-      queryClient.setQueryData(["clientes"], (old: Cliente[] = []) =>
-        old.map((c) => (c.id === updatedCliente.id ? updatedCliente : c))
-      );
-      toast.success("Cliente actualizado exitosamente");
-      setDialogOpen(false);
-      setEditingCliente(null);
-    },
-    onError: () => {
-      toast.error("Error al actualizar cliente");
-    },
-  });
+  // Note: Client creation now handled by wizard modal
 
   const deleteMutation = useMutation({
     mutationFn: deleteCliente,
@@ -174,34 +143,14 @@ export default function ClientesPage() {
     return matchesSearch && matchesRegion && matchesStatus;
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const data: CreateClienteInput = {
-      rut: formData.get("rut") as string,
-      razonSocial: formData.get("razonSocial") as string,
-      nombreFantasia: formData.get("nombreFantasia") as string,
-      giro: formData.get("giro") as string,
-      direccion: formData.get("direccion") as string,
-      region: formData.get("region") as string,
-      comuna: formData.get("comuna") as string,
-      telefono: formData.get("telefono") as string,
-      email: formData.get("email") as string,
-      sitioWeb: formData.get("sitioWeb") as string,
-      contactoPrincipal: formData.get("contactoPrincipal") as string,
-      emailContacto: formData.get("emailContacto") as string,
-    };
-
-    if (editingCliente) {
-      updateMutation.mutate({ id: editingCliente.id, data });
-    } else {
-      createMutation.mutate(data);
-    }
-  };
-
   const handleViewDetails = (cliente: Cliente) => {
     setSelectedCliente(cliente);
     setDetailDialogOpen(true);
+  };
+
+  const handleEdit = (cliente: Cliente) => {
+    setSelectedCliente(cliente);
+    setEditDialogOpen(true);
   };
 
   if (isLoading) {
@@ -220,8 +169,7 @@ export default function ClientesPage() {
             </CardTitle>
             <Button
               onClick={() => {
-                setEditingCliente(null);
-                setDialogOpen(true);
+                setWizardDialogOpen(true);
               }}
               className="bg-[#244F82] hover:bg-[#0c3b64]"
             >
@@ -374,8 +322,7 @@ export default function ClientesPage() {
                             <DropdownMenuItem
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setEditingCliente(cliente);
-                                setDialogOpen(true);
+                                handleEdit(cliente);
                               }}
                             >
                               <Edit2 className="w-4 h-4 mr-2" />
@@ -444,157 +391,18 @@ export default function ClientesPage() {
         </CardContent>
       </Card>
 
-      {/* Dialog crear/editar cliente */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingCliente ? "Editar Cliente" : "Nuevo Cliente"}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="rut">RUT *</Label>
-                <Input
-                  id="rut"
-                  name="rut"
-                  defaultValue={editingCliente?.rut}
-                  placeholder="76.123.456-0"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="razonSocial">Razón Social *</Label>
-                <Input
-                  id="razonSocial"
-                  name="razonSocial"
-                  defaultValue={editingCliente?.razonSocial}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="nombreFantasia">Nombre Fantasía</Label>
-                <Input
-                  id="nombreFantasia"
-                  name="nombreFantasia"
-                  defaultValue={editingCliente?.nombreFantasia}
-                />
-              </div>
-              <div>
-                <Label htmlFor="giro">Giro *</Label>
-                <Input
-                  id="giro"
-                  name="giro"
-                  defaultValue={editingCliente?.giro}
-                  required
-                />
-              </div>
-              <div className="md:col-span-2">
-                <Label htmlFor="direccion">Dirección *</Label>
-                <Input
-                  id="direccion"
-                  name="direccion"
-                  defaultValue={editingCliente?.direccion}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="region">Región *</Label>
-                <Select
-                  name="region"
-                  defaultValue={editingCliente?.region}
-                  required
-                >
-                  <SelectTrigger id="region">
-                    <SelectValue placeholder="Seleccionar región" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {REGIONES_CHILE.map((region) => (
-                      <SelectItem key={region} value={region}>
-                        {region}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="comuna">Comuna *</Label>
-                <Input
-                  id="comuna"
-                  name="comuna"
-                  defaultValue={editingCliente?.comuna}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="telefono">Teléfono *</Label>
-                <Input
-                  id="telefono"
-                  name="telefono"
-                  defaultValue={editingCliente?.telefono}
-                  placeholder="+56 2 2345 6789"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  defaultValue={editingCliente?.email}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="sitioWeb">Sitio Web</Label>
-                <Input
-                  id="sitioWeb"
-                  name="sitioWeb"
-                  defaultValue={editingCliente?.sitioWeb}
-                  placeholder="www.ejemplo.cl"
-                />
-              </div>
-              <div>
-                <Label htmlFor="contactoPrincipal">Contacto Principal *</Label>
-                <Input
-                  id="contactoPrincipal"
-                  name="contactoPrincipal"
-                  defaultValue={editingCliente?.contactoPrincipal}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="emailContacto">Email Contacto *</Label>
-                <Input
-                  id="emailContacto"
-                  name="emailContacto"
-                  type="email"
-                  defaultValue={editingCliente?.emailContacto}
-                  required
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setDialogOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                className="bg-[#244F82] hover:bg-[#0c3b64]"
-                disabled={createMutation.isPending || updateMutation.isPending}
-              >
-                {editingCliente ? "Actualizar" : "Crear"} Cliente
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Wizard Modal para Nuevo Cliente */}
+      <ClienteWizardModal
+        open={wizardDialogOpen}
+        onOpenChange={setWizardDialogOpen}
+      />
+
+      {/* Edit Modal */}
+      <EditClienteModal
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        cliente={selectedCliente}
+      />
 
       {/* Dialog detalles cliente */}
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>

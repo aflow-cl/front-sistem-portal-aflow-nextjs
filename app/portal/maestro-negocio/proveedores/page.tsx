@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -55,6 +54,9 @@ import {
 
 // Servicios
 import { fetchProveedores } from "../api/maestroService";
+
+// Componentes
+import { AdvancedFilters } from "./components/AdvancedFilters";
 
 export default function ProveedoresPage() {
   // Fetch proveedores
@@ -194,34 +196,34 @@ export default function ProveedoresPage() {
 
       {/* Filtros */}
       <div className="bg-white rounded-xl p-4 shadow-sm border">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label htmlFor="busqueda" className="text-sm font-medium text-gray-700">
-              Buscar
-            </Label>
-            <div className="relative mt-1.5">
+        <div className="flex items-center gap-2 mb-4">
+          <Search className="h-5 w-5 text-[#244F82]" />
+          <h3 className="text-sm font-semibold text-gray-900">Filtros de búsqueda</h3>
+        </div>
+
+        <div className="flex gap-3">
+          {/* Filtros rápidos */}
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* Búsqueda rápida */}
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
                 id="busqueda"
                 type="text"
-                placeholder="RUT, nombre, email..."
+                placeholder="Buscar por RUT, nombre..."
                 value={filters.busqueda}
                 onChange={(e) => setFilters({ ...filters, busqueda: e.target.value })}
-                className="pl-9"
+                className="pl-9 h-10 rounded-xl border-gray-300 focus:border-[#244F82] focus:ring-[#244F82]"
               />
             </div>
-          </div>
 
-          <div>
-            <Label htmlFor="tipoPersona" className="text-sm font-medium text-gray-700">
-              Tipo
-            </Label>
+            {/* Tipo rápido */}
             <Select
               value={filters.tipoPersona}
               onValueChange={(value: string) => setFilters({ ...filters, tipoPersona: value as TipoPersona | "all" })}
             >
-              <SelectTrigger id="tipoPersona" className="mt-1.5">
-                <SelectValue placeholder="Todos los tipos" />
+              <SelectTrigger className="h-10 rounded-xl border-gray-300">
+                <SelectValue placeholder="Tipo" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los tipos</SelectItem>
@@ -229,18 +231,14 @@ export default function ProveedoresPage() {
                 <SelectItem value="empresa">Empresa</SelectItem>
               </SelectContent>
             </Select>
-          </div>
 
-          <div>
-            <Label htmlFor="estado" className="text-sm font-medium text-gray-700">
-              Estado
-            </Label>
+            {/* Estado rápido */}
             <Select
               value={filters.estado}
               onValueChange={(value: string) => setFilters({ ...filters, estado: value as EstadoRegistro | "all" })}
             >
-              <SelectTrigger id="estado" className="mt-1.5">
-                <SelectValue placeholder="Todos los estados" />
+              <SelectTrigger className="h-10 rounded-xl border-gray-300">
+                <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los estados</SelectItem>
@@ -249,21 +247,29 @@ export default function ProveedoresPage() {
               </SelectContent>
             </Select>
           </div>
-        </div>
 
-        {hasActiveFilters && (
-          <div className="mt-4 flex justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearFilters}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <X className="w-4 h-4 mr-1" />
-              Limpiar filtros
-            </Button>
+          {/* Botones de acción */}
+          <div className="flex gap-2">
+            <AdvancedFilters
+              filters={filters}
+              onApplyFilters={setFilters}
+              onClearFilters={clearFilters}
+              hasActiveFilters={Boolean(hasActiveFilters)}
+            />
+            
+            {hasActiveFilters && (
+              <Button
+                variant="outline"
+                size="default"
+                onClick={clearFilters}
+                className="text-gray-600 hover:text-gray-900 border-gray-300 h-10"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Limpiar
+              </Button>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Tabla */}

@@ -40,6 +40,11 @@ const MOCK_CONTRATANTES: Contratante[] = [
     estado: "Activo",
     fechaCreacion: "2024-01-15T10:00:00Z",
     fechaActualizacion: "2024-11-20T15:30:00Z",
+    regionId: "13",
+    regionNombre: "Región Metropolitana",
+    ciudadId: "131",
+    ciudadNombre: "Santiago",
+    comuna: "Las Condes",
     direcciones: [
       {
         id: "dir-1",
@@ -88,6 +93,11 @@ const MOCK_CONTRATANTES: Contratante[] = [
     estado: "Activo",
     fechaCreacion: "2024-03-10T08:30:00Z",
     fechaActualizacion: "2024-10-15T12:00:00Z",
+    regionId: "5",
+    regionNombre: "Región de Valparaíso",
+    ciudadId: "51",
+    ciudadNombre: "Valparaíso",
+    comuna: "Viña del Mar",
     direcciones: [
       {
         id: "dir-3",
@@ -117,6 +127,11 @@ const MOCK_CONTRATANTES: Contratante[] = [
     estado: "Inactivo",
     fechaCreacion: "2023-05-20T14:00:00Z",
     fechaActualizacion: "2024-08-01T09:00:00Z",
+    regionId: "5",
+    regionNombre: "Región de Valparaíso",
+    ciudadId: "51",
+    ciudadNombre: "Valparaíso",
+    comuna: "Reñaca",
     direcciones: [
       {
         id: "dir-4",
@@ -563,11 +578,29 @@ export async function createDireccion(input: CreateDireccionInput): Promise<Dire
     contratante.direcciones.forEach((d) => (d.esPrincipal = false));
   }
 
+  // Obtener nombres de región y ciudad desde regionesChile
+  // En producción esto vendría de la BD
+  let regionNombre = "";
+  let ciudadNombre = "";
+  
+  // Importar datos de regiones (en un archivo real estaría en la BD)
+  const regionesData = await import("../../presupuesto/crear/data/regionesChile");
+  const region = regionesData.regionesChile.find((r) => r.id.toString() === input.regionId);
+  if (region) {
+    regionNombre = region.nombre;
+    const ciudad = region.ciudades.find((c) => c.id.toString() === input.ciudadId);
+    if (ciudad) {
+      ciudadNombre = ciudad.nombre;
+    }
+  }
+
   const newDireccion: Direccion = {
     id: `dir-${Date.now()}`,
     nombre: input.nombre,
     regionId: input.regionId,
+    regionNombre: regionNombre,
     ciudadId: input.ciudadId,
+    ciudadNombre: ciudadNombre,
     comuna: input.comuna,
     calle: input.calle,
     numero: input.numero,
@@ -605,9 +638,30 @@ export async function updateDireccion(
     contratante.direcciones.forEach((d) => (d.esPrincipal = false));
   }
 
+  // Si se actualizaron regionId o ciudadId, obtener los nombres
+  let regionNombre = updates.regionNombre;
+  let ciudadNombre = updates.ciudadNombre;
+  
+  if (updates.regionId || updates.ciudadId) {
+    const regionesData = await import("../../presupuesto/crear/data/regionesChile");
+    const regionId = updates.regionId || contratante.direcciones[direccionIndex].regionId;
+    const ciudadId = updates.ciudadId || contratante.direcciones[direccionIndex].ciudadId;
+    
+    const region = regionesData.regionesChile.find((r) => r.id.toString() === regionId);
+    if (region) {
+      regionNombre = region.nombre;
+      const ciudad = region.ciudades.find((c) => c.id.toString() === ciudadId);
+      if (ciudad) {
+        ciudadNombre = ciudad.nombre;
+      }
+    }
+  }
+
   const updated = {
     ...contratante.direcciones[direccionIndex],
     ...updates,
+    ...(regionNombre && { regionNombre }),
+    ...(ciudadNombre && { ciudadNombre }),
   };
 
   contratante.direcciones[direccionIndex] = updated;

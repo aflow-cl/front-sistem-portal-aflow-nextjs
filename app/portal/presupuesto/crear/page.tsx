@@ -30,35 +30,11 @@ import { PresupuestoTable } from '../components/PresupuestoTable';
 import { ResumenFinal } from './components/ResumenFinal';
 import { createBudget } from '../api/budgetService';
 import { useAuth } from '@/hooks/useAuth';
+import { validateRut } from '@/lib/utils';
 
 // ============================================
 // VALIDATION SCHEMA
 // ============================================
-
-// Helper to validate Chilean RUT format
-const validateRUT = (rut: string): boolean => {
-  if (!rut) return false;
-  const clean = rut.replace(/[.-]/g, '');
-  if (clean.length < 2) return false;
-  
-  const body = clean.slice(0, -1);
-  const verifier = clean.slice(-1).toUpperCase();
-  
-  if (!/^\d+$/.test(body)) return false;
-  
-  let sum = 0;
-  let multiplier = 2;
-  
-  for (let i = body.length - 1; i >= 0; i--) {
-    sum += parseInt(body[i]) * multiplier;
-    multiplier = multiplier === 7 ? 2 : multiplier + 1;
-  }
-  
-  const expectedVerifier = 11 - (sum % 11);
-  const calculatedVerifier = expectedVerifier === 11 ? '0' : expectedVerifier === 10 ? 'K' : expectedVerifier.toString();
-  
-  return verifier === calculatedVerifier;
-};
 
 const itemSchema = z.object({
   tipo: z.string().default('item'),
@@ -81,15 +57,25 @@ type BudgetItem = z.infer<typeof itemSchema>;
 const budgetWizardSchema = z.object({
   // Step 1: Cliente
   cliente: z.object({
+    tipoPersona: z.enum(['persona-natural', 'empresa'], {
+      errorMap: () => ({ message: 'Seleccione el tipo de persona' }),
+    }),
     rut: z.string()
       .min(1, 'Ingrese el RUT del cliente')
-      .refine(validateRUT, 'Formato de RUT inválido. Use formato XX.XXX.XXX-X'),
-    razonSocial: z.string()
-      .min(1, 'Ingrese la Razón Social de la empresa')
-      .min(3, 'La Razón Social debe tener al menos 3 caracteres'),
-    giro: z.string()
-      .min(1, 'Ingrese el Giro Comercial')
-      .min(3, 'El Giro debe tener al menos 3 caracteres'),
+      .refine(validateRut, 'Formato de RUT inválido. Use formato XX.XXX.XXX-X'),
+    // Campos para Persona Natural
+    primerNombre: z.string().optional(),
+    segundoNombre: z.string().optional(),
+    apellidoPaterno: z.string().optional(),
+    apellidoMaterno: z.string().optional(),
+    // Campos para Empresa
+    razonSocial: z.string().optional(),
+    giro: z.string().optional(),
+    // Estado
+    estado: z.enum(['Activo', 'Inactivo'], {
+      errorMap: () => ({ message: 'Seleccione el estado del cliente' }),
+    }).default('Activo'),
+    // Dirección/Sucursal
     sucursalId: z.string().min(1, 'Seleccione una sucursal de la lista o agregue una nueva'),
     sucursalNombre: z.string().optional(),
     regionId: z.string().min(1, 'Seleccione la Región donde se ubica'),
@@ -105,13 +91,48 @@ const budgetWizardSchema = z.object({
     numero: z.string()
       .min(1, 'Ingrese el número de la dirección'),
     complemento: z.string().optional(),
+    // Contacto
     email: z.string()
       .min(1, 'Ingrese el correo electrónico del cliente')
       .email('Formato de correo inválido. Ejemplo: contacto@empresa.cl'),
-    celular: z.string()
-      .min(1, 'Ingrese el número de celular')
-      .min(8, 'El número de celular debe tener al menos 8 dígitos'),
-    telefono: z.string().optional(),
+    telefono: z.string()
+      .min(1, 'Ingrese el número de teléfono')
+      .min(8, 'El número de teléfono debe tener al menos 8 dígitos'),
+    // Notas
+    notas: z.string().optional(),
+  }).superRefine((data, ctx) => {
+    // Validación condicional según tipo de persona
+    if (data.tipoPersona === 'persona-natural') {
+      if (!data.primerNombre || data.primerNombre.length < 2) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['primerNombre'],
+          message: 'Ingrese el primer nombre (mínimo 2 caracteres)',
+        });
+      }
+      if (!data.apellidoPaterno || data.apellidoPaterno.length < 2) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['apellidoPaterno'],
+          message: 'Ingrese el apellido paterno (mínimo 2 caracteres)',
+        });
+      }
+    } else if (data.tipoPersona === 'empresa') {
+      if (!data.razonSocial || data.razonSocial.length < 3) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['razonSocial'],
+          message: 'Ingrese la Razón Social (mínimo 3 caracteres)',
+        });
+      }
+      if (!data.giro || data.giro.length < 3) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['giro'],
+          message: 'Ingrese el Giro Comercial (mínimo 3 caracteres)',
+        });
+      }
+    }
   }),
   
   // Step 2: Proyecto
@@ -195,9 +216,15 @@ export default function CrearPresupuestoPage() {
     resolver: zodResolver(budgetWizardSchema),
     defaultValues: {
       cliente: {
+        tipoPersona: 'empresa',
         rut: '',
+        primerNombre: '',
+        segundoNombre: '',
+        apellidoPaterno: '',
+        apellidoMaterno: '',
         razonSocial: '',
         giro: '',
+        estado: 'Activo',
         sucursalId: '',
         sucursalNombre: '',
         regionId: '',
@@ -209,8 +236,8 @@ export default function CrearPresupuestoPage() {
         numero: '',
         complemento: '',
         email: '',
-        celular: '',
         telefono: '',
+        notas: '',
       },
       proyecto: {
         nombre: '',
@@ -310,9 +337,9 @@ export default function CrearPresupuestoPage() {
     switch (step) {
       case 0:
         fieldsToValidate = [
+          'cliente.tipoPersona',
           'cliente.rut',
-          'cliente.razonSocial',
-          'cliente.giro',
+          'cliente.estado',
           'cliente.sucursalId',
           'cliente.regionId',
           'cliente.ciudadId',
@@ -322,12 +349,33 @@ export default function CrearPresupuestoPage() {
           'cliente.calle',
           'cliente.numero',
           'cliente.email',
-          'cliente.celular',
+          'cliente.telefono',
         ];
+        
+        // Add conditional fields based on tipoPersona
+        const tipoPersona = form.getValues('cliente.tipoPersona');
+        if (tipoPersona === 'persona-natural') {
+          fieldsToValidate.push(
+            'cliente.primerNombre',
+            'cliente.apellidoPaterno'
+          );
+        } else {
+          fieldsToValidate.push(
+            'cliente.razonSocial',
+            'cliente.giro'
+          );
+        }
+        
         fieldLabels = {
+          'cliente.tipoPersona': 'Tipo de Persona',
           'cliente.rut': 'RUT',
+          'cliente.primerNombre': 'Primer Nombre',
+          'cliente.segundoNombre': 'Segundo Nombre',
+          'cliente.apellidoPaterno': 'Apellido Paterno',
+          'cliente.apellidoMaterno': 'Apellido Materno',
           'cliente.razonSocial': 'Razón Social',
           'cliente.giro': 'Giro Comercial',
+          'cliente.estado': 'Estado',
           'cliente.sucursalId': 'Sucursal',
           'cliente.regionId': 'Región',
           'cliente.ciudadId': 'Ciudad',
@@ -337,7 +385,7 @@ export default function CrearPresupuestoPage() {
           'cliente.calle': 'Calle',
           'cliente.numero': 'Número',
           'cliente.email': 'Correo Electrónico',
-          'cliente.celular': 'Número Celular',
+          'cliente.telefono': 'Teléfono',
         };
         break;
       case 1:
@@ -529,9 +577,15 @@ export default function CrearPresupuestoPage() {
     // Reset form to initial values
     form.reset({
       cliente: {
+        tipoPersona: 'empresa',
         rut: '',
+        primerNombre: '',
+        segundoNombre: '',
+        apellidoPaterno: '',
+        apellidoMaterno: '',
         razonSocial: '',
         giro: '',
+        estado: 'Activo',
         sucursalId: '',
         sucursalNombre: '',
         regionId: '',
@@ -543,8 +597,8 @@ export default function CrearPresupuestoPage() {
         numero: '',
         complemento: '',
         email: '',
-        celular: '',
         telefono: '',
+        notas: '',
       },
       proyecto: {
         nombre: '',
@@ -603,9 +657,14 @@ export default function CrearPresupuestoPage() {
     
     const total = subtotal + iva;
     
+    // Generate client name based on tipo persona
+    const clienteName = formData.cliente.tipoPersona === 'persona-natural'
+      ? `${formData.cliente.primerNombre || ''} ${formData.cliente.segundoNombre || ''} ${formData.cliente.apellidoPaterno || ''} ${formData.cliente.apellidoMaterno || ''}`.trim()
+      : formData.cliente.razonSocial || 'Cliente';
+    
     // Transform data for API
     const budgetData = {
-      cliente: formData.cliente.razonSocial,
+      cliente: clienteName,
       proyecto: formData.proyecto.nombre,
       estado: 'Borrador' as const,
       items,

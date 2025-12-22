@@ -8,6 +8,12 @@ import type {
   OpcionMenu,
   DashboardStats,
   ActividadReciente,
+  ClienteWizardData,
+  Sucursal,
+  SucursalData,
+  UsuarioCliente,
+  UsuarioData,
+  ServicioContratado,
 } from "../types/ajustes";
 
 // ============================================
@@ -17,6 +23,7 @@ import type {
 const MOCK_CLIENTES: Cliente[] = [
   {
     id: "1",
+    tipoPersona: "empresa",
     rut: "76.123.456-0",
     razonSocial: "Constructora Los Andes S.A.",
     nombreFantasia: "Los Andes",
@@ -105,6 +112,7 @@ const MOCK_CLIENTES: Cliente[] = [
   },
   {
     id: "2",
+    tipoPersona: "empresa",
     rut: "77.234.567-1",
     razonSocial: "Minera del Norte SpA",
     nombreFantasia: "Minera Norte",
@@ -161,6 +169,7 @@ const MOCK_CLIENTES: Cliente[] = [
   },
   {
     id: "3",
+    tipoPersona: "empresa",
     rut: "78.345.678-2",
     razonSocial: "Transportes Rapidos Ltda.",
     nombreFantasia: "Express Cargo",
@@ -612,9 +621,27 @@ export async function createCliente(
 ): Promise<Cliente> {
   return new Promise((resolve) => {
     setTimeout(() => {
+      const razonSocial = input.tipoPersona === "persona-natural"
+        ? `${input.nombres} ${input.apellidos}`
+        : input.razonSocial || "";
+
       const newCliente: Cliente = {
         id: `${MOCK_CLIENTES.length + 1}`,
-        ...input,
+        tipoPersona: input.tipoPersona,
+        rut: input.rut,
+        nombres: input.nombres,
+        apellidos: input.apellidos,
+        razonSocial,
+        nombreFantasia: input.nombreFantasia,
+        giro: input.giro || "",
+        direccion: input.direccion,
+        region: input.region,
+        comuna: input.comuna,
+        telefono: input.telefono,
+        email: input.email,
+        sitioWeb: input.sitioWeb,
+        contactoPrincipal: input.contactoPrincipal,
+        emailContacto: input.emailContacto,
         activo: true,
         sucursales: [],
         usuarios: [],
@@ -669,6 +696,112 @@ export async function toggleClienteStatus(id: string): Promise<Cliente> {
       cliente.updatedAt = new Date().toISOString();
       resolve(cliente);
     }, 600);
+  });
+}
+
+// ============================================
+// API FUNCIÓN ESPECIAL - CREAR CLIENTE COMPLETO (WIZARD)
+// ============================================
+
+export async function createClienteCompleto(
+  wizardData: ClienteWizardData
+): Promise<Cliente> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const { cliente, sucursal, usuario, servicios } = wizardData;
+
+      if (!cliente || !sucursal || !usuario) {
+        reject(new Error("Datos incompletos del wizard"));
+        return;
+      }
+
+      // Crear nuevo ID
+      const newId = `${MOCK_CLIENTES.length + 1}`;
+
+      // Determinar nombre para razonSocial
+      const razonSocial =
+        cliente.tipoPersona === "persona-natural"
+          ? `${cliente.nombres} ${cliente.apellidos}`
+          : cliente.razonSocial || "";
+
+      // Crear sucursal
+      const newSucursal = {
+        id: `s${newId}-1`,
+        nombre: sucursal.nombre,
+        direccion: sucursal.direccion,
+        region: sucursal.region,
+        comuna: sucursal.comuna,
+        telefono: sucursal.telefono,
+        email: sucursal.email,
+        activa: true,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Buscar perfil para obtener nombre
+      const perfil = MOCK_PERFILES.find((p) => p.id === usuario.perfilId);
+
+      // Crear usuario
+      const newUsuario = {
+        id: `u${newId}-1`,
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        email: usuario.email,
+        telefono: usuario.telefono,
+        perfilId: usuario.perfilId,
+        perfilNombre: perfil?.nombre || "Operador",
+        sucursalId: newSucursal.id,
+        sucursalNombre: newSucursal.nombre,
+        activo: true,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Crear servicios contratados
+      const serviciosContratados = servicios.map((sel, idx) => {
+        const servicio = MOCK_SERVICIOS.find((s) => s.id === sel.servicioId);
+        const tarifa = servicio?.tarifas.find(
+          (t) => t.plan === sel.planSeleccionado
+        );
+
+        return {
+          id: `sc${newId}-${idx + 1}`,
+          servicioId: sel.servicioId,
+          servicioNombre: servicio?.nombre || "Servicio Desconocido",
+          fechaInicio: new Date().toISOString().split("T")[0],
+          estado: "Activo" as const,
+          tarifaMensual: tarifa?.precioMensual || 0,
+          planSeleccionado: sel.planSeleccionado,
+        };
+      });
+
+      // Crear cliente completo
+      const newCliente: Cliente = {
+        id: newId,
+        tipoPersona: cliente.tipoPersona,
+        rut: cliente.rut,
+        nombres: cliente.nombres,
+        apellidos: cliente.apellidos,
+        razonSocial,
+        nombreFantasia: cliente.nombreFantasia,
+        giro: cliente.giro || "",
+        direccion: sucursal.direccion,
+        region: sucursal.region,
+        comuna: sucursal.comuna,
+        telefono: cliente.telefono,
+        email: cliente.email,
+        sitioWeb: cliente.sitioWeb,
+        contactoPrincipal: `${usuario.nombre} ${usuario.apellido}`,
+        emailContacto: usuario.email,
+        activo: true,
+        sucursales: [newSucursal],
+        usuarios: [newUsuario],
+        serviciosContratados,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      MOCK_CLIENTES.push(newCliente);
+      resolve(newCliente);
+    }, 1500);
   });
 }
 
@@ -840,5 +973,361 @@ export async function fetchActividadReciente(): Promise<ActividadReciente[]> {
     setTimeout(() => {
       resolve([...MOCK_ACTIVIDAD_RECIENTE]);
     }, 700);
+  });
+}
+
+// ============================================
+// FUNCIONES API - CLIENTES NESTED ENTITIES
+// ============================================
+
+// Sucursales CRUD
+export async function addSucursal(
+  clienteId: string,
+  sucursalData: SucursalData
+): Promise<Sucursal> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const cliente = MOCK_CLIENTES.find((c) => c.id === clienteId);
+      if (!cliente) {
+        reject(new Error("Cliente no encontrado"));
+        return;
+      }
+      const newSucursal: Sucursal = {
+        id: `s${Date.now()}`,
+        ...sucursalData,
+        activa: true,
+        createdAt: new Date().toISOString(),
+      };
+      cliente.sucursales.push(newSucursal);
+      cliente.updatedAt = new Date().toISOString();
+      resolve(newSucursal);
+    }, 600);
+  });
+}
+
+export async function updateSucursal(
+  clienteId: string,
+  sucursalId: string,
+  sucursalData: Partial<SucursalData>
+): Promise<Sucursal> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const cliente = MOCK_CLIENTES.find((c) => c.id === clienteId);
+      if (!cliente) {
+        reject(new Error("Cliente no encontrado"));
+        return;
+      }
+      const sucursal = cliente.sucursales.find((s) => s.id === sucursalId);
+      if (!sucursal) {
+        reject(new Error("Sucursal no encontrada"));
+        return;
+      }
+      Object.assign(sucursal, sucursalData);
+      cliente.updatedAt = new Date().toISOString();
+      resolve(sucursal);
+    }, 600);
+  });
+}
+
+export async function deleteSucursal(
+  clienteId: string,
+  sucursalId: string
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const cliente = MOCK_CLIENTES.find((c) => c.id === clienteId);
+      if (!cliente) {
+        reject(new Error("Cliente no encontrado"));
+        return;
+      }
+      const index = cliente.sucursales.findIndex((s) => s.id === sucursalId);
+      if (index > -1) {
+        cliente.sucursales.splice(index, 1);
+        cliente.updatedAt = new Date().toISOString();
+      }
+      resolve();
+    }, 600);
+  });
+}
+
+export async function toggleSucursalStatus(
+  clienteId: string,
+  sucursalId: string
+): Promise<Sucursal> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const cliente = MOCK_CLIENTES.find((c) => c.id === clienteId);
+      if (!cliente) {
+        reject(new Error("Cliente no encontrado"));
+        return;
+      }
+      const sucursal = cliente.sucursales.find((s) => s.id === sucursalId);
+      if (!sucursal) {
+        reject(new Error("Sucursal no encontrada"));
+        return;
+      }
+      sucursal.activa = !sucursal.activa;
+      cliente.updatedAt = new Date().toISOString();
+      resolve(sucursal);
+    }, 600);
+  });
+}
+
+// Usuarios CRUD
+export async function addUsuario(
+  clienteId: string,
+  usuarioData: UsuarioData & { sucursalId?: string }
+): Promise<UsuarioCliente> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const cliente = MOCK_CLIENTES.find((c) => c.id === clienteId);
+      if (!cliente) {
+        reject(new Error("Cliente no encontrado"));
+        return;
+      }
+      
+      // Get perfil name
+      const perfil = MOCK_PERFILES.find((p) => p.id === usuarioData.perfilId);
+      const perfilNombre = perfil?.nombre || "Sin perfil";
+      
+      // Get sucursal name if provided
+      let sucursalNombre: string | undefined;
+      if (usuarioData.sucursalId) {
+        const sucursal = cliente.sucursales.find((s) => s.id === usuarioData.sucursalId);
+        sucursalNombre = sucursal?.nombre;
+      }
+      
+      const newUsuario: UsuarioCliente = {
+        id: `u${Date.now()}`,
+        nombre: usuarioData.nombre,
+        apellido: usuarioData.apellido,
+        email: usuarioData.email,
+        telefono: usuarioData.telefono,
+        perfilId: usuarioData.perfilId,
+        perfilNombre,
+        sucursalId: usuarioData.sucursalId,
+        sucursalNombre,
+        activo: true,
+        createdAt: new Date().toISOString(),
+      };
+      cliente.usuarios.push(newUsuario);
+      cliente.updatedAt = new Date().toISOString();
+      resolve(newUsuario);
+    }, 600);
+  });
+}
+
+export async function updateUsuario(
+  clienteId: string,
+  usuarioId: string,
+  usuarioData: Partial<UsuarioData & { sucursalId?: string }>
+): Promise<UsuarioCliente> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const cliente = MOCK_CLIENTES.find((c) => c.id === clienteId);
+      if (!cliente) {
+        reject(new Error("Cliente no encontrado"));
+        return;
+      }
+      const usuario = cliente.usuarios.find((u) => u.id === usuarioId);
+      if (!usuario) {
+        reject(new Error("Usuario no encontrado"));
+        return;
+      }
+      
+      // Update perfil name if perfilId changed
+      if (usuarioData.perfilId) {
+        const perfil = MOCK_PERFILES.find((p) => p.id === usuarioData.perfilId);
+        if (perfil) {
+          usuario.perfilNombre = perfil.nombre;
+        }
+      }
+      
+      // Update sucursal name if sucursalId changed
+      if (usuarioData.sucursalId) {
+        const sucursal = cliente.sucursales.find((s) => s.id === usuarioData.sucursalId);
+        if (sucursal) {
+          usuario.sucursalNombre = sucursal.nombre;
+        }
+      }
+      
+      Object.assign(usuario, usuarioData);
+      cliente.updatedAt = new Date().toISOString();
+      resolve(usuario);
+    }, 600);
+  });
+}
+
+export async function deleteUsuario(
+  clienteId: string,
+  usuarioId: string
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const cliente = MOCK_CLIENTES.find((c) => c.id === clienteId);
+      if (!cliente) {
+        reject(new Error("Cliente no encontrado"));
+        return;
+      }
+      const index = cliente.usuarios.findIndex((u) => u.id === usuarioId);
+      if (index > -1) {
+        cliente.usuarios.splice(index, 1);
+        cliente.updatedAt = new Date().toISOString();
+      }
+      resolve();
+    }, 600);
+  });
+}
+
+export async function toggleUsuarioStatus(
+  clienteId: string,
+  usuarioId: string
+): Promise<UsuarioCliente> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const cliente = MOCK_CLIENTES.find((c) => c.id === clienteId);
+      if (!cliente) {
+        reject(new Error("Cliente no encontrado"));
+        return;
+      }
+      const usuario = cliente.usuarios.find((u) => u.id === usuarioId);
+      if (!usuario) {
+        reject(new Error("Usuario no encontrado"));
+        return;
+      }
+      usuario.activo = !usuario.activo;
+      cliente.updatedAt = new Date().toISOString();
+      resolve(usuario);
+    }, 600);
+  });
+}
+
+// Servicios Contratados CRUD
+export async function addServicioContratado(
+  clienteId: string,
+  servicioData: {
+    servicioId: string;
+    fechaInicio: string;
+    tarifaMensual: number;
+    planSeleccionado?: "Basic" | "Professional" | "Enterprise";
+  }
+): Promise<ServicioContratado> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const cliente = MOCK_CLIENTES.find((c) => c.id === clienteId);
+      if (!cliente) {
+        reject(new Error("Cliente no encontrado"));
+        return;
+      }
+      
+      const servicio = MOCK_SERVICIOS.find((s) => s.id === servicioData.servicioId);
+      const servicioNombre = servicio?.nombre || "Servicio desconocido";
+      
+      const newServicioContratado: ServicioContratado = {
+        id: `sc${Date.now()}`,
+        servicioId: servicioData.servicioId,
+        servicioNombre,
+        fechaInicio: servicioData.fechaInicio,
+        estado: "Activo",
+        tarifaMensual: servicioData.tarifaMensual,
+        planSeleccionado: servicioData.planSeleccionado,
+      };
+      cliente.serviciosContratados.push(newServicioContratado);
+      cliente.updatedAt = new Date().toISOString();
+      resolve(newServicioContratado);
+    }, 600);
+  });
+}
+
+export async function updateServicioContratado(
+  clienteId: string,
+  servicioContratadoId: string,
+  servicioData: Partial<{
+    fechaFin?: string;
+    estado: "Activo" | "Pausado" | "Finalizado";
+    tarifaMensual: number;
+    planSeleccionado?: "Basic" | "Professional" | "Enterprise";
+  }>
+): Promise<ServicioContratado> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const cliente = MOCK_CLIENTES.find((c) => c.id === clienteId);
+      if (!cliente) {
+        reject(new Error("Cliente no encontrado"));
+        return;
+      }
+      const servicioContratado = cliente.serviciosContratados.find(
+        (sc) => sc.id === servicioContratadoId
+      );
+      if (!servicioContratado) {
+        reject(new Error("Servicio contratado no encontrado"));
+        return;
+      }
+      Object.assign(servicioContratado, servicioData);
+      cliente.updatedAt = new Date().toISOString();
+      resolve(servicioContratado);
+    }, 600);
+  });
+}
+
+export async function deleteServicioContratado(
+  clienteId: string,
+  servicioContratadoId: string
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const cliente = MOCK_CLIENTES.find((c) => c.id === clienteId);
+      if (!cliente) {
+        reject(new Error("Cliente no encontrado"));
+        return;
+      }
+      const index = cliente.serviciosContratados.findIndex(
+        (sc) => sc.id === servicioContratadoId
+      );
+      if (index > -1) {
+        cliente.serviciosContratados.splice(index, 1);
+        cliente.updatedAt = new Date().toISOString();
+      }
+      resolve();
+    }, 600);
+  });
+}
+
+// Historial de Acciones
+export interface HistorialAccion {
+  id: string;
+  clienteId: string;
+  usuarioNombre: string;
+  accion: string;
+  modulo: "General" | "Sucursales" | "Usuarios" | "Perfiles" | "Servicios";
+  detalles: string;
+  fecha: string;
+}
+
+const MOCK_HISTORIAL: HistorialAccion[] = [];
+
+export async function fetchHistorialAcciones(
+  clienteId: string
+): Promise<HistorialAccion[]> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const historial = MOCK_HISTORIAL.filter((h) => h.clienteId === clienteId);
+      resolve(historial);
+    }, 500);
+  });
+}
+
+export async function addHistorialAccion(
+  accion: Omit<HistorialAccion, "id" | "fecha">
+): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      MOCK_HISTORIAL.push({
+        ...accion,
+        id: `h${Date.now()}`,
+        fecha: new Date().toISOString(),
+      });
+      resolve();
+    }, 200);
   });
 }

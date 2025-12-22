@@ -303,10 +303,8 @@ aflow-portal/
 │   │       │   └── budgetService.ts  # Servicio API con React Query
 │   │       ├── components/    # Componentes del módulo
 │   │       │   ├── AdvancedFilters.tsx
-│   │       │   ├── BudgetTable.tsx
 │   │       │   ├── BudgetTableEnhanced.tsx
 │   │       │   ├── CreateBudgetModal.tsx
-│   │       │   ├── Filters.tsx
 │   │       │   ├── Indicators.tsx
 │   │       │   └── LoadingSkeleton.tsx
 │   │       ├── consultar/     # Sub-módulo consultar
@@ -314,8 +312,6 @@ aflow-portal/
 │   │       │   └── loading.tsx
 │   │       ├── crear/         # Sub-módulo crear
 │   │       │   ├── page.tsx   # Página principal de creación
-│   │       │   ├── page_new.tsx     # Nueva versión (desarrollo)
-│   │       │   ├── page.tsx.backup  # Backup
 │   │       │   ├── components/      # Componentes del wizard
 │   │       │   │   ├── ADD_SUCURSAL_README.md
 │   │       │   │   ├── AddSucursalModal.tsx
@@ -596,8 +592,6 @@ app/portal/presupuesto/
 ├── components/
 │   ├── AdvancedFilters.tsx    # Filtros avanzados reutilizables
 │   ├── Indicators.tsx          # 4 KPI cards
-│   ├── Filters.tsx             # Filtros básicos
-│   ├── BudgetTable.tsx         # Tabla básica
 │   ├── BudgetTableEnhanced.tsx # Tabla con paginación y ordenamiento
 │   ├── CreateBudgetModal.tsx   # Modal de creación
 │   └── LoadingSkeleton.tsx     # Estados de carga
@@ -606,8 +600,6 @@ app/portal/presupuesto/
 │   └── loading.tsx            # Loading state
 ├── crear/
 │   ├── page.tsx               # Página principal de creación (wizard)
-│   ├── page_new.tsx           # Nueva versión en desarrollo
-│   ├── page.tsx.backup        # Backup de versión anterior
 │   ├── components/            # Componentes del wizard
 │   │   ├── ClienteForm.tsx           # Formulario paso 1: Cliente
 │   │   ├── ProyectoForm.tsx          # Formulario paso 2: Proyecto

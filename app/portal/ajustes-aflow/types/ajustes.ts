@@ -2,6 +2,8 @@
 // TIPOS - CLIENTES
 // ============================================
 
+export type TipoPersona = "persona-natural" | "empresa";
+
 export interface Sucursal {
   id: string;
   nombre: string;
@@ -36,11 +38,17 @@ export interface ServicioContratado {
   fechaFin?: string;
   estado: "Activo" | "Pausado" | "Finalizado";
   tarifaMensual: number;
+  planSeleccionado?: "Basic" | "Professional" | "Enterprise";
 }
 
 export interface Cliente {
   id: string;
+  tipoPersona: TipoPersona;
   rut: string;
+  // Campos persona natural
+  nombres?: string;
+  apellidos?: string;
+  // Campos empresa
   razonSocial: string;
   nombreFantasia?: string;
   giro: string;
@@ -61,10 +69,15 @@ export interface Cliente {
 }
 
 export interface CreateClienteInput {
+  tipoPersona: TipoPersona;
   rut: string;
-  razonSocial: string;
+  // Campos persona natural
+  nombres?: string;
+  apellidos?: string;
+  // Campos empresa
+  razonSocial?: string;
   nombreFantasia?: string;
-  giro: string;
+  giro?: string;
   direccion: string;
   region: string;
   comuna: string;
@@ -73,6 +86,51 @@ export interface CreateClienteInput {
   sitioWeb?: string;
   contactoPrincipal: string;
   emailContacto: string;
+}
+
+// Wizard Data Types
+export interface ClienteBasicData {
+  tipoPersona: TipoPersona;
+  rut: string;
+  // Persona Natural
+  nombres?: string;
+  apellidos?: string;
+  // Empresa
+  razonSocial?: string;
+  nombreFantasia?: string;
+  giro?: string;
+  telefono: string;
+  email: string;
+  sitioWeb?: string;
+}
+
+export interface SucursalData {
+  nombre: string;
+  direccion: string;
+  region: string;
+  comuna: string;
+  telefono: string;
+  email: string;
+}
+
+export interface UsuarioData {
+  nombre: string;
+  apellido: string;
+  email: string;
+  telefono: string;
+  perfilId: string;
+}
+
+export interface ServicioSeleccionado {
+  servicioId: string;
+  planSeleccionado: "Basic" | "Professional" | "Enterprise";
+}
+
+export interface ClienteWizardData {
+  cliente: ClienteBasicData | null;
+  sucursal: SucursalData | null;
+  usuario: UsuarioData | null;
+  servicios: ServicioSeleccionado[];
 }
 
 // ============================================

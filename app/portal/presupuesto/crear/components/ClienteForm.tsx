@@ -1,5 +1,5 @@
 import { UseFormReturn } from 'react-hook-form';
-import { User, Building2, MapPin, Phone, Mail, Search, Users, Building } from 'lucide-react';
+import { User, Building2, MapPin, Phone, Mail, Search, Users, Building, FileText, AlertCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import {
   FormField,
@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 import { regionesChile, getCiudadesByRegionId, getComunasByCiudadId, type Ciudad } from '../data/regionesChile';
 import { clientesExistentes, buscarClientes, type ClienteExistente, type Sucursal } from '../data/clientesMock';
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -34,6 +35,7 @@ import { toast } from 'sonner';
 import { AddSucursalModal, type SucursalFormData } from './AddSucursalModal';
 import { ValidationAlert } from './ValidationAlert';
 import { useCallback } from 'react';
+import { formatRut } from '@/lib/utils';
 
 interface ClienteFormProps {
   form: UseFormReturn<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -67,6 +69,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
   const watchCiudad = form.watch('cliente.ciudadId');
   const watchRut = form.watch('cliente.rut');
   const watchRazonSocial = form.watch('cliente.razonSocial');
+  const watchTipoPersona = form.watch('cliente.tipoPersona');
 
   // Reset state when form is cleared
   useEffect(() => {
@@ -87,9 +90,15 @@ export function ClienteForm({ form }: ClienteFormProps) {
     
     const errorMessages: string[] = [];
     const fieldLabels: Record<string, string> = {
+      tipoPersona: 'Tipo de Persona',
       rut: 'RUT',
+      primerNombre: 'Primer Nombre',
+      segundoNombre: 'Segundo Nombre',
+      apellidoPaterno: 'Apellido Paterno',
+      apellidoMaterno: 'Apellido Materno',
       razonSocial: 'Razón Social',
       giro: 'Giro Comercial',
+      estado: 'Estado',
       sucursalId: 'Sucursal',
       regionId: 'Región',
       ciudadId: 'Ciudad',
@@ -99,7 +108,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
       calle: 'Calle',
       numero: 'Número',
       email: 'Correo Electrónico',
-      celular: 'Número Celular',
+      telefono: 'Teléfono',
     };
 
     Object.keys(errors).forEach((key) => {
@@ -148,24 +157,8 @@ export function ClienteForm({ form }: ClienteFormProps) {
   }, [watchCiudad, watchRegion, form, setFormValue]);
 
   // Format RUT as user types
-  const formatRUT = (value: string) => {
-    // Remove all non-alphanumeric characters
-    const clean = value.replace(/[^0-9kK]/g, '');
-    
-    if (clean.length <= 1) return clean;
-    
-    // Split into body and verifier
-    const body = clean.slice(0, -1);
-    const verifier = clean.slice(-1);
-    
-    // Add dots to body
-    const formatted = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    
-    return `${formatted}-${verifier}`;
-  };
-
   const handleRUTChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatRUT(e.target.value);
+    const formatted = formatRut(e.target.value);
     setFormValue('cliente.rut', formatted);
   };
 
@@ -176,13 +169,31 @@ export function ClienteForm({ form }: ClienteFormProps) {
     setSucursalesDisponibles(cliente.sucursales);
     
     // Populate basic client fields - format RUT to ensure validation passes
-    const formattedRut = formatRUT(cliente.rut);
+    const formattedRut = formatRut(cliente.rut);
+    setFormValue('cliente.tipoPersona', cliente.tipoPersona, { shouldValidate: true });
     setFormValue('cliente.rut', formattedRut, { shouldValidate: true });
-    setFormValue('cliente.razonSocial', cliente.razonSocial, { shouldValidate: true });
-    setFormValue('cliente.giro', cliente.giro, { shouldValidate: true });
+    
+    // Fill fields based on tipo persona
+    if (cliente.tipoPersona === 'persona-natural') {
+      setFormValue('cliente.primerNombre', cliente.primerNombre || '', { shouldValidate: true });
+      setFormValue('cliente.segundoNombre', cliente.segundoNombre || '');
+      setFormValue('cliente.apellidoPaterno', cliente.apellidoPaterno || '', { shouldValidate: true });
+      setFormValue('cliente.apellidoMaterno', cliente.apellidoMaterno || '');
+      setFormValue('cliente.razonSocial', '');
+      setFormValue('cliente.giro', '');
+    } else {
+      setFormValue('cliente.razonSocial', cliente.razonSocial || '', { shouldValidate: true });
+      setFormValue('cliente.giro', cliente.giro || '', { shouldValidate: true });
+      setFormValue('cliente.primerNombre', '');
+      setFormValue('cliente.segundoNombre', '');
+      setFormValue('cliente.apellidoPaterno', '');
+      setFormValue('cliente.apellidoMaterno', '');
+    }
+    
+    setFormValue('cliente.estado', cliente.estado, { shouldValidate: true });
     setFormValue('cliente.email', cliente.email, { shouldValidate: true });
-    setFormValue('cliente.celular', cliente.celular, { shouldValidate: true });
-    setFormValue('cliente.telefono', cliente.telefono || '');
+    setFormValue('cliente.telefono', cliente.celular, { shouldValidate: true });
+    setFormValue('cliente.notas', cliente.notas || '');
     
     // Reset address fields - will be filled when sucursal is selected
     setFormValue('cliente.sucursalId', '');
@@ -197,8 +208,12 @@ export function ClienteForm({ form }: ClienteFormProps) {
 
     setShowClienteDialog(false);
     
+    const clienteName = cliente.tipoPersona === 'persona-natural'
+      ? `${cliente.primerNombre || ''} ${cliente.apellidoPaterno || ''}`.trim()
+      : cliente.razonSocial || 'Cliente';
+    
     toast.success('Cliente cargado correctamente', {
-      description: `Ahora seleccione la sucursal de ${cliente.razonSocial}`,
+      description: `Ahora seleccione la sucursal de ${clienteName}`,
     });
 
     // Focus on sucursal select after a short delay
@@ -293,7 +308,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                 <Input
-                  placeholder="Buscar por razón social, RUT o email..."
+                  placeholder="Buscar por nombre, razón social, RUT o email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 h-9"
@@ -309,45 +324,64 @@ export function ClienteForm({ form }: ClienteFormProps) {
                     <p className="text-[11px]">Intente con otros términos de búsqueda</p>
                   </div>
                 ) : (
-                  filteredClientes.map((cliente) => (
-                    <button
-                      key={cliente.id}
-                      type="button"
-                      onClick={() => handleSelectCliente(cliente)}
-                      className="w-full text-left p-2.5 rounded-lg border border-gray-200 hover:border-[#003366] hover:bg-blue-50 transition-all"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 mb-1.5">
-                            <h3 className="font-semibold text-sm text-gray-900">
-                              {cliente.razonSocial}
-                            </h3>
-                            <Badge className="bg-orange-500 text-white hover:bg-orange-500 text-[10px] font-bold px-2.5 py-0.5 border-0 w-fit rounded-full">
-                              {cliente.rut}
-                            </Badge>
-                          </div>
-                          <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-gray-600">
-                            <div className="flex items-center gap-1">
-                              <Building2 className="w-3 h-3" />
-                              {cliente.giro}
+                  filteredClientes.map((cliente) => {
+                    const displayName = cliente.tipoPersona === 'persona-natural'
+                      ? `${cliente.primerNombre || ''} ${cliente.segundoNombre || ''} ${cliente.apellidoPaterno || ''} ${cliente.apellidoMaterno || ''}`.trim()
+                      : cliente.razonSocial || '';
+                    const displayGiro = cliente.tipoPersona === 'persona-natural'
+                      ? 'Persona Natural'
+                      : cliente.giro || '';
+                    
+                    return (
+                      <button
+                        key={cliente.id}
+                        type="button"
+                        onClick={() => handleSelectCliente(cliente)}
+                        className="w-full text-left p-2.5 rounded-lg border border-gray-200 hover:border-[#003366] hover:bg-blue-50 transition-all"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 mb-1.5">
+                              <div className="flex items-center gap-1.5">
+                                {cliente.tipoPersona === 'persona-natural' ? (
+                                  <User className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
+                                ) : (
+                                  <Building2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                                )}
+                                <h3 className="font-semibold text-sm text-gray-900">
+                                  {displayName}
+                                </h3>
+                              </div>
+                              <Badge className="bg-orange-500 text-white hover:bg-orange-500 text-[10px] font-bold px-2.5 py-0.5 border-0 w-fit rounded-full">
+                                {cliente.rut}
+                              </Badge>
+                              <Badge variant={cliente.estado === 'Activo' ? 'default' : 'secondary'} className={`text-[10px] px-2 py-0.5 w-fit ${cliente.estado === 'Activo' ? 'bg-green-500 hover:bg-green-500' : 'bg-gray-400'}`}>
+                                {cliente.estado}
+                              </Badge>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <Building2 className="w-3 h-3" />
-                              {cliente.sucursales.length} sucursal{cliente.sucursales.length !== 1 ? 'es' : ''}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Mail className="w-3 h-3" />
-                              {cliente.email}
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Phone className="w-3 h-3" />
-                              {cliente.celular}
+                            <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-gray-600">
+                              <div className="flex items-center gap-1">
+                                <Building2 className="w-3 h-3" />
+                                {displayGiro}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Building2 className="w-3 h-3" />
+                                {cliente.sucursales.length} sucursal{cliente.sucursales.length !== 1 ? 'es' : ''}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Mail className="w-3 h-3" />
+                                {cliente.email}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Phone className="w-3 h-3" />
+                                {cliente.celular}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </button>
-                  ))
+                      </button>
+                    );
+                  })
                 )}
               </div>
             </DialogContent>
@@ -384,7 +418,11 @@ export function ClienteForm({ form }: ClienteFormProps) {
                   )}
                 </div>
                 <p className="text-[11px] text-gray-600 mb-2">
-                  Cliente: <strong className="block sm:inline mt-0.5 sm:mt-0">{selectedCliente.razonSocial}</strong>
+                  Cliente: <strong className="block sm:inline mt-0.5 sm:mt-0">
+                    {selectedCliente.tipoPersona === 'persona-natural'
+                      ? `${selectedCliente.primerNombre || ''} ${selectedCliente.apellidoPaterno || ''}`.trim()
+                      : selectedCliente.razonSocial || 'Cliente'}
+                  </strong>
                   <span className="hidden sm:inline"> - </span>
                   <span className="block sm:inline">Elija la sucursal para este presupuesto</span>
                 </p>
@@ -446,7 +484,11 @@ export function ClienteForm({ form }: ClienteFormProps) {
                   <AddSucursalModal 
                     form={form}
                     clienteRut={selectedCliente.rut}
-                    clienteRazonSocial={selectedCliente.razonSocial}
+                    clienteRazonSocial={
+                      selectedCliente.tipoPersona === 'persona-natural'
+                        ? `${selectedCliente.primerNombre || ''} ${selectedCliente.apellidoPaterno || ''}`.trim()
+                        : selectedCliente.razonSocial || 'Cliente'
+                    }
                     onSucursalAdded={(sucursal: SucursalFormData) => {
                       // Add to available sucursales list
                       setSucursalesDisponibles(prev => [...prev, sucursal]);
@@ -463,11 +505,60 @@ export function ClienteForm({ form }: ClienteFormProps) {
 
         <Separator className="my-4" />
 
+        {/* Tipo de Persona */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+              <AlertCircle className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs text-blue-800 mb-3 font-medium">
+                Seleccione el tipo de contratante para mostrar los campos correspondientes
+              </p>
+              <FormField
+                control={form.control}
+                name="cliente.tipoPersona"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 font-semibold text-sm mb-1">
+                      Tipo de Contratante <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="ring-2 ring-blue-500 focus:ring-blue-600 rounded-lg h-10 text-sm font-medium bg-white">
+                          <SelectValue placeholder="Seleccione tipo de contratante..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="empresa" className="cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <Building2 className="w-4 h-4 text-blue-600" />
+                            <span>Empresa</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="persona-natural" className="cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-green-600" />
+                            <span>Persona Natural</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-red-500 text-xs" />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+        </div>
+
+        <Separator className="my-4" />
+
         {/* Información Básica */}
         <div className="bg-white p-4 rounded-lg">
           <h3 className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 mb-3">
             <Building2 className="w-4 h-4 text-[#003366]" />
-            Información de la Empresa
+            {watchTipoPersona === 'persona-natural' ? 'Información Personal' : 'Información de la Empresa'}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             <FormField
@@ -495,50 +586,191 @@ export function ClienteForm({ form }: ClienteFormProps) {
               )}
             />
 
+            {/* Conditional Fields - Persona Natural */}
+            {watchTipoPersona === 'persona-natural' && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="cliente.primerNombre"
+                  render={({ field, fieldState }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-700 text-sm mb-1">
+                        Primer Nombre <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Juan"
+                          {...field}
+                          className={`ring-1 rounded-lg transition-all h-9 ${
+                            fieldState.error 
+                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
+                              : 'ring-gray-300 focus:ring-blue-500'
+                          }`}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-red-600 text-xs font-medium" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="cliente.segundoNombre"
+                  render={({ field, fieldState }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-700 text-sm mb-1">
+                        Segundo Nombre (Opcional)
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Carlos"
+                          {...field}
+                          className={`ring-1 rounded-lg transition-all h-9 ${
+                            fieldState.error 
+                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
+                              : 'ring-gray-300 focus:ring-blue-500'
+                          }`}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-red-600 text-xs font-medium" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="cliente.apellidoPaterno"
+                  render={({ field, fieldState }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-700 text-sm mb-1">
+                        Apellido Paterno <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Pérez"
+                          {...field}
+                          className={`ring-1 rounded-lg transition-all h-9 ${
+                            fieldState.error 
+                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
+                              : 'ring-gray-300 focus:ring-blue-500'
+                          }`}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-red-600 text-xs font-medium" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="cliente.apellidoMaterno"
+                  render={({ field, fieldState }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-700 text-sm mb-1">
+                        Apellido Materno (Opcional)
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="González"
+                          {...field}
+                          className={`ring-1 rounded-lg transition-all h-9 ${
+                            fieldState.error 
+                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
+                              : 'ring-gray-300 focus:ring-blue-500'
+                          }`}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-red-600 text-xs font-medium" />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
+
+            {/* Conditional Fields - Empresa */}
+            {watchTipoPersona === 'empresa' && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="cliente.razonSocial"
+                  render={({ field, fieldState }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-700 text-sm mb-1">
+                        Razón Social <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Empresa S.A."
+                          {...field}
+                          className={`ring-1 rounded-lg transition-all h-9 ${
+                            fieldState.error 
+                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
+                              : 'ring-gray-300 focus:ring-blue-500'
+                          }`}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-red-600 text-xs font-medium" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="cliente.giro"
+                  render={({ field, fieldState }) => (
+                    <FormItem className="md:col-span-2 xl:col-span-1">
+                      <FormLabel className="text-gray-700 text-sm mb-1">
+                        Giro <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Construcción y servicios generales"
+                          {...field}
+                          className={`ring-1 rounded-lg transition-all h-9 ${
+                            fieldState.error 
+                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
+                              : 'ring-gray-300 focus:ring-blue-500'
+                          }`}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-red-600 text-xs font-medium" />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
+
+            {/* Estado Field */}
             <FormField
               control={form.control}
-              name="cliente.razonSocial"
-              render={({ field, fieldState }) => (
+              name="cliente.estado"
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-gray-700 text-sm mb-1">
-                    Razón Social <span className="text-red-500">*</span>
+                    Estado <span className="text-red-500">*</span>
                   </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Empresa S.A."
-                      {...field}
-                      className={`ring-1 rounded-lg transition-all h-9 ${
-                        fieldState.error 
-                          ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
-                          : 'ring-gray-300 focus:ring-blue-500'
-                      }`}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-600 text-xs font-medium" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="cliente.giro"
-              render={({ field, fieldState }) => (
-                <FormItem className="md:col-span-2 xl:col-span-3">
-                  <FormLabel className="text-gray-700 text-sm mb-1">
-                    Giro <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Construcción y servicios generales"
-                      {...field}
-                      className={`ring-1 rounded-lg transition-all h-9 ${
-                        fieldState.error 
-                          ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
-                          : 'ring-gray-300 focus:ring-blue-500'
-                      }`}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-600 text-xs font-medium" />
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9 text-sm">
+                        <SelectValue placeholder="Seleccione estado" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Activo" className="cursor-pointer">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                          <span>Activo</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="Inactivo" className="cursor-pointer">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                          <span>Inactivo</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage className="text-red-500 text-xs" />
                 </FormItem>
               )}
             />
@@ -778,7 +1010,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
             <Phone className="w-4 h-4 text-[#003366]" />
             Información de Contacto
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <FormField
               control={form.control}
               name="cliente.email"
@@ -803,12 +1035,12 @@ export function ClienteForm({ form }: ClienteFormProps) {
 
             <FormField
               control={form.control}
-              name="cliente.celular"
+              name="cliente.telefono"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-gray-700 text-sm mb-1 flex items-center gap-1.5">
                     <Phone className="w-3.5 h-3.5" />
-                    Número Celular <span className="text-red-500">*</span>
+                    Teléfono <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -822,28 +1054,34 @@ export function ClienteForm({ form }: ClienteFormProps) {
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="cliente.telefono"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 text-sm mb-1">
-                    Número Teléfono (Opcional)
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="tel"
-                      placeholder="+56 2 1234 5678"
-                      {...field}
-                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
           </div>
+        </div>
+
+        {/* Notas */}
+        <div className="bg-white p-4 rounded-lg">
+          <h3 className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 mb-3">
+            <FileText className="w-4 h-4 text-[#003366]" />
+            Notas Adicionales
+          </h3>
+          <FormField
+            control={form.control}
+            name="cliente.notas"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-gray-700 text-sm mb-1">
+                  Notas (Opcional)
+                </FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Información adicional sobre el cliente..."
+                    {...field}
+                    className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg min-h-[80px] resize-none"
+                  />
+                </FormControl>
+                <FormMessage className="text-red-500 text-xs" />
+              </FormItem>
+            )}
+          />
         </div>
       </div>
       </Card>

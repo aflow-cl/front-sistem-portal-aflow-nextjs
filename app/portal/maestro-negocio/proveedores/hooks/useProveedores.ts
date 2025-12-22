@@ -9,11 +9,22 @@ import { Proveedor, ProveedorFilters, getDisplayName } from "../../types/maestro
 export type SortField = "nombre" | "rut" | "email" | "estado" | "fechaCreacion" | "productos";
 export type SortDirection = "asc" | "desc";
 
+export interface ExtendedProveedorFilters extends ProveedorFilters {
+  email?: string;
+  giro?: string;
+  productosMin?: number;
+  productosMax?: number;
+}
+
 export function useProveedores(proveedores: Proveedor[]) {
-  const [filters, setFilters] = useState<ProveedorFilters>({
+  const [filters, setFilters] = useState<ExtendedProveedorFilters>({
     busqueda: "",
     tipoPersona: "all",
     estado: "all",
+    email: "",
+    giro: "",
+    productosMin: undefined,
+    productosMax: undefined,
   });
 
   const [sortField, setSortField] = useState<SortField>("fechaCreacion");
@@ -24,21 +35,47 @@ export function useProveedores(proveedores: Proveedor[]) {
 
     // Aplicar filtros
     const searchLower = filters.busqueda.toLowerCase();
+    const emailLower = filters.email?.toLowerCase() || "";
+    const giroLower = filters.giro?.toLowerCase() || "";
     
     result = result.filter((proveedor) => {
+      // Búsqueda general
       const matchesBusqueda =
         !filters.busqueda ||
         proveedor.rut.toLowerCase().includes(searchLower) ||
         proveedor.email.toLowerCase().includes(searchLower) ||
         getDisplayName(proveedor).toLowerCase().includes(searchLower);
 
+      // Tipo de persona
       const matchesTipo =
         filters.tipoPersona === "all" || proveedor.tipoPersona === filters.tipoPersona;
 
+      // Estado
       const matchesEstado =
         filters.estado === "all" || proveedor.estado === filters.estado;
 
-      return matchesBusqueda && matchesTipo && matchesEstado;
+      // Email específico
+      const matchesEmail =
+        !filters.email ||
+        proveedor.email.toLowerCase().includes(emailLower);
+
+      // Giro (solo para empresas)
+      const matchesGiro =
+        !filters.giro ||
+        (proveedor.tipoPersona === "empresa" && 
+         proveedor.giro?.toLowerCase().includes(giroLower));
+
+      // Rango de productos
+      const matchesProductosMin =
+        filters.productosMin === undefined ||
+        proveedor.productos.length >= filters.productosMin;
+
+      const matchesProductosMax =
+        filters.productosMax === undefined ||
+        proveedor.productos.length <= filters.productosMax;
+
+      return matchesBusqueda && matchesTipo && matchesEstado && 
+             matchesEmail && matchesGiro && matchesProductosMin && matchesProductosMax;
     });
 
     // Aplicar ordenamiento
@@ -88,13 +125,22 @@ export function useProveedores(proveedores: Proveedor[]) {
       busqueda: "",
       tipoPersona: "all",
       estado: "all",
+      email: "",
+      giro: "",
+      productosMin: undefined,
+      productosMax: undefined,
     });
   };
 
-  const hasActiveFilters = 
+  const hasActiveFilters = Boolean(
     filters.busqueda || 
     (filters.tipoPersona !== "all") || 
-    (filters.estado !== "all");
+    (filters.estado !== "all") ||
+    filters.email ||
+    filters.giro ||
+    filters.productosMin !== undefined ||
+    filters.productosMax !== undefined
+  );
 
   // Estadísticas
   const stats = useMemo(() => {
@@ -126,3 +172,4 @@ export function useProveedores(proveedores: Proveedor[]) {
     stats,
   };
 }
+

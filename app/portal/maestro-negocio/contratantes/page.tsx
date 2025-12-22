@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -176,7 +177,7 @@ export default function ContratantesPage() {
         </div>
         <Button
           onClick={handleCreateNew}
-          className="bg-[#FF7A00] hover:bg-[#FF7A00]/90 text-white"
+          className="bg-[#244F82] hover:bg-[#1a3a5f] text-white"
         >
           <PlusCircle className="w-4 h-4 mr-2" />
           Nuevo Contratante
@@ -193,7 +194,10 @@ export default function ContratantesPage() {
       {/* Filtros */}
       <Filters
         filters={filters}
+        sortField={sortField}
+        sortDirection={sortDirection}
         onFilterChange={setFilters}
+        onSortChange={handleSort}
         onClearFilters={clearFilters}
         hasActiveFilters={!!hasActiveFilters}
       />

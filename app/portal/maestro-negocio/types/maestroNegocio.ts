@@ -47,6 +47,12 @@ export interface ContratanteBase {
   fechaCreacion: string;
   fechaActualizacion: string;
   direcciones: Direccion[];
+  // Ubicación principal
+  regionId?: string;
+  regionNombre?: string;
+  ciudadId?: string;
+  ciudadNombre?: string;
+  comuna?: string;
   notas?: string;
 }
 
@@ -84,6 +90,10 @@ export interface CreateContratanteInput {
   email: string;
   telefono: string;
   estado: EstadoRegistro;
+  // Ubicación principal
+  regionId?: string;
+  ciudadId?: string;
+  comuna?: string;
   notas?: string;
 }
 
@@ -294,6 +304,7 @@ export interface ContratanteFilters {
   busqueda: string; // RUT, nombre, razón social, email
   tipoPersona: TipoPersona | "all";
   estado: EstadoRegistro | "all";
+  regionId?: string | "all";
 }
 
 export interface ProveedorFilters {

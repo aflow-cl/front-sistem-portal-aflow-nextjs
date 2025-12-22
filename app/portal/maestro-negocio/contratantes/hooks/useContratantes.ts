@@ -14,6 +14,7 @@ export function useContratantes(contratantes: Contratante[]) {
     busqueda: "",
     tipoPersona: "all",
     estado: "all",
+    regionId: "all",
   });
 
   const [sortField, setSortField] = useState<SortField>("fechaCreacion");
@@ -42,7 +43,13 @@ export function useContratantes(contratantes: Contratante[]) {
       const matchesEstado =
         filters.estado === "all" || contratante.estado === filters.estado;
 
-      return matchesBusqueda && matchesTipo && matchesEstado;
+      // Filtro de región
+      const matchesRegion =
+        !filters.regionId ||
+        filters.regionId === "all" ||
+        ("regionId" in contratante && (contratante as unknown as Record<string, unknown>).regionId === filters.regionId);
+
+      return matchesBusqueda && matchesTipo && matchesEstado && matchesRegion;
     });
 
     // Aplicar ordenamiento
@@ -89,13 +96,15 @@ export function useContratantes(contratantes: Contratante[]) {
       busqueda: "",
       tipoPersona: "all",
       estado: "all",
+      regionId: "all",
     });
   };
 
   const hasActiveFilters = 
     filters.busqueda || 
     (filters.tipoPersona !== "all") || 
-    (filters.estado !== "all");
+    (filters.estado !== "all") ||
+    (filters.regionId && filters.regionId !== "all");
 
   // Estadísticas
   const stats = useMemo(() => {
