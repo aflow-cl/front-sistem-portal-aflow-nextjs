@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Package,
   Plus,
@@ -13,6 +16,7 @@ import {
   CheckCircle,
   XCircle,
   Zap,
+  Trash2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,8 +39,13 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { fetchServicios, toggleServicioStatus } from "../api/ajustesService";
-import type { Servicio } from "../types/ajustes";
+import { 
+  fetchServicios, 
+  toggleServicioStatus,
+  createServicio,
+  updateServicio 
+} from "../api/ajustesService";
+import type { Servicio, CreateServicioInput } from "../types/ajustes";
 
 const CATEGORIAS = ["Software", "Consultoría", "Soporte", "Infraestructura"];
 
@@ -46,6 +55,33 @@ const CATEGORIA_COLORS: Record<string, string> = {
   Soporte: "bg-green-100 text-green-800 border-green-300",
   Infraestructura: "bg-orange-100 text-orange-800 border-orange-300",
 };
+
+// Esquema de validación con Zod
+const servicioFormSchema = z.object({
+  nombre: z.string().min(1, "El nombre es requerido"),
+  codigo: z.string().min(1, "El código es requerido"),
+  categoria: z.enum(["Software", "Consultoría", "Soporte", "Infraestructura"], {
+    required_error: "Selecciona una categoría",
+  }),
+  descripcion: z.string().min(1, "La descripción es requerida"),
+  tarifas: z
+    .array(
+      z.object({
+        plan: z.string().min(1, "El título del plan es requerido"),
+        precioMensual: z.coerce.number().min(0, "El precio debe ser mayor o igual a 0"),
+        precioAnual: z.coerce.number().min(0, "El precio debe ser mayor o igual a 0"),
+        descripcion: z.string().min(1, "La descripción del plan es requerida"),
+        caracteristicas: z
+          .array(z.string().min(1, "La descripción no puede estar vacía"))
+          .min(1, "Debes agregar al menos 1 descripción")
+          .max(15, "Puedes agregar máximo 15 descripciones"),
+      })
+    )
+    .min(1, "Debes agregar al menos 1 plan")
+    .max(5, "Puedes agregar máximo 5 planes"),
+});
+
+type ServicioFormData = z.infer<typeof servicioFormSchema>;
 
 export default function ServiciosPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -60,9 +96,67 @@ export default function ServiciosPage() {
 
   const queryClient = useQueryClient();
 
+  // React Hook Form
+  const form = useForm<ServicioFormData>({
+    resolver: zodResolver(servicioFormSchema),
+    defaultValues: {
+      nombre: "",
+      codigo: "",
+      categoria: "Software",
+      descripcion: "",
+      tarifas: [
+        {
+          plan: "",
+          precioMensual: 0,
+          precioAnual: 0,
+          descripcion: "",
+          caracteristicas: [""],
+        },
+      ],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "tarifas",
+  });
+
   const { data: servicios, isLoading } = useQuery({
     queryKey: ["servicios"],
     queryFn: fetchServicios,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: createServicio,
+    onSuccess: (newServicio) => {
+      queryClient.setQueryData(["servicios"], (old: Servicio[] = []) => [
+        ...old,
+        newServicio,
+      ]);
+      toast.success("Servicio creado exitosamente");
+      setDialogOpen(false);
+      form.reset();
+    },
+    onError: () => {
+      toast.error("Error al crear el servicio");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateServicioInput> }) =>
+      updateServicio(id, data),
+    onSuccess: (updatedServicio) => {
+      queryClient.setQueryData(["servicios"], (old: Servicio[] = []) =>
+        old.map((s) => (s.id === updatedServicio.id ? updatedServicio : s))
+      );
+      toast.success("Servicio actualizado exitosamente");
+      setDialogOpen(false);
+      setEditingServicio(null);
+      form.reset();
+    },
+    onError: () => {
+      toast.error("Error al actualizar el servicio");
+    },
   });
 
   const toggleStatusMutation = useMutation({
@@ -79,6 +173,46 @@ export default function ServiciosPage() {
       toast.error("Error al cambiar estado del servicio");
     },
   });
+
+  // Cargar datos al editar
+  useEffect(() => {
+    if (editingServicio) {
+      form.reset({
+        nombre: editingServicio.nombre,
+        codigo: editingServicio.codigo,
+        categoria: editingServicio.categoria,
+        descripcion: editingServicio.descripcion,
+        tarifas: editingServicio.tarifas.length > 0 
+          ? editingServicio.tarifas.map(t => ({
+              ...t,
+              caracteristicas: t.caracteristicas.length > 0 ? t.caracteristicas : [""]
+            }))
+          : [{
+              plan: "",
+              precioMensual: 0,
+              precioAnual: 0,
+              descripcion: "",
+              caracteristicas: [""],
+            }],
+      });
+    } else {
+      form.reset({
+        nombre: "",
+        codigo: "",
+        categoria: "Software",
+        descripcion: "",
+        tarifas: [
+          {
+            plan: "",
+            precioMensual: 0,
+            precioAnual: 0,
+            descripcion: "",
+            caracteristicas: [""],
+          },
+        ],
+      });
+    }
+  }, [editingServicio, form]);
 
   const filteredServicios = servicios?.filter((servicio) => {
     const matchesSearch =
@@ -102,9 +236,44 @@ export default function ServiciosPage() {
     setDialogOpen(true);
   };
 
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setEditingServicio(null);
+    form.reset();
+  };
+
   const handleViewDetails = (servicio: Servicio) => {
     setSelectedServicio(servicio);
     setDetailDialogOpen(true);
+  };
+
+  const onSubmit = (data: ServicioFormData) => {
+    if (editingServicio) {
+      updateMutation.mutate({
+        id: editingServicio.id,
+        data: data as CreateServicioInput,
+      });
+    } else {
+      createMutation.mutate(data as CreateServicioInput);
+    }
+  };
+
+  const handleAddPlan = () => {
+    if (fields.length < 5) {
+      append({
+        plan: "",
+        precioMensual: 0,
+        precioAnual: 0,
+        descripcion: "",
+        caracteristicas: [""],
+      });
+    }
+  };
+
+  const handleRemovePlan = (index: number) => {
+    if (fields.length > 1) {
+      remove(index);
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -318,94 +487,327 @@ export default function ServiciosPage() {
         </CardContent>
       </Card>
 
-      {/* Dialog crear/editar servicio - Simplificado para mantener el código conciso */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      {/* Dialog crear/editar servicio */}
+      <Dialog open={dialogOpen} onOpenChange={(open) => !open && handleCloseDialog()}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingServicio ? "Editar Servicio" : "Nuevo Servicio"}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="nombre">Nombre del Servicio *</Label>
-                <Input
-                  id="nombre"
-                  defaultValue={editingServicio?.nombre}
-                  placeholder="Portal de Presupuestos"
-                  required
-                />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Información básica */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Información Básica
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="nombre">Nombre del Servicio *</Label>
+                  <Input
+                    id="nombre"
+                    {...form.register("nombre")}
+                    placeholder="Portal de Presupuestos"
+                  />
+                  {form.formState.errors.nombre && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {form.formState.errors.nombre.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="codigo">Código *</Label>
+                  <Input
+                    id="codigo"
+                    {...form.register("codigo")}
+                    placeholder="AFLOW-PRE"
+                  />
+                  {form.formState.errors.codigo && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {form.formState.errors.codigo.message}
+                    </p>
+                  )}
+                </div>
               </div>
               <div>
-                <Label htmlFor="codigo">Código *</Label>
-                <Input
-                  id="codigo"
-                  defaultValue={editingServicio?.codigo}
-                  placeholder="AFLOW-PRE"
-                  required
+                <Label htmlFor="categoria">Categoría *</Label>
+                <Select
+                  value={form.watch("categoria")}
+                  onValueChange={(value) =>
+                    form.setValue("categoria", value as "Software" | "Consultoría" | "Soporte" | "Infraestructura")
+                  }
+                >
+                  <SelectTrigger id="categoria">
+                    <SelectValue placeholder="Seleccionar categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIAS.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.categoria && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {form.formState.errors.categoria.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="descripcion">Descripción *</Label>
+                <Textarea
+                  id="descripcion"
+                  {...form.register("descripcion")}
+                  placeholder="Describe el servicio..."
+                  rows={3}
                 />
+                {form.formState.errors.descripcion && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {form.formState.errors.descripcion.message}
+                  </p>
+                )}
               </div>
             </div>
-            <div>
-              <Label htmlFor="categoria">Categoría *</Label>
-              <Select defaultValue={editingServicio?.categoria}>
-                <SelectTrigger id="categoria">
-                  <SelectValue placeholder="Seleccionar categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIAS.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="descripcion">Descripción *</Label>
-              <Textarea
-                id="descripcion"
-                defaultValue={editingServicio?.descripcion}
-                placeholder="Describe el servicio..."
-                rows={3}
-                required
-              />
+
+            {/* Planes y Tarifas */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Planes y Tarifas
+                </h3>
+                <Badge variant="outline" className="text-gray-600">
+                  {fields.length} de 5 planes
+                </Badge>
+              </div>
+
+              {form.formState.errors.tarifas?.root && (
+                <p className="text-sm text-red-600">
+                  {form.formState.errors.tarifas.root.message}
+                </p>
+              )}
+
+              <div className="space-y-4">
+                {fields.map((field, planIndex) => {
+                  const caracteristicasFieldArray = form.watch(`tarifas.${planIndex}.caracteristicas`) || [];
+                  
+                  return (
+                    <Card key={field.id} className="border-2">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-sm font-semibold text-gray-700">
+                            Plan {planIndex + 1}
+                          </h4>
+                          {fields.length > 1 && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleRemovePlan(planIndex)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor={`tarifas.${planIndex}.plan`}>
+                              Título del Plan *
+                            </Label>
+                            <Input
+                              {...form.register(`tarifas.${planIndex}.plan`)}
+                              placeholder="Ej: Básico, Profesional, Enterprise"
+                            />
+                            {form.formState.errors.tarifas?.[planIndex]?.plan && (
+                              <p className="text-sm text-red-600 mt-1">
+                                {form.formState.errors.tarifas[planIndex]?.plan?.message}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label htmlFor={`tarifas.${planIndex}.precioMensual`}>
+                                Precio Mensual (CLP) *
+                              </Label>
+                              <Input
+                                type="number"
+                                {...form.register(`tarifas.${planIndex}.precioMensual`)}
+                                placeholder="0"
+                              />
+                              {form.formState.errors.tarifas?.[planIndex]
+                                ?.precioMensual && (
+                                <p className="text-sm text-red-600 mt-1">
+                                  {
+                                    form.formState.errors.tarifas[planIndex]
+                                      ?.precioMensual?.message
+                                  }
+                                </p>
+                              )}
+                            </div>
+                            <div>
+                              <Label htmlFor={`tarifas.${planIndex}.precioAnual`}>
+                                Precio Anual (CLP) *
+                              </Label>
+                              <Input
+                                type="number"
+                                {...form.register(`tarifas.${planIndex}.precioAnual`)}
+                                placeholder="0"
+                              />
+                              {form.formState.errors.tarifas?.[planIndex]
+                                ?.precioAnual && (
+                                <p className="text-sm text-red-600 mt-1">
+                                  {
+                                    form.formState.errors.tarifas[planIndex]
+                                      ?.precioAnual?.message
+                                  }
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div>
+                            <Label htmlFor={`tarifas.${planIndex}.descripcion`}>
+                              Descripción Corta del Plan *
+                            </Label>
+                            <Textarea
+                              {...form.register(`tarifas.${planIndex}.descripcion`)}
+                              placeholder="Ej: Ideal para pequeñas empresas"
+                              rows={2}
+                            />
+                            {form.formState.errors.tarifas?.[planIndex]
+                              ?.descripcion && (
+                              <p className="text-sm text-red-600 mt-1">
+                                {
+                                  form.formState.errors.tarifas[planIndex]
+                                    ?.descripcion?.message
+                                }
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Descripciones del Plan (Características) */}
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <Label>Descripciones del Plan *</Label>
+                              <Badge variant="outline" className="text-xs">
+                                {caracteristicasFieldArray.length} de 15
+                              </Badge>
+                            </div>
+                            
+                            {form.formState.errors.tarifas?.[planIndex]?.caracteristicas?.root && (
+                              <p className="text-sm text-red-600">
+                                {form.formState.errors.tarifas[planIndex]?.caracteristicas?.root?.message}
+                              </p>
+                            )}
+
+                            <div className="space-y-2 bg-gray-50 p-3 rounded-lg">
+                              {caracteristicasFieldArray.map((_, descIndex) => (
+                                <div key={descIndex} className="flex gap-2 items-start">
+                                  <div className="flex-1">
+                                    <Input
+                                      {...form.register(`tarifas.${planIndex}.caracteristicas.${descIndex}`)}
+                                      placeholder={`Descripción ${descIndex + 1}`}
+                                      className="bg-white"
+                                    />
+                                    {form.formState.errors.tarifas?.[planIndex]?.caracteristicas?.[descIndex] && (
+                                      <p className="text-xs text-red-600 mt-1">
+                                        {form.formState.errors.tarifas[planIndex]?.caracteristicas?.[descIndex]?.message}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {caracteristicasFieldArray.length > 1 && (
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => {
+                                        const currentCaract = form.getValues(`tarifas.${planIndex}.caracteristicas`);
+                                        form.setValue(
+                                          `tarifas.${planIndex}.caracteristicas`,
+                                          currentCaract.filter((_, i) => i !== descIndex)
+                                        );
+                                      }}
+                                      className="text-red-600 hover:text-red-700 hover:bg-red-50 mt-0"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  )}
+                                </div>
+                              ))}
+
+                              {caracteristicasFieldArray.length < 15 && (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    const currentCaract = form.getValues(`tarifas.${planIndex}.caracteristicas`);
+                                    form.setValue(
+                                      `tarifas.${planIndex}.caracteristicas`,
+                                      [...currentCaract, ""]
+                                    );
+                                  }}
+                                  className="w-full border-dashed mt-2"
+                                >
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  Agregar Descripción ({caracteristicasFieldArray.length}/15)
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {fields.length < 5 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleAddPlan}
+                  className="w-full border-dashed"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Agregar Plan ({fields.length}/5)
+                </Button>
+              )}
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-900">
-                <strong>Nota:</strong> La configuración de tarifas y planes se
-                realiza después de crear el servicio básico. Este formulario
-                crea la estructura inicial.
+                <strong>Nota:</strong> Puedes agregar entre 1 y 5 planes. Cada plan puede
+                tener de 1 a 15 descripciones. Asegúrate de completar todos los campos
+                requeridos antes de guardar.
               </p>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="flex justify-end gap-3 pt-4 border-t">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  setDialogOpen(false);
-                  setEditingServicio(null);
-                }}
+                onClick={handleCloseDialog}
+                disabled={createMutation.isPending || updateMutation.isPending}
               >
                 Cancelar
               </Button>
               <Button
-                onClick={() => {
-                  // Simplificado - en producción implementar lógica completa
-                  toast.info(
-                    "Funcionalidad completa de formulario pendiente de implementación detallada"
-                  );
-                  setDialogOpen(false);
-                }}
+                type="submit"
                 className="bg-[#244F82] hover:bg-[#0c3b64]"
+                disabled={createMutation.isPending || updateMutation.isPending}
               >
-                {editingServicio ? "Actualizar" : "Crear"} Servicio
+                {createMutation.isPending || updateMutation.isPending
+                  ? "Guardando..."
+                  : editingServicio
+                  ? "Actualizar Servicio"
+                  : "Crear Servicio"}
               </Button>
             </div>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
 

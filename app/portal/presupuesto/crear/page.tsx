@@ -20,9 +20,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { VisualizationType } from '@/types/presupuesto';
 
 // Components
-import { ProgressBar } from './components/ProgressBar';
+import { BudgetWizardStepper } from '../components/shared/BudgetWizardStepper';
+import { BudgetPreviewPanel } from '../components/BudgetPreviewPanel';
 import { WizardNavigation } from './components/WizardNavigation';
 import { ClienteForm } from './components/ClienteForm';
 import { ProyectoForm } from './components/ProyectoForm';
@@ -31,6 +33,7 @@ import { ResumenFinal } from './components/ResumenFinal';
 import { createBudget } from '../api/budgetService';
 import { useAuth } from '@/hooks/useAuth';
 import { validateRut } from '@/lib/utils';
+import { useBudgetFormState } from '../hooks/useBudgetFormState';
 
 // ============================================
 // VALIDATION SCHEMA
@@ -42,8 +45,8 @@ const itemSchema = z.object({
   producto: z.string().optional(),
   descripcion: z.string().optional(),
   unidad: z.string().default('UN'),
-  cantidad: z.coerce.number().min(0).default(1),
-  valor: z.coerce.number().min(0).default(0),
+  cantidad: z.coerce.number().int('La cantidad debe ser un número entero').min(0).default(1),
+  valor: z.coerce.number().int('El valor debe ser un número entero').min(0).default(0),
   utilidad: z.coerce.number().min(0).max(100).default(0),
   iva: z.coerce.number().min(0).max(100).default(19),
   bruto: z.number().default(0),
@@ -143,9 +146,8 @@ const budgetWizardSchema = z.object({
     descripcion: z.string()
       .min(1, 'Ingrese una descripción del proyecto')
       .min(10, 'La descripción debe tener al menos 10 caracteres'),
-    fechaInicio: z.string().min(1, 'Seleccione la fecha de inicio del proyecto'),
+    fechaInicio: z.string().min(1, 'Seleccione la fecha de inicio del proyecto').default(() => new Date().toISOString().split('T')[0]),
     fechaTermino: z.string().min(1, 'Seleccione la fecha de término del proyecto'),
-    tipoTrabajo: z.string().min(1, 'Seleccione el tipo de trabajo (Construcción, Mantención, etc.)'),
     responsable: z.string()
       .min(1, 'Ingrese el nombre del responsable del proyecto')
       .min(3, 'El nombre del responsable debe tener al menos 3 caracteres'),
@@ -210,6 +212,10 @@ export default function CrearPresupuestoPage() {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showFinalizeDialog, setShowFinalizeDialog] = useState(false);
   const [showClearDialog, setShowClearDialog] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [visualizationType, setVisualizationType] = useState<VisualizationType>('Completa');
+  const [showRestoreDraftDialog, setShowRestoreDraftDialog] = useState(false);
+  const [savedDraftData, setSavedDraftData] = useState<Record<string, unknown> | null>(null);
 
   // Initialize form with react-hook-form
   const form = useForm<BudgetWizardFormData>({
@@ -242,15 +248,17 @@ export default function CrearPresupuestoPage() {
       proyecto: {
         nombre: '',
         descripcion: '',
-        fechaInicio: '',
+        fechaInicio: new Date().toISOString().split('T')[0], // Default to today
         fechaTermino: '',
-        tipoTrabajo: '',
         responsable: '',
         observaciones: '',
       },
       items: [],
     },
   });
+
+  // Hook to get reactive form state for preview
+  const { formValues } = useBudgetFormState(form);
 
   // Generate folio on mount
   useEffect(() => {
@@ -267,19 +275,47 @@ export default function CrearPresupuestoPage() {
       if (savedDraft) {
         try {
           const parsedDraft = JSON.parse(savedDraft);
-          form.reset(parsedDraft.formData);
-          setCurrentStep(parsedDraft.currentStep || 0);
-          if (parsedDraft.folio) {
-            setFolio(parsedDraft.folio);
-          }
-          toast.success('Borrador restaurado correctamente');
+          // Store draft data and show dialog
+          setSavedDraftData(parsedDraft);
+          setShowRestoreDraftDialog(true);
         } catch (error) {
           console.error('Error loading draft:', error);
           toast.error('Error al cargar el borrador');
+          // Ensure we start at step 0 on error
+          setCurrentStep(0);
         }
+      } else {
+        // No draft exists, ensure we start at step 0
+        setCurrentStep(0);
       }
     }
-  }, [user, form]);
+  }, [user]);
+
+  // Handle restore draft confirmation
+  const handleRestoreDraft = () => {
+    if (savedDraftData && user?.email) {
+      form.reset(savedDraftData.formData as BudgetWizardFormData);
+      setCurrentStep((savedDraftData.currentStep as number) || 0);
+      if (savedDraftData.folio) {
+        setFolio(savedDraftData.folio as string);
+      }
+      toast.success('Borrador restaurado correctamente');
+      setShowRestoreDraftDialog(false);
+      setSavedDraftData(null);
+    }
+  };
+
+  // Handle discard draft
+  const handleDiscardDraft = () => {
+    if (user?.email) {
+      const storageKey = `aflow-presupuesto-draft-${user.email}`;
+      localStorage.removeItem(storageKey);
+      setCurrentStep(0);
+      toast.info('Borrador descartado. Iniciando nuevo presupuesto');
+      setShowRestoreDraftDialog(false);
+      setSavedDraftData(null);
+    }
+  };
 
   // Save draft to localStorage on form changes
   useEffect(() => {
@@ -394,7 +430,6 @@ export default function CrearPresupuestoPage() {
           'proyecto.descripcion',
           'proyecto.fechaInicio',
           'proyecto.fechaTermino',
-          'proyecto.tipoTrabajo',
           'proyecto.responsable',
         ];
         fieldLabels = {
@@ -402,7 +437,6 @@ export default function CrearPresupuestoPage() {
           'proyecto.descripcion': 'Descripción del Proyecto',
           'proyecto.fechaInicio': 'Fecha de Inicio',
           'proyecto.fechaTermino': 'Fecha de Término',
-          'proyecto.tipoTrabajo': 'Tipo de Trabajo',
           'proyecto.responsable': 'Responsable',
         };
         break;
@@ -603,9 +637,8 @@ export default function CrearPresupuestoPage() {
       proyecto: {
         nombre: '',
         descripcion: '',
-        fechaInicio: '',
+        fechaInicio: new Date().toISOString().split('T')[0],
         fechaTermino: '',
-        tipoTrabajo: '',
         responsable: '',
         observaciones: '',
       },
@@ -728,10 +761,9 @@ export default function CrearPresupuestoPage() {
           </p>
         </div>
 
-        {/* Progress Bar */}
-        <ProgressBar
+        {/* Wizard Stepper (AFLOW Design) */}
+        <BudgetWizardStepper
           currentStep={currentStep}
-          totalSteps={WIZARD_STEPS.length}
           steps={WIZARD_STEPS}
         />
 
@@ -751,11 +783,21 @@ export default function CrearPresupuestoPage() {
               onNext={handleNext}
               onCancel={handleCancel}
               onClearForm={handleClearForm}
+              onPreview={() => setShowPreview(true)}
               isNextDisabled={isNextDisabled()}
               isSubmitting={createBudgetMutation.isPending}
             />
           </form>
         </Form>
+
+        {/* Preview Panel */}
+        <BudgetPreviewPanel
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          formData={{ ...formValues, folio }}
+          visualizationType={visualizationType}
+          onVisualizationChange={setVisualizationType}
+        />
 
         {/* Cancel Confirmation Dialog */}
         <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
@@ -818,6 +860,29 @@ export default function CrearPresupuestoPage() {
                 className="bg-red-600 hover:bg-red-700"
               >
                 Sí, limpiar todo
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Restore Draft Confirmation Dialog */}
+        <AlertDialog open={showRestoreDraftDialog} onOpenChange={setShowRestoreDraftDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Restaurar borrador guardado?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Se encontró un borrador guardado anteriormente. ¿Desea continuar desde donde lo dejó o empezar un nuevo presupuesto?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={handleDiscardDraft}>
+                Descartar y empezar nuevo
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleRestoreDraft}
+                className="bg-[#244F82] hover:bg-[#1a3a5f]"
+              >
+                Continuar con borrador
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

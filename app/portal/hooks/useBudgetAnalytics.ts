@@ -24,10 +24,18 @@ export interface TimelineData {
   monto: number;
 }
 
+export interface KPIMetrics {
+  totalBudgets: number;
+  approvalRate: number;
+  averageAmount: number;
+  periodTotal: number;
+}
+
 export interface BudgetAnalytics {
   statusDistribution: StatusDistribution[];
   amountComparison: AmountComparison[];
   timeline: TimelineData[];
+  kpiMetrics: KPIMetrics;
 }
 
 export function useBudgetAnalytics(): BudgetAnalytics {
@@ -91,10 +99,25 @@ export function useBudgetAnalytics(): BudgetAnalytics {
       { month: "Dic", cantidad: 24, monto: 312000000 },
     ];
 
+    // Calcular KPIs
+    const totalBudgets = statusDistribution.reduce((sum, item) => sum + item.value, 0);
+    const approvedBudgets = statusDistribution.find(item => item.name === "Aprobado")?.value || 0;
+    const approvalRate = totalBudgets > 0 ? (approvedBudgets / totalBudgets) * 100 : 0;
+    const periodTotal = amountComparison.reduce((sum, item) => sum + item.neto + item.iva, 0);
+    const averageAmount = totalBudgets > 0 ? periodTotal / totalBudgets : 0;
+
+    const kpiMetrics: KPIMetrics = {
+      totalBudgets,
+      approvalRate,
+      averageAmount,
+      periodTotal,
+    };
+
     return {
       statusDistribution,
       amountComparison,
       timeline,
+      kpiMetrics,
     };
   }, []);
 

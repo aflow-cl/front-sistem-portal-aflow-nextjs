@@ -31,6 +31,8 @@ npm run dev
 - **Presupuestos Crear:** `/portal/presupuesto/crear` - Wizard de creación paso a paso
 - **Presupuestos Editar:** `/portal/presupuesto/editar/[id]` - Edición con historial y notas
 - **Presupuestos Historia:** `/portal/presupuesto/historia` - Timeline completo
+- **Histórico Contratante:** `/portal/historico-contratante` - Vista histórica con filtros avanzados
+- **Maestro de Negocio:** `/portal/maestro-negocio` - Gestión de Contratantes, Proveedores y Servicios
 - **Ajustes AFLOW:** `/portal/ajustes-aflow` - Configuración y administración del sistema
 
 > **Nota:** No necesitas configurar Supabase - la autenticación mock funciona out-of-the-box.
@@ -80,9 +82,11 @@ npm run dev
 | **Módulo Crear** | ✅ Completo | Wizard completo, validación, modales, progreso |
 | **Módulo Editar** | ✅ Completo | Edición completa, historial, notas, duplicar, compartir |
 | **Módulo Historia** | ✅ Completo | Timeline de presupuestos, filtros por fecha/estado |
+| **Módulo Histórico Contratante** | ✅ Completo | Vista histórica, filtros avanzados, estadísticas, exportación |
+| **Módulo Maestro de Negocio** | ✅ Completo | Contratantes, Proveedores, Servicios, validación RUT |
 | **Módulo Ajustes AFLOW** | ✅ Completo | Dashboard, Clientes, Perfiles, Opciones Menú, Servicios |
 | **Ajustes - Dashboard** | ✅ Completo | Métricas sistema, actividad reciente, KPIs administración |
-| **Ajustes - Clientes** | ✅ Completo | CRUD completo, sucursales, usuarios, servicios contratados |
+| **Ajustes - Clientes** | ✅ Completo | CRUD completo, wizard 4 pasos, sucursales, usuarios |
 | **Ajustes - Perfiles** | ✅ Completo | Gestión roles, permisos granulares, asignación usuarios |
 | **Ajustes - Opciones Menú** | ✅ Completo | Configuración menú, visibilidad por perfil, ordenamiento |
 | **Ajustes - Servicios** | ✅ Completo | Catálogo servicios, planes, tarifas, clientes activos |
@@ -114,6 +118,8 @@ npm run dev
 - ✅ **Autenticación Mock** con sistema de sesiones completo
 - ✅ **React Query v5** para gestión de estado del servidor y caché
 - ✅ **Módulo Presupuesto Completo** - 4 sub-rutas (Consultar, Crear, Editar, Historia)
+- ✅ **Módulo Histórico Contratante** - Vista histórica con filtros avanzados y estadísticas
+- ✅ **Módulo Maestro de Negocio** - Gestión de Contratantes, Proveedores y Servicios
 - ✅ **Módulo Ajustes AFLOW Completo** - 5 sub-rutas (Dashboard, Clientes, Perfiles, Opciones Menú, Servicios)
 - ✅ **Dashboard con Analytics** - Gráficos interactivos con Recharts 3.5.1
 - ✅ **Diseño Responsivo** - Mobile-first approach
@@ -1179,11 +1185,17 @@ Este README es la guía principal del proyecto. Para información específica, c
 | Documento | Descripción | Link |
 |-----------|-------------|------|
 | **Project Description** | Documentación técnica detallada del proyecto | [project-description.md](./project-description.md) |
-| **Presupuesto Module** | Documentación específica del módulo presupuesto | [PRESUPUESTO_MODULE_README.md](./PRESUPUESTO_MODULE_README.md) |
-| **Consultar Module** | Guía del sub-módulo de consulta | [CONSULTAR_MODULE_README.md](./app/portal/presupuesto/CONSULTAR_MODULE_README.md) |
-| **Editar Module** | Guía del sub-módulo de edición | [editar/README.md](./app/portal/presupuesto/editar/README.md) |
-| **Deployment Guide** | Guía rápida de despliegue | [DEPLOYMENT.md](./DEPLOYMENT.md) |
-| **Build Fixes** | Problemas conocidos y sus soluciones | [BUILD_FIXES.md](./BUILD_FIXES.md) |
+| **Presupuesto Module** | Documentación específica del módulo presupuesto | [PRESUPUESTO_MODULE_README.md](./docs/modules/PRESUPUESTO_MODULE_README.md) |
+| **Consultar Module** | Guía del sub-módulo de consulta | [CONSULTAR_MODULE_README.md](./docs/modules/CONSULTAR_MODULE_README.md) |
+| **Editar Module** | Guía del sub-módulo de edición | [IMPLEMENTACION_EDITAR_PRESUPUESTO.md](./docs/modules/IMPLEMENTACION_EDITAR_PRESUPUESTO.md) |
+| **Histórico Contratante** | Documentación del módulo histórico de contratantes | [HISTORICO_CONTRATANTE_README.md](./docs/modules/HISTORICO_CONTRATANTE_README.md) |
+| **Maestro de Negocio** | Documentación del módulo maestro de negocio | [MAESTRO_NEGOCIO_README.md](./docs/modules/MAESTRO_NEGOCIO_README.md) |
+| **Ajustes AFLOW** | Documentación del módulo de ajustes y configuración | [AJUSTES_AFLOW_README.md](./docs/modules/AJUSTES_AFLOW_README.md) |
+| **API Migration Guide** | Guía completa para migrar de Mock a API Real | [API_MIGRATION_GUIDE.md](./docs/guides/API_MIGRATION_GUIDE.md) |
+| **Backend API Planning** | Especificación del backend y schema PostgreSQL (Planificación) | [BACKEND_API_POSTGRESQL.md](./docs/planning/BACKEND_API_POSTGRESQL.md) |
+| **Deployment Guide** | Guía rápida de despliegue | [DEPLOYMENT.md](./docs/DEPLOYMENT.md) |
+| **Build Fixes** | Problemas conocidos y sus soluciones | [BUILD_FIXES.md](./docs/BUILD_FIXES.md) |
+| **Deprecations** | Historial de código deprecado y limpieza | [deprecations.md](./docs/deprecations.md) |
 
 ---
 
@@ -1481,13 +1493,17 @@ Desarrollado con ❤️ por el equipo de desarrollo AFLOW.
 
 ---
 
-**Última actualización:** Diciembre 15, 2025  
-**Versión:** 1.3.0  
+**Última actualización:** Diciembre 22, 2025  
+**Versión:** 1.5.0  
 **Estado:** ✅ Producción Ready  
 **Features:**  
 - ✅ Dashboard Principal con Analytics (AmountVsIvaChart, BudgetStatusChart, TimelineChart)
 - ✅ Módulo Presupuesto Completo (Consultar + Crear + Editar + Historia)
+- ✅ Módulo Histórico Contratante con Filtros Avanzados y Estadísticas
+- ✅ Módulo Maestro de Negocio (Contratantes + Proveedores + Servicios)
+- ✅ Módulo Ajustes AFLOW Completo (5 sub-módulos + Wizard Multi-paso)
 - ✅ Edición Avanzada con Historial, Notas y Compartir
 - ✅ React Query v5 con optimistic updates
 - ✅ 20+ componentes shadcn/ui  
 - ✅ Sistema de autenticación mock completo
+- ✅ Documentación completa (6 archivos README técnicos)

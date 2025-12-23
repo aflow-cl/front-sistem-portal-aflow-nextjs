@@ -157,7 +157,7 @@ export function ServiciosSelectionForm({ initialData = [], onSubmit, onBack }: S
                                 <button
                                   key={tarifa.plan}
                                   type="button"
-                                  onClick={() => handleChangePlan(servicio.id, tarifa.plan)}
+                                  onClick={() => handleChangePlan(servicio.id, tarifa.plan as "Basic" | "Professional" | "Enterprise")}
                                   className={`text-left p-3 rounded-lg border-2 transition-all ${
                                     isPlanSelected
                                       ? "border-[#244F82] bg-white shadow-md"

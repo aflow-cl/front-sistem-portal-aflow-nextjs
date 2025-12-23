@@ -209,3 +209,49 @@ export interface DuplicateBudgetResult {
   originalId: string;
   createdAt: string;
 }
+
+// ============================================
+// TIPOS PARA VISTA PREVIA Y AJUSTES VISUALES
+// ============================================
+
+export type VisualizationType = "Completa" | "Media" | "Compacta";
+
+export type FontFamily = 
+  | "Arial"
+  | "Helvetica"
+  | "Times New Roman"
+  | "Courier New"
+  | "Verdana"
+  | "Georgia"
+  | "Roboto"
+  | "Open Sans";
+
+export type FontSize = "Pequeña" | "Normal" | "Grande";
+
+export type FolioStyle = "Simple" | "Destacado" | "Sombra";
+
+export interface BudgetSettings {
+  // Logos
+  logoPrincipal?: string; // Base64 encoded image
+  logoSecundario?: string; // Base64 encoded image
+  
+  // Folio
+  folioOperativo: string;
+  folioEstilo: FolioStyle;
+  folioColorFondo: string;
+  
+  // Tipografía
+  tipoLetra: FontFamily;
+  tamanoLetra: FontSize;
+  tamanoLogo: number; // 50-200 (px o %)
+  
+  // Colores
+  colorCabeceraGrilla: string;
+  
+  // Datos de cabecera
+  datosCabecera: string; // Multiline text
+  
+  // Metadata
+  updatedAt?: string;
+  updatedBy?: string;
+}

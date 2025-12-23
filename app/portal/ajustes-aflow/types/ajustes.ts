@@ -188,7 +188,7 @@ export interface OpcionMenu {
 // ============================================
 
 export interface TarifaServicio {
-  plan: "Basic" | "Professional" | "Enterprise";
+  plan: string; // Permite nombres personalizados de planes
   precioMensual: number;
   precioAnual: number;
   descripcion: string;

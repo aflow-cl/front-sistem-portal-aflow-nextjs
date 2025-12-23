@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -56,9 +57,17 @@ import {
 import { fetchProveedores } from "../api/maestroService";
 
 // Componentes
-import { AdvancedFilters } from "./components/AdvancedFilters";
+import { ProveedorAdvancedFiltersSheet } from "./components/ProveedorAdvancedFiltersSheet";
+import { ProveedorWizardModal } from "./components/ProveedorWizardModal";
+import { ProveedorProductosModal } from "./components/ProveedorProductosModal";
+import { ProveedorEditModal } from "./components/ProveedorEditModal";
 
 export default function ProveedoresPage() {
+  const [showWizard, setShowWizard] = useState(false);
+  const [selectedProveedor, setSelectedProveedor] = useState<Proveedor | null>(null);
+  const [showProductos, setShowProductos] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  
   // Fetch proveedores
   const {
     data: proveedores = [],
@@ -79,14 +88,12 @@ export default function ProveedoresPage() {
   } = useProveedores(proveedores);
 
   const handleCreateNew = () => {
-    toast.info("Modal de creación de proveedor en desarrollo");
+    setShowWizard(true);
   };
 
   const handleEdit = (proveedor: Proveedor) => {
-    if (proveedor.esProveedorDefault) {
-      toast.warning("El proveedor default solo permite edición parcial");
-    }
-    toast.info(`Editar proveedor: ${getDisplayName(proveedor)}`);
+    setSelectedProveedor(proveedor);
+    setShowEdit(true);
   };
 
   const handleDelete = (proveedor: Proveedor) => {
@@ -101,7 +108,8 @@ export default function ProveedoresPage() {
   };
 
   const handleViewProductos = (proveedor: Proveedor) => {
-    toast.info(`Ver productos de: ${getDisplayName(proveedor)}`);
+    setSelectedProveedor(proveedor);
+    setShowProductos(true);
   };
 
   if (error) {
@@ -250,11 +258,10 @@ export default function ProveedoresPage() {
 
           {/* Botones de acción */}
           <div className="flex gap-2">
-            <AdvancedFilters
+            <ProveedorAdvancedFiltersSheet
               filters={filters}
               onApplyFilters={setFilters}
               onClearFilters={clearFilters}
-              hasActiveFilters={Boolean(hasActiveFilters)}
             />
             
             {hasActiveFilters && (
@@ -386,6 +393,23 @@ export default function ProveedoresPage() {
           </ScrollArea>
         )}
       </div>
+
+      {/* Wizard Modal */}
+      <ProveedorWizardModal open={showWizard} onOpenChange={setShowWizard} />
+
+      {/* Edit Modal */}
+      <ProveedorEditModal
+        open={showEdit}
+        onOpenChange={setShowEdit}
+        proveedor={selectedProveedor}
+      />
+
+      {/* Productos Modal */}
+      <ProveedorProductosModal
+        open={showProductos}
+        onOpenChange={setShowProductos}
+        proveedor={selectedProveedor}
+      />
     </div>
   );
 }

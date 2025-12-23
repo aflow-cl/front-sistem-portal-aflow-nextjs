@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Check, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Trash2, Eye } from 'lucide-react';
 
 interface WizardNavigationProps {
   currentStep: number;
@@ -8,6 +8,7 @@ interface WizardNavigationProps {
   onNext: () => void;
   onCancel: () => void;
   onClearForm: () => void;
+  onPreview?: () => void;
   isNextDisabled?: boolean;
   isSubmitting?: boolean;
   nextButtonText?: string;
@@ -20,6 +21,7 @@ export function WizardNavigation({
   onNext,
   onCancel,
   onClearForm,
+  onPreview,
   isNextDisabled = false,
   isSubmitting = false,
   nextButtonText,
@@ -63,7 +65,7 @@ export function WizardNavigation({
               variant="outline"
               onClick={onPrevious}
               disabled={isSubmitting}
-              className="gap-2 w-full md:w-auto"
+              className="gap-2 w-full md:w-auto border-[#244F82] text-[#244F82] hover:bg-blue-50"
             >
               <ArrowLeft className="w-4 h-4" />
               Volver
@@ -72,6 +74,20 @@ export function WizardNavigation({
         </div>
 
         <div className="flex flex-col md:flex-row gap-3">
+          {/* Preview Button */}
+          {onPreview && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onPreview}
+              disabled={isSubmitting}
+              className="gap-2 border-[#244F82] text-[#244F82] hover:bg-blue-50 w-full md:w-auto"
+            >
+              <Eye className="w-4 h-4" />
+              Previsualizar
+            </Button>
+          )}
+
           {/* Clear Form Button - Desktop Only (Inline) */}
           <Button
             type="button"
@@ -89,7 +105,7 @@ export function WizardNavigation({
             variant="outline"
             onClick={onCancel}
             disabled={isSubmitting}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full md:w-auto"
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300 w-full md:w-auto"
           >
             Cancelar
           </Button>
@@ -98,7 +114,7 @@ export function WizardNavigation({
             type="button"
             onClick={onNext}
             disabled={isNextDisabled || isSubmitting}
-            className="bg-[#003366] hover:bg-[#00AEEF] transition-colors gap-2 w-full md:w-auto"
+            className="bg-[#244F82] hover:bg-[#1a3a5f] transition-colors gap-2 w-full md:w-auto"
           >
             {isSubmitting ? (
               <>

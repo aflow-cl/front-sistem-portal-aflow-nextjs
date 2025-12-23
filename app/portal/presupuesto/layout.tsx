@@ -2,7 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { FileText, PlusCircle, History } from "lucide-react";
+import { FileText, PlusCircle, History, Settings } from "lucide-react";
+import { BudgetSettingsProvider } from "./context/BudgetSettingsContext";
 
 export default function PresupuestoLayout({
   children,
@@ -30,10 +31,17 @@ export default function PresupuestoLayout({
       href: "/portal/presupuesto/historia",
       icon: History,
     },
+    {
+      label: "Ajustes",
+      shortLabel: "Ajustes",
+      href: "/portal/presupuesto/ajustes",
+      icon: Settings,
+    },
   ];
 
   return (
-    <div className="space-y-6">
+    <BudgetSettingsProvider>
+      <div className="space-y-6">
       {/* Integrated Header: Title + Nav in same visual block */}
       <div className="space-y-3">
         {/* Title and Subtitle */}
@@ -82,6 +90,7 @@ export default function PresupuestoLayout({
 
       {/* Content */}
       <div>{children}</div>
-    </div>
+      </div>
+    </BudgetSettingsProvider>
   );
 }

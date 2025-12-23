@@ -24,6 +24,12 @@ export function NavPublic() {
           Soluciones
         </Link>
         <Link
+          href="/blog"
+          className="text-sm font-medium text-gray-700 hover:text-aflow-blue transition-colors"
+        >
+          Blog
+        </Link>
+        <Link
           href="/#beneficios"
           className="text-sm font-medium text-gray-700 hover:text-aflow-blue transition-colors"
         >
@@ -71,6 +77,13 @@ export function NavPublic() {
               className="text-sm font-medium text-gray-700 hover:text-aflow-blue transition-colors py-2"
             >
               Soluciones
+            </Link>
+            <Link
+              href="/blog"
+              onClick={() => setIsOpen(false)}
+              className="text-sm font-medium text-gray-700 hover:text-aflow-blue transition-colors py-2"
+            >
+              Blog
             </Link>
             <Link
               href="/#beneficios"

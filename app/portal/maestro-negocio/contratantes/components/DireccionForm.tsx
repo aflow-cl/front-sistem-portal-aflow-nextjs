@@ -95,23 +95,11 @@ export function DireccionForm({
   const watchRegionId = form.watch("regionId");
   const watchCiudadId = form.watch("ciudadId");
 
-  // Log de debugging (temporal)
-  useEffect(() => {
-    console.log("📍 DireccionForm - Estado:", {
-      regionesDisponibles: regionesChile.length,
-      watchRegionId,
-      watchCiudadId,
-      ciudadesDisponibles: ciudadesDisponibles.length,
-      comunasDisponibles: comunasDisponibles.length,
-    });
-  }, [watchRegionId, watchCiudadId, ciudadesDisponibles, comunasDisponibles]);
-
   // Actualizar ciudades cuando cambia la región
   useEffect(() => {
     if (watchRegionId) {
       const region = regionesChile.find((r) => r.id.toString() === watchRegionId);
       if (region) {
-        console.log("✅ Región seleccionada:", region.nombre, "Ciudades:", region.ciudades.length);
         setCiudadesDisponibles(region.ciudades);
         
         // Solo resetear si la ciudad actual no pertenece a la nueva región

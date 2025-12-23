@@ -10,27 +10,12 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useMemo, useState } from 'react';
 import { ValidationAlert } from './ValidationAlert';
 
 interface ProyectoFormProps {
   form: UseFormReturn<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
-
-const TIPOS_TRABAJO = [
-  { value: 'construccion', label: 'Construcción' },
-  { value: 'mantencion', label: 'Mantención' },
-  { value: 'desarrollo', label: 'Desarrollo' },
-  { value: 'reparacion', label: 'Reparación' },
-  { value: 'otro', label: 'Otro' },
-];
 
 export function ProyectoForm({ form }: ProyectoFormProps) {
   const watchFechaInicio = form.watch('proyecto.fechaInicio');
@@ -47,7 +32,6 @@ export function ProyectoForm({ form }: ProyectoFormProps) {
       descripcion: 'Descripción',
       fechaInicio: 'Fecha de Inicio',
       fechaTermino: 'Fecha de Término',
-      tipoTrabajo: 'Tipo de Trabajo',
       responsable: 'Responsable',
     };
 
@@ -136,33 +120,6 @@ export function ProyectoForm({ form }: ProyectoFormProps) {
                       className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg resize-none"
                     />
                   </FormControl>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="proyecto.tipoTrabajo"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700">
-                    Tipo de Trabajo <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg">
-                        <SelectValue placeholder="Seleccione el tipo de trabajo" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {TIPOS_TRABAJO.map((tipo) => (
-                        <SelectItem key={tipo.value} value={tipo.value}>
-                          {tipo.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                   <FormMessage className="text-red-500 text-xs" />
                 </FormItem>
               )}

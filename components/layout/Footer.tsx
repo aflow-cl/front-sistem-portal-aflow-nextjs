@@ -18,19 +18,19 @@ export function Footer() {
           </p>
           <div className="flex gap-6">
             <a
-              href="#"
+              href="/privacidad"
               className="text-sm text-gray-600 hover:text-aflow-blue transition-colors"
             >
               Privacidad
             </a>
             <a
-              href="#"
+              href="/terminos"
               className="text-sm text-gray-600 hover:text-aflow-blue transition-colors"
             >
               Términos
             </a>
             <a
-              href="#"
+              href="/soporte"
               className="text-sm text-gray-600 hover:text-aflow-blue transition-colors"
             >
               Soporte

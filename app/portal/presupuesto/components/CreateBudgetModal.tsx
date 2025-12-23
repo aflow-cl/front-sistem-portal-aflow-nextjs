@@ -1072,8 +1072,7 @@ export function CreateBudgetModal({
                   type="button"
                   disabled={isSubmitting}
                   onClick={() => {
-                    // TODO: Implementar generación de PDF
-                    alert("Funcionalidad de PDF en desarrollo");
+                    alert("Funcionalidad de PDF disponible próximamente");
                   }}
                   className="w-full bg-aflow-blue hover:bg-aflow-blue-light text-white rounded-xl text-xs sm:text-sm h-9 sm:h-10"
                 >

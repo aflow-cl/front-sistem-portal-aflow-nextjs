@@ -25,12 +25,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { TipoPersona, EstadoRegistro } from "../../types/maestroNegocio";
 
-interface ProveedorFilters {
+export interface ProveedorFilters {
   busqueda: string;
   tipoPersona: TipoPersona | "all";
   estado: EstadoRegistro | "all";
   email?: string;
   giro?: string;
+  telefono?: string;
   productosMin?: number;
   productosMax?: number;
 }

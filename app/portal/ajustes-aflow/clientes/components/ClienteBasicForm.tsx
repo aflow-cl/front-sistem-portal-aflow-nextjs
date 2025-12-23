@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Building2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { TipoPersonaSelector } from "@/components/ui/tipo-persona-selector";
 import { toast } from "sonner";
 import type { ClienteBasicData, TipoPersona } from "../../types/ajustes";
 
@@ -115,46 +115,15 @@ export function ClienteBasicForm({ initialData, onSubmit, onBack }: ClienteBasic
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       {/* Selector de Tipo de Persona */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <Label className="text-sm font-medium text-gray-700 mb-3 block">
-          Tipo de Cliente
-        </Label>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              setTipoPersona("persona-natural");
-              setValue("tipoPersona", "persona-natural");
-            }}
-            className={`flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all ${
-              tipoPersona === "persona-natural"
-                ? "border-[#244F82] bg-white shadow-md"
-                : "border-gray-300 bg-gray-50 hover:border-gray-400"
-            }`}
-          >
-            <User className={`w-5 h-5 ${tipoPersona === "persona-natural" ? "text-[#244F82]" : "text-gray-500"}`} />
-            <span className={`font-medium ${tipoPersona === "persona-natural" ? "text-[#244F82]" : "text-gray-600"}`}>
-              Persona Natural
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setTipoPersona("empresa");
-              setValue("tipoPersona", "empresa");
-            }}
-            className={`flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all ${
-              tipoPersona === "empresa"
-                ? "border-[#244F82] bg-white shadow-md"
-                : "border-gray-300 bg-gray-50 hover:border-gray-400"
-            }`}
-          >
-            <Building2 className={`w-5 h-5 ${tipoPersona === "empresa" ? "text-[#244F82]" : "text-gray-500"}`} />
-            <span className={`font-medium ${tipoPersona === "empresa" ? "text-[#244F82]" : "text-gray-600"}`}>
-              Empresa
-            </span>
-          </button>
-        </div>
+      <div className="bg-white border border-gray-200 rounded-lg p-1">
+        <TipoPersonaSelector
+          value={tipoPersona}
+          onValueChange={(value) => {
+            setTipoPersona(value);
+            setValue("tipoPersona", value);
+          }}
+          label="Tipo de Cliente:"
+        />
       </div>
 
       {/* RUT */}

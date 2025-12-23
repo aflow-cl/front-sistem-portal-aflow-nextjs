@@ -1,5 +1,6 @@
 import { UseFormReturn } from 'react-hook-form';
-import { User, Building2, MapPin, Phone, Mail, Search, Users, Building, FileText, AlertCircle } from 'lucide-react';
+import { User, Building2, MapPin, Phone, Mail, Search, Users, Building, FileText } from 'lucide-react';
+import { TipoPersonaSelector } from '@/components/ui/tipo-persona-selector';
 import { Card } from '@/components/ui/card';
 import {
   FormField,
@@ -506,50 +507,21 @@ export function ClienteForm({ form }: ClienteFormProps) {
         <Separator className="my-4" />
 
         {/* Tipo de Persona */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-              <AlertCircle className="w-4 h-4 text-white" />
-            </div>
-            <div className="flex-1">
-              <p className="text-xs text-blue-800 mb-3 font-medium">
-                Seleccione el tipo de contratante para mostrar los campos correspondientes
-              </p>
-              <FormField
-                control={form.control}
-                name="cliente.tipoPersona"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-700 font-semibold text-sm mb-1">
-                      Tipo de Contratante <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="ring-2 ring-blue-500 focus:ring-blue-600 rounded-lg h-10 text-sm font-medium bg-white">
-                          <SelectValue placeholder="Seleccione tipo de contratante..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="empresa" className="cursor-pointer">
-                          <div className="flex items-center gap-2">
-                            <Building2 className="w-4 h-4 text-blue-600" />
-                            <span>Empresa</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="persona-natural" className="cursor-pointer">
-                          <div className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-green-600" />
-                            <span>Persona Natural</span>
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage className="text-red-500 text-xs" />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-1">
+          <FormField
+            control={form.control}
+            name="cliente.tipoPersona"
+            render={({ field }) => (
+              <FormItem>
+                <TipoPersonaSelector
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  label="Tipo de Contratante:"
+                />
+                <FormMessage className="text-red-500 text-xs" />
+              </FormItem>
+            )}
+          />
         </div>
 
         <Separator className="my-4" />

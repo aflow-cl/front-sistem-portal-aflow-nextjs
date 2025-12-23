@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Users,
   Plus,
-  Search,
-  Filter,
   MoreVertical,
   Edit2,
   Trash2,
@@ -20,10 +18,13 @@ import {
   UserPlus,
   Package,
   Shield,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Calendar,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -47,13 +48,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   fetchClientes,
@@ -63,30 +57,37 @@ import {
 import type { Cliente } from "../types/ajustes";
 import { ClienteWizardModal } from "./components/ClienteWizardModal";
 import { EditClienteModal } from "./components/EditClienteModal";
+import {
+  AdvancedFilters,
+  type ClienteFilters,
+} from "./components/AdvancedFilters";
 
-const REGIONES_CHILE = [
-  "Arica y Parinacota",
-  "Tarapacá",
-  "Antofagasta",
-  "Atacama",
-  "Coquimbo",
-  "Valparaíso",
-  "Metropolitana",
-  "O'Higgins",
-  "Maule",
-  "Ñuble",
-  "Biobío",
-  "Araucanía",
-  "Los Ríos",
-  "Los Lagos",
-  "Aysén",
-  "Magallanes",
-];
+type SortField = "razonSocial" | "email" | "region" | "usuarios" | "fechaCreacion" | "estado";
+type SortDirection = "asc" | "desc";
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("es-CL", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
 
 export default function ClientesPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterRegion, setFilterRegion] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filters, setFilters] = useState<ClienteFilters>({
+    razonSocial: "",
+    rut: "",
+    email: "",
+    region: "all",
+    estado: "all",
+    fechaCreacionDesde: "",
+    fechaCreacionHasta: "",
+    usuariosMin: "",
+    usuariosMax: "",
+  });
+  const [sortField, setSortField] = useState<SortField>("fechaCreacion");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [wizardDialogOpen, setWizardDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -129,19 +130,168 @@ export default function ClientesPage() {
     },
   });
 
-  const filteredClientes = clientes?.filter((cliente) => {
-    const matchesSearch =
-      cliente.razonSocial.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cliente.rut.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cliente.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRegion =
-      filterRegion === "all" || cliente.region === filterRegion;
-    const matchesStatus =
-      filterStatus === "all" ||
-      (filterStatus === "active" && cliente.activo) ||
-      (filterStatus === "inactive" && !cliente.activo);
-    return matchesSearch && matchesRegion && matchesStatus;
-  });
+  // Filter logic
+  const filteredClientes = useMemo(() => {
+    if (!clientes) return [];
+    
+    return clientes.filter((cliente) => {
+      // Razón Social
+      if (
+        filters.razonSocial &&
+        !cliente.razonSocial.toLowerCase().includes(filters.razonSocial.toLowerCase())
+      ) {
+        return false;
+      }
+
+      // RUT
+      if (
+        filters.rut &&
+        !cliente.rut.toLowerCase().includes(filters.rut.toLowerCase())
+      ) {
+        return false;
+      }
+
+      // Email
+      if (
+        filters.email &&
+        !cliente.email.toLowerCase().includes(filters.email.toLowerCase())
+      ) {
+        return false;
+      }
+
+      // Región
+      if (filters.region !== "all" && cliente.region !== filters.region) {
+        return false;
+      }
+
+      // Estado
+      if (
+        filters.estado !== "all" &&
+        ((filters.estado === "active" && !cliente.activo) ||
+          (filters.estado === "inactive" && cliente.activo))
+      ) {
+        return false;
+      }
+
+      // Fecha Creación Desde
+      if (filters.fechaCreacionDesde) {
+        const createdDate = new Date(cliente.createdAt);
+        const filterDate = new Date(filters.fechaCreacionDesde);
+        if (createdDate < filterDate) {
+          return false;
+        }
+      }
+
+      // Fecha Creación Hasta
+      if (filters.fechaCreacionHasta) {
+        const createdDate = new Date(cliente.createdAt);
+        const filterDate = new Date(filters.fechaCreacionHasta);
+        if (createdDate > filterDate) {
+          return false;
+        }
+      }
+
+      // Usuarios Mínimo
+      if (filters.usuariosMin) {
+        const min = parseInt(filters.usuariosMin);
+        if (cliente.usuarios.length < min) {
+          return false;
+        }
+      }
+
+      // Usuarios Máximo
+      if (filters.usuariosMax) {
+        const max = parseInt(filters.usuariosMax);
+        if (cliente.usuarios.length > max) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [clientes, filters]);
+
+  // Sorting logic
+  const sortedClientes = useMemo(() => {
+    if (!filteredClientes) return [];
+
+    const sorted = [...filteredClientes].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortField) {
+        case "razonSocial":
+          comparison = a.razonSocial.localeCompare(b.razonSocial);
+          break;
+        case "email":
+          comparison = a.email.localeCompare(b.email);
+          break;
+        case "region":
+          comparison = a.region.localeCompare(b.region);
+          break;
+        case "usuarios":
+          comparison = a.usuarios.length - b.usuarios.length;
+          break;
+        case "fechaCreacion":
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+        case "estado":
+          comparison = (a.activo === b.activo) ? 0 : a.activo ? -1 : 1;
+          break;
+      }
+
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    return sorted;
+  }, [filteredClientes, sortField, sortDirection]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="h-3.5 w-3.5 ml-1 text-gray-400" />;
+    }
+    return sortDirection === "asc" ? (
+      <ArrowUp className="h-3.5 w-3.5 ml-1 text-[#244F82]" />
+    ) : (
+      <ArrowDown className="h-3.5 w-3.5 ml-1 text-[#244F82]" />
+    );
+  };
+
+  const hasActiveFilters = useMemo(() => {
+    return (
+      filters.razonSocial !== "" ||
+      filters.rut !== "" ||
+      filters.email !== "" ||
+      filters.region !== "all" ||
+      filters.estado !== "all" ||
+      filters.fechaCreacionDesde !== "" ||
+      filters.fechaCreacionHasta !== "" ||
+      filters.usuariosMin !== "" ||
+      filters.usuariosMax !== ""
+    );
+  }, [filters]);
+
+  const handleClearFilters = () => {
+    setFilters({
+      razonSocial: "",
+      rut: "",
+      email: "",
+      region: "all",
+      estado: "all",
+      fechaCreacionDesde: "",
+      fechaCreacionHasta: "",
+      usuariosMin: "",
+      usuariosMax: "",
+    });
+  };
 
   const handleViewDetails = (cliente: Cliente) => {
     setSelectedCliente(cliente);
@@ -167,71 +317,106 @@ export default function ClientesPage() {
               <Users className="w-5 h-5 text-[#244F82]" />
               Gestión de Clientes
             </CardTitle>
-            <Button
-              onClick={() => {
-                setWizardDialogOpen(true);
-              }}
-              className="bg-[#244F82] hover:bg-[#0c3b64]"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Nuevo Cliente
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <AdvancedFilters
+                filters={filters}
+                onApplyFilters={setFilters}
+                onClearFilters={handleClearFilters}
+                hasActiveFilters={hasActiveFilters}
+              />
+              <Button
+                onClick={() => {
+                  setWizardDialogOpen(true);
+                }}
+                className="bg-[#244F82] hover:bg-[#0c3b64]"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Nuevo Cliente
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
-          {/* Filtros */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder="Buscar por razón social, RUT o email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={filterRegion} onValueChange={setFilterRegion}>
-              <SelectTrigger className="w-full sm:w-48">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Región" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las regiones</SelectItem>
-                {REGIONES_CHILE.map((region) => (
-                  <SelectItem key={region} value={region}>
-                    {region}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-full sm:w-40">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="active">Activos</SelectItem>
-                <SelectItem value="inactive">Inactivos</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
           {/* Tabla de clientes */}
-          <div className="rounded-lg border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50">
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Contacto</TableHead>
-                  <TableHead>Ubicación</TableHead>
-                  <TableHead>Servicios</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredClientes && filteredClientes.length > 0 ? (
-                  filteredClientes.map((cliente) => (
+          <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+            <div className="w-full overflow-x-auto">
+              <Table className="min-w-[1200px]">
+                <TableHeader>
+                  <TableRow className="bg-gray-50">
+                    <TableHead className="w-[280px]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort("razonSocial")}
+                        className="h-auto p-0 font-semibold hover:bg-transparent hover:text-[#244F82] flex items-center"
+                      >
+                        Cliente
+                        {getSortIcon("razonSocial")}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="w-[200px]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort("email")}
+                        className="h-auto p-0 font-semibold hover:bg-transparent hover:text-[#244F82] flex items-center"
+                      >
+                        Contacto
+                        {getSortIcon("email")}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="w-[180px]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort("region")}
+                        className="h-auto p-0 font-semibold hover:bg-transparent hover:text-[#244F82] flex items-center"
+                      >
+                        Ubicación
+                        {getSortIcon("region")}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="w-[100px] text-center">
+                      <div className="flex items-center justify-center">
+                        <span className="font-semibold">Servicios</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="w-[100px] text-center">
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort("usuarios")}
+                        className="h-auto p-0 font-semibold hover:bg-transparent hover:text-[#244F82] flex items-center mx-auto"
+                      >
+                        Usuarios
+                        {getSortIcon("usuarios")}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="w-[140px] text-center">
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort("fechaCreacion")}
+                        className="h-auto p-0 font-semibold hover:bg-transparent hover:text-[#244F82] flex items-center mx-auto"
+                      >
+                        Fecha Creación
+                        {getSortIcon("fechaCreacion")}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="w-[120px] text-center">
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort("estado")}
+                        className="h-auto p-0 font-semibold hover:bg-transparent hover:text-[#244F82] flex items-center mx-auto"
+                      >
+                        Estado
+                        {getSortIcon("estado")}
+                      </Button>
+                    </TableHead>
+                    <TableHead className="text-right sticky right-0 bg-gray-50 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.1)] w-[100px]">
+                      <span className="font-semibold">Acciones</span>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedClientes && sortedClientes.length > 0 ? (
+                    sortedClientes.map((cliente) => (
                     <TableRow
                       key={cliente.id}
                       className="hover:bg-gray-50 cursor-pointer"
@@ -286,32 +471,50 @@ export default function ClientesPage() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-2">
                           <Package className="w-4 h-4 text-gray-400" />
                           <span className="text-sm font-medium">
                             {cliente.serviciosContratados.length}
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={cliente.activo ? "default" : "outline"}
-                          className={
-                            cliente.activo
-                              ? "bg-green-100 text-green-800 border-green-300"
-                              : "bg-gray-100 text-gray-700 border-gray-300"
-                          }
-                        >
-                          {cliente.activo ? (
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                          ) : (
-                            <XCircle className="w-3 h-3 mr-1" />
-                          )}
-                          {cliente.activo ? "Activo" : "Inactivo"}
-                        </Badge>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <Users className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm font-medium">
+                            {cliente.usuarios.length}
+                          </span>
+                        </div>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                          <span className="text-sm text-gray-700">
+                            {formatDate(cliente.createdAt)}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center">
+                          <Badge
+                            variant={cliente.activo ? "default" : "outline"}
+                            className={
+                              cliente.activo
+                                ? "bg-green-100 text-green-800 border-green-300"
+                                : "bg-gray-100 text-gray-700 border-gray-300"
+                            }
+                          >
+                            {cliente.activo ? (
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                            ) : (
+                              <XCircle className="w-3 h-3 mr-1" />
+                            )}
+                            {cliente.activo ? "Activo" : "Inactivo"}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right sticky right-0 bg-white shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.05)] group-hover:bg-gray-50">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                             <Button variant="ghost" size="sm">
@@ -362,29 +565,30 @@ export default function ClientesPage() {
                       </TableCell>
                     </TableRow>
                   ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-12">
-                      <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                      <p className="text-gray-500">
-                        No se encontraron clientes
-                      </p>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-12">
+                        <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                        <p className="text-gray-500">
+                          No se encontraron clientes
+                        </p>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
 
           {/* Stats footer */}
-          {filteredClientes && filteredClientes.length > 0 && (
+          {sortedClientes && sortedClientes.length > 0 && (
             <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
               <span>
-                Mostrando {filteredClientes.length} de {clientes?.length || 0}{" "}
+                Mostrando {sortedClientes.length} de {clientes?.length || 0}{" "}
                 clientes
               </span>
               <span>
-                {filteredClientes.filter((c) => c.activo).length} activos
+                {sortedClientes.filter((c) => c.activo).length} activos
               </span>
             </div>
           )}

@@ -13,7 +13,9 @@ import {
   Cloud, 
   FileSignature, 
   Globe,
-  CheckCircle2
+  CheckCircle2,
+  FileText,
+  Workflow
 } from "lucide-react";
 
 export default function HomePage() {
@@ -138,6 +140,133 @@ export default function HomePage() {
                   <p className="text-gray-600">{item.desc}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Productos Section */}
+        <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-poppins font-bold text-gray-dark mb-4">
+                Nuestros <span className="text-aflow-blue">Productos</span>
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Soluciones especializadas diseñadas para optimizar la gestión y automatización de tus procesos empresariales.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              {/* Tarjeta Presupuesto */}
+              <Link 
+                href="/presupuesto"
+                className="group relative bg-white rounded-2xl border-2 border-gray-200 hover:border-aflow-blue overflow-hidden transition-all duration-300 hover:shadow-2xl"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-aflow-blue/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                
+                <div className="p-8 relative">
+                  <div className="w-16 h-16 bg-gradient-to-br from-aflow-blue to-blue-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <FileText className="w-8 h-8 text-white" />
+                  </div>
+
+                  <h3 className="text-2xl font-poppins font-bold text-gray-dark mb-4 group-hover:text-aflow-blue transition-colors">
+                    Gestión de Presupuestos
+                  </h3>
+
+                  <p className="text-gray-600 mb-6 leading-relaxed">
+                    Sistema completo para crear, gestionar y hacer seguimiento de presupuestos empresariales. 
+                    Control total sobre tus cotizaciones, aprobaciones y generación de documentos.
+                  </p>
+
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center gap-3 text-sm">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                      <span className="text-gray-700">Creación y edición de presupuestos</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                      <span className="text-gray-700">Gestión de clientes y proveedores</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                      <span className="text-gray-700">Historial completo y trazabilidad</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                      <span className="text-gray-700">Reportes y análisis en tiempo real</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-aflow-blue font-semibold group-hover:gap-4 transition-all">
+                    Ver más detalles
+                    <ArrowRight className="w-5 h-5" />
+                  </div>
+                </div>
+
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-aflow-blue to-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+              </Link>
+
+              {/* Tarjeta Automatización */}
+              <Link 
+                href="/automatizacion"
+                className="group relative bg-white rounded-2xl border-2 border-gray-200 hover:border-orange-500 overflow-hidden transition-all duration-300 hover:shadow-2xl"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                
+                <div className="p-8 relative">
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <Workflow className="w-8 h-8 text-white" />
+                  </div>
+
+                  <h3 className="text-2xl font-poppins font-bold text-gray-dark mb-4 group-hover:text-orange-500 transition-colors">
+                    Automatización de Procesos
+                  </h3>
+
+                  <p className="text-gray-600 mb-6 leading-relaxed">
+                    Optimiza y automatiza tus flujos de trabajo empresariales. Reduce tiempos, 
+                    elimina errores manuales y aumenta la eficiencia operativa de tu organización.
+                  </p>
+
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center gap-3 text-sm">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                      <span className="text-gray-700">Flujos de trabajo personalizables</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                      <span className="text-gray-700">Integración con sistemas existentes</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                      <span className="text-gray-700">Notificaciones y alertas automáticas</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                      <span className="text-gray-700">Reducción de costos operativos</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-orange-500 font-semibold group-hover:gap-4 transition-all">
+                    Ver más detalles
+                    <ArrowRight className="w-5 h-5" />
+                  </div>
+                </div>
+
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-orange-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+              </Link>
+            </div>
+
+            <div className="text-center mt-12">
+              <p className="text-gray-600 mb-4">
+                ¿Necesitas más información sobre nuestros productos?
+              </p>
+              <Link
+                href="/soporte"
+                className="inline-flex items-center gap-2 text-aflow-blue hover:text-blue-700 font-semibold transition-colors"
+              >
+                Contáctanos
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
           </div>
         </section>
