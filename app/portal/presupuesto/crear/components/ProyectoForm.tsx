@@ -8,6 +8,7 @@ import {
   FormControl,
   FormMessage,
 } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useMemo, useState } from 'react';
@@ -175,9 +176,9 @@ export function ProyectoForm({ form }: ProyectoFormProps) {
           </h3>
           <div className="grid grid-cols-1 gap-4">
             <FormItem className="flex flex-col">
-              <FormLabel className="text-gray-700">
+              <Label className="text-gray-700" htmlFor="date">
                 Periodo del Proyecto <span className="text-red-500">*</span>
-              </FormLabel>
+              </Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button

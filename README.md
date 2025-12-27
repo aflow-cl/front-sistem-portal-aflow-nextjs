@@ -103,7 +103,7 @@ npm run dev
 - ✅ **TypeScript:** Strict mode, 100% tipado
 - ✅ **ESLint:** Configurado y sin errores bloqueantes
 - ✅ **Deployment:** Vercel-ready, CI/CD compatible
-- ✅ **Documentation:** 4 documentos técnicos completos
+- ✅ **Documentation:** 5 documentos técnicos completos
 
 ---
 
@@ -119,7 +119,7 @@ npm run dev
 - ✅ **React Query v5** para gestión de estado del servidor y caché
 - ✅ **Módulo Presupuesto Completo** - 4 sub-rutas (Consultar, Crear, Editar, Historia)
 - ✅ **Módulo Histórico Contratante** - Vista histórica con filtros avanzados y estadísticas
-- ✅ **Módulo Maestro de Negocio** - Gestión de Contratantes, Proveedores y Servicios
+- ✅ **Módulo Maestro de Negocio** - Gestión integral de Contratantes, Proveedores y Servicios
 - ✅ **Módulo Ajustes AFLOW Completo** - 5 sub-rutas (Dashboard, Clientes, Perfiles, Opciones Menú, Servicios)
 - ✅ **Dashboard con Analytics** - Gráficos interactivos con Recharts 3.5.1
 - ✅ **Diseño Responsivo** - Mobile-first approach
@@ -137,7 +137,7 @@ npm run dev
 - ✅ **Todas las rutas funcionales:** 5+ rutas públicas y privadas
 - ✅ **Autenticación Mock:** Sistema completo con sesiones persistentes
 - ✅ **Responsive Design:** Optimizado para mobile, tablet y desktop
-- ✅ **Documentación:** 4 archivos técnicos completos (README, BUILD_FIXES, DEPLOYMENT, PROJECT_DESCRIPTION)
+- ✅ **Documentación:** 5 archivos técnicos completos (README, BUILD_FIXES, DEPLOYMENT, PROJECT_DESCRIPTION, PRESUPUESTO_MODULE_README)
 
 ---
 
@@ -547,17 +547,17 @@ Módulo completo de gestión de presupuestos con **React Query** para manejo de 
 - ✅ **Gestión de Caché:** Invalidación y refetch automático
 
 #### 2. Crear (`/portal/presupuesto/crear`)
-- ✅ **Wizard Completo de 3 Pasos:** Cliente → Proyecto → Resumen
+- ✅ **Wizard Completo de 4 Pasos:** Cliente → Proyecto → Presupuesto → Confirmación
 - ✅ **Validación Avanzada:** React Hook Form + Zod en cada paso
 - ✅ **Gestión de Sucursales:** Modal para agregar múltiples sucursales dinámicamente
 - ✅ **Componentes del Wizard:**
   - `ClienteForm.tsx` - Formulario de datos del cliente
   - `ProyectoForm.tsx` - Formulario de datos del proyecto
-  - `ResumenFinal.tsx` - Vista previa antes de crear
+  - `PresupuestoTable.tsx` - Tabla de ítems del presupuesto
+  - `ResumenFinal.tsx` - Vista previa y confirmación
   - `WizardNavigation.tsx` - Navegación entre pasos
   - `ProgressBar.tsx` - Indicador visual de progreso
   - `AddSucursalModal.tsx` - Modal para agregar sucursales
-  - `PresupuestoTable.tsx` - Tabla de ítems del presupuesto
   - `ValidationAlert.tsx` - Alertas de validación
 - ✅ **Datos Mock:** `clientesMock.ts`, `regionesChile.ts`
 - ✅ **Notificaciones:** Toast con Sonner para feedback
@@ -609,11 +609,11 @@ app/portal/presupuesto/
 │   ├── components/            # Componentes del wizard
 │   │   ├── ClienteForm.tsx           # Formulario paso 1: Cliente
 │   │   ├── ProyectoForm.tsx          # Formulario paso 2: Proyecto
-│   │   ├── ResumenFinal.tsx          # Vista paso 3: Resumen
+│   │   ├── PresupuestoTable.tsx      # Formulario paso 3: Ítems
+│   │   ├── ResumenFinal.tsx          # Vista paso 4: Confirmación
 │   │   ├── WizardNavigation.tsx      # Navegación entre pasos
 │   │   ├── ProgressBar.tsx           # Barra de progreso visual
 │   │   ├── AddSucursalModal.tsx      # Modal agregar sucursales
-│   │   ├── PresupuestoTable.tsx      # Tabla de ítems
 │   │   ├── ValidationAlert.tsx       # Alertas de validación
 │   │   └── ADD_SUCURSAL_README.md    # Doc del modal sucursales
 │   └── data/                  # Datos mock
@@ -635,6 +635,34 @@ app/portal/presupuesto/
 └── hooks/
     └── useCotizaciones.ts     # Hook para gestión de cotizaciones
 ```
+
+---
+
+## 🏢 Módulo Maestro de Negocio
+
+### Descripción General
+
+Módulo centralizado para la administración de entidades comerciales y servicios. Permite gestionar la base de datos de contratantes, proveedores y el catálogo de servicios ofrecidos.
+
+**Ubicación:** `app/portal/maestro-negocio/`
+
+### Características del Módulo
+
+#### 1. Contratantes (`/portal/maestro-negocio/contratantes`)
+- ✅ **Gestión de Clientes:** CRUD completo de empresas y personas naturales
+- ✅ **Wizard de Creación:** Proceso guiado para registro de nuevos contratantes
+- ✅ **Validación de RUT:** Algoritmo de validación chileno integrado
+- ✅ **Direcciones Múltiples:** Gestión de sucursales y direcciones por cliente
+
+#### 2. Proveedores (`/portal/maestro-negocio/proveedores`)
+- ✅ **Base de Proveedores:** Registro y gestión de proveedores de servicios/productos
+- ✅ **Categorización:** Clasificación por rubro o tipo de servicio
+- ✅ **Contactos:** Gestión de información de contacto y representantes
+
+#### 3. Servicios (`/portal/maestro-negocio/servicios`)
+- ✅ **Catálogo de Servicios:** Definición de servicios ofrecidos
+- ✅ **Precios y Tarifas:** Gestión de valores unitarios y monedas
+- ✅ **Unidades de Medida:** Configuración de unidades (Hora, Proyecto, etc.)
 
 ### Stack Tecnológico del Módulo
 
