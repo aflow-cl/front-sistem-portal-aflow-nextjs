@@ -77,8 +77,8 @@ export function ServiciosSelectionForm({ initialData = [], onSubmit, onBack }: S
   }
 
   return (
-    <div className="space-y-6">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+    <div className="space-y-3">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 flex items-start gap-2">
         <Package className="w-5 h-5 text-[#244F82] mt-0.5" />
         <div>
           <p className="font-medium text-gray-900">Servicios Contratados</p>
@@ -89,7 +89,7 @@ export function ServiciosSelectionForm({ initialData = [], onSubmit, onBack }: S
       </div>
 
       {/* Lista de Servicios */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         {serviciosActivos.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
             <Package className="w-12 h-12 mx-auto mb-3 text-gray-300" />
@@ -108,7 +108,7 @@ export function ServiciosSelectionForm({ initialData = [], onSubmit, onBack }: S
                   isSelected ? "border-[#244F82] bg-blue-50" : "border-gray-200"
                 }`}
               >
-                <CardContent className="p-4">
+                <CardContent className="p-2">
                   <div className="flex items-start gap-3">
                     <Checkbox
                       checked={isSelected}
@@ -145,7 +145,7 @@ export function ServiciosSelectionForm({ initialData = [], onSubmit, onBack }: S
 
                       {/* Plan Selection */}
                       {isSelected && isExpanded && (
-                        <div className="mt-4 pt-4 border-t">
+                        <div className="mt-2 pt-2 border-t">
                           <p className="text-sm font-medium text-gray-700 mb-3">
                             Seleccionar Plan Tarifario
                           </p>
@@ -194,7 +194,7 @@ export function ServiciosSelectionForm({ initialData = [], onSubmit, onBack }: S
 
                       {/* Quick Plan Display */}
                       {isSelected && !isExpanded && selectedData && (
-                        <div className="mt-3 flex items-center gap-2">
+                        <div className="mt-2 flex items-center gap-2">
                           <span className="text-sm text-gray-600">Plan seleccionado:</span>
                           <Badge className="bg-[#244F82] text-white">
                             {selectedData.planSeleccionado}
@@ -212,7 +212,7 @@ export function ServiciosSelectionForm({ initialData = [], onSubmit, onBack }: S
 
       {/* Resumen de Selección */}
       {selectedServicios.length > 0 && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-2">
           <p className="font-medium text-gray-900 mb-2">
             Servicios Seleccionados: {selectedServicios.length}
           </p>
@@ -230,7 +230,7 @@ export function ServiciosSelectionForm({ initialData = [], onSubmit, onBack }: S
       )}
 
       {/* Botones de Navegación */}
-      <div className="flex justify-between pt-4 border-t">
+      <div className="flex justify-between pt-2 border-t mt-2 gap-2">
         <Button type="button" variant="outline" onClick={onBack}>
           Atrás
         </Button>

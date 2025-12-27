@@ -14,30 +14,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useMemo } from "react";
+import { regionesChile } from "../../../presupuesto/crear/data/regionesChile";
 import type { SucursalData } from "../../types/ajustes";
 
-const REGIONES_CHILE = [
-  "Arica y Parinacota",
-  "Tarapacá",
-  "Antofagasta",
-  "Atacama",
-  "Coquimbo",
-  "Valparaíso",
-  "Metropolitana",
-  "O'Higgins",
-  "Maule",
-  "Ñuble",
-  "Biobío",
-  "Araucanía",
-  "Los Ríos",
-  "Los Lagos",
-  "Aysén",
-  "Magallanes",
-];
+// REGIONES_CHILE replaced by regionesChile import
 
 const sucursalSchema = z.object({
   nombre: z.string().min(1, "Nombre de sucursal es requerido"),
   direccion: z.string().min(1, "Dirección es requerida"),
+  numero: z.string().optional(),
+  complemento: z.string().optional(),
   region: z.string().min(1, "Región es requerida"),
   comuna: z.string().min(1, "Comuna es requerida"),
   telefono: z.string().min(1, "Teléfono es requerido"),
@@ -65,6 +52,8 @@ export function SucursalForm({ initialData, clienteNombre, onSubmit, onBack }: S
     defaultValues: initialData || {
       nombre: clienteNombre ? `${clienteNombre} - Casa Matriz` : "Casa Matriz",
       direccion: "",
+      numero: "",
+      complemento: "",
       region: "",
       comuna: "",
       telefono: "",
@@ -73,14 +62,26 @@ export function SucursalForm({ initialData, clienteNombre, onSubmit, onBack }: S
   });
 
   const watchRegion = watch("region");
+  const watchComuna = watch("comuna");
+
+  // Find selected region object
+  const selectedRegion = useMemo(() =>
+    regionesChile.find(r => r.nombre === watchRegion),
+    [watchRegion]
+  );
+  // Flatten all comunas in the region
+  const comunasOptions = useMemo(() => {
+    if (!selectedRegion) return [];
+    return selectedRegion.ciudades.flatMap(c => c.comunas);
+  }, [selectedRegion]);
 
   const handleFormSubmit = (data: SucursalFormValues) => {
     onSubmit(data);
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-3">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 flex items-start gap-2">
         <Building className="w-5 h-5 text-[#244F82] mt-0.5" />
         <div>
           <p className="font-medium text-gray-900">Sucursal Principal</p>
@@ -104,35 +105,56 @@ export function SucursalForm({ initialData, clienteNombre, onSubmit, onBack }: S
         )}
       </div>
 
-      {/* Dirección */}
-      <div>
-        <Label htmlFor="direccion">Dirección *</Label>
-        <Input
-          id="direccion"
-          {...register("direccion")}
-          placeholder="Av. Libertador Bernardo O'Higgins 123"
-          className={errors.direccion ? "border-red-500" : ""}
-        />
-        {errors.direccion && (
-          <p className="text-sm text-red-600 mt-1">{errors.direccion.message}</p>
-        )}
+      {/* Dirección, Número y Complemento */}
+      <div className="grid grid-cols-12 gap-2">
+        <div className="col-span-12 md:col-span-6">
+          <Label htmlFor="direccion">Dirección *</Label>
+          <Input
+            id="direccion"
+            {...register("direccion")}
+            placeholder="Av. Libertador Bernardo O'Higgins"
+            className={errors.direccion ? "border-red-500" : ""}
+          />
+          {errors.direccion && (
+            <p className="text-sm text-red-600 mt-1">{errors.direccion.message}</p>
+          )}
+        </div>
+        <div className="col-span-12 md:col-span-2">
+          <Label htmlFor="numero">Número</Label>
+          <Input
+            id="numero"
+            {...register("numero")}
+            placeholder="123"
+          />
+        </div>
+        <div className="col-span-12 md:col-span-4">
+          <Label htmlFor="complemento">Complemento</Label>
+          <Input
+            id="complemento"
+            {...register("complemento")}
+            placeholder="Depto, Oficina, etc."
+          />
+        </div>
       </div>
 
       {/* Región y Comuna */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div>
           <Label htmlFor="region">Región *</Label>
           <Select
             value={watchRegion}
-            onValueChange={(value) => setValue("region", value)}
+            onValueChange={(value) => {
+              setValue("region", value);
+              setValue("comuna", ""); // Reset comuna when region changes
+            }}
           >
             <SelectTrigger id="region" className={errors.region ? "border-red-500" : ""}>
               <SelectValue placeholder="Seleccionar región" />
             </SelectTrigger>
             <SelectContent>
-              {REGIONES_CHILE.map((region) => (
-                <SelectItem key={region} value={region}>
-                  {region}
+              {regionesChile.map((region) => (
+                <SelectItem key={region.nombre} value={region.nombre}>
+                  {region.nombre}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -144,24 +166,30 @@ export function SucursalForm({ initialData, clienteNombre, onSubmit, onBack }: S
 
         <div>
           <Label htmlFor="comuna">Comuna *</Label>
-          <Input
-            id="comuna"
-            {...register("comuna")}
-            placeholder="Santiago"
-            className={errors.comuna ? "border-red-500" : ""}
-            disabled={!watchRegion}
-          />
+          <Select
+            value={watchComuna}
+            onValueChange={(value) => setValue("comuna", value)}
+            disabled={!watchRegion || comunasOptions.length === 0}
+          >
+            <SelectTrigger id="comuna" className={errors.comuna ? "border-red-500" : ""}>
+              <SelectValue placeholder={watchRegion ? "Seleccionar comuna" : "Selecciona primero una región"} />
+            </SelectTrigger>
+            <SelectContent>
+              {comunasOptions.map((comuna) => (
+                <SelectItem key={comuna} value={comuna}>
+                  {comuna}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {errors.comuna && (
             <p className="text-sm text-red-600 mt-1">{errors.comuna.message}</p>
-          )}
-          {!watchRegion && (
-            <p className="text-xs text-gray-500 mt-1">Selecciona primero una región</p>
           )}
         </div>
       </div>
 
       {/* Contacto */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div>
           <Label htmlFor="telefono">Teléfono *</Label>
           <Input
@@ -191,7 +219,7 @@ export function SucursalForm({ initialData, clienteNombre, onSubmit, onBack }: S
       </div>
 
       {/* Botones de Navegación */}
-      <div className="flex justify-between pt-4 border-t">
+      <div className="flex justify-between pt-2 border-t mt-2 gap-2">
         <Button type="button" variant="outline" onClick={onBack}>
           Atrás
         </Button>

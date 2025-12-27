@@ -32,9 +32,9 @@ import type {
   ClienteWizardData,
   ClienteBasicData,
   SucursalData,
-  UsuarioData,
   ServicioSeleccionado,
 } from "../../types/ajustes";
+import type { UsuarioFormValues } from "./UsuarioForm";
 
 const WIZARD_STEPS: WizardStep[] = [
   { id: 0, title: "Cliente", description: "Datos básicos" },
@@ -116,8 +116,20 @@ export function ClienteWizardModal({ open, onOpenChange }: ClienteWizardModalPro
   };
 
   // Step 3: Usuario
-  const handleUsuarioSubmit = (data: UsuarioData) => {
-    setWizardData((prev) => ({ ...prev, usuario: data }));
+  const handleUsuarioSubmit = (data: UsuarioFormValues) => {
+    // Transformar los campos del formulario a UsuarioData
+    const nombre = [data.primerNombre, data.segundoNombre].filter(Boolean).join(" ");
+    const apellido = [data.apellidoPaterno, data.apellidoMaterno].filter(Boolean).join(" ");
+    const usuarioData = {
+      nombre,
+      apellido,
+      email: data.email,
+      telefono: data.telefono,
+      perfilId: data.perfilId,
+      rut: data.rut,
+      clave: data.clave,
+    };
+    setWizardData((prev) => ({ ...prev, usuario: usuarioData }));
     setCurrentStep(3);
     toast.success("Datos de usuario guardados");
   };

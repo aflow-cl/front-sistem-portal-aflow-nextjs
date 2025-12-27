@@ -41,7 +41,7 @@ import {
   toggleUsuarioStatus,
   addHistorialAccion,
 } from "../../../api/ajustesService";
-import { UsuarioForm } from "../UsuarioForm";
+import { UsuarioForm, type UsuarioFormValues } from "../UsuarioForm";
 
 interface UsuariosManagerProps {
   cliente: Cliente;
@@ -139,11 +139,23 @@ export function UsuariosManager({ cliente, onUpdate }: UsuariosManagerProps) {
     setIsFormOpen(true);
   };
 
-  const handleSubmit = (data: UsuarioData) => {
+  const handleSubmit = (data: UsuarioFormValues) => {
+    // Transformar los campos del formulario a UsuarioData
+    const nombre = [data.primerNombre, data.segundoNombre].filter(Boolean).join(" ");
+    const apellido = [data.apellidoPaterno, data.apellidoMaterno].filter(Boolean).join(" ");
+    const usuarioData: UsuarioData = {
+      nombre,
+      apellido,
+      email: data.email,
+      telefono: data.telefono,
+      perfilId: data.perfilId,
+      rut: data.rut,
+      clave: data.clave,
+    };
     if (editingUsuario) {
-      updateMutation.mutate({ id: editingUsuario.id, data });
+      updateMutation.mutate({ id: editingUsuario.id, data: usuarioData });
     } else {
-      addMutation.mutate(data);
+      addMutation.mutate(usuarioData);
     }
   };
 
@@ -287,6 +299,8 @@ export function UsuariosManager({ cliente, onUpdate }: UsuariosManagerProps) {
                     email: editingUsuario.email,
                     telefono: editingUsuario.telefono,
                     perfilId: editingUsuario.perfilId,
+                    rut: "",
+                    clave: "", // No se puede recuperar la clave original
                   }
                 : null
             }

@@ -8,6 +8,9 @@ import {
   X,
   AlertCircle,
   History,
+  Users,
+  Store,
+  Briefcase,
 } from "lucide-react";
 import {
   Dialog,
@@ -35,7 +38,6 @@ import {
   GeneralTab,
   SucursalesManager,
   UsuariosManager,
-  PerfilesManager,
   ServiciosManager,
   HistorialAcciones,
 } from "./edit";
@@ -121,7 +123,7 @@ export function EditClienteModal({
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2 w-full">
               <DialogTitle className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#244F82] to-[#0c3b64] flex items-center justify-center">
                   <Building2 className="w-5 h-5 text-white" />
@@ -133,9 +135,9 @@ export function EditClienteModal({
                   </p>
                 </div>
               </DialogTitle>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto mt-2">
                 {hasChanges && (
-                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
+                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300 justify-center sm:justify-start">
                     <AlertCircle className="w-3 h-3 mr-1" />
                     Cambios sin guardar
                   </Badge>
@@ -143,7 +145,7 @@ export function EditClienteModal({
                 <Button
                   onClick={handleSave}
                   disabled={!hasChanges || isSaving}
-                  className="bg-[#244F82] hover:bg-[#0c3b64]"
+                  className="bg-[#244F82] hover:bg-[#0c3b64] w-full sm:w-auto"
                   size="sm"
                 >
                   <Save className="w-4 h-4 mr-2" />
@@ -153,6 +155,7 @@ export function EditClienteModal({
                   onClick={handleClose}
                   variant="outline"
                   size="sm"
+                  className="w-full sm:w-auto"
                 >
                   <X className="w-4 h-4 mr-2" />
                   Cerrar
@@ -166,21 +169,26 @@ export function EditClienteModal({
             onValueChange={setActiveTab}
             className="flex-1 flex flex-col overflow-hidden"
           >
-            <TabsList className="grid w-full grid-cols-6 flex-shrink-0">
-              <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="sucursales">
-                Sucursales ({cliente.sucursales.length})
+            <TabsList className="grid w-full grid-cols-5 flex-shrink-0">
+              <TabsTrigger value="general" className="flex flex-row items-center justify-center text-center gap-2">
+                <Building2 className="w-5 h-5" />
+                <span className="hidden sm:inline text-center">General</span>
               </TabsTrigger>
-              <TabsTrigger value="usuarios">
-                Usuarios ({cliente.usuarios.length})
+              <TabsTrigger value="sucursales" className="flex flex-row items-center justify-center text-center gap-2">
+                <Store className="w-5 h-5" />
+                <span className="hidden sm:inline text-center">Sucursales ({cliente.sucursales.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="perfiles">Perfiles</TabsTrigger>
-              <TabsTrigger value="servicios">
-                Servicios ({cliente.serviciosContratados.length})
+              <TabsTrigger value="usuarios" className="flex flex-row items-center justify-center text-center gap-2">
+                <Users className="w-5 h-5" />
+                <span className="hidden sm:inline text-center">Usuarios ({cliente.usuarios.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="historial">
-                <History className="w-4 h-4 mr-1" />
-                Historial
+              <TabsTrigger value="servicios" className="flex flex-row items-center justify-center text-center gap-2">
+                <Briefcase className="w-5 h-5" />
+                <span className="hidden sm:inline text-center">Servicios ({cliente.serviciosContratados.length})</span>
+              </TabsTrigger>
+              <TabsTrigger value="historial" className="flex flex-row items-center justify-center text-center gap-2">
+                <History className="w-5 h-5" />
+                <span className="hidden sm:inline text-center">Historial</span>
               </TabsTrigger>
             </TabsList>
 
@@ -207,16 +215,6 @@ export function EditClienteModal({
 
               <TabsContent value="usuarios" className="mt-0">
                 <UsuariosManager
-                  cliente={cliente}
-                  onUpdate={() => {
-                    setHasChanges(true);
-                    queryClient.invalidateQueries({ queryKey: ["clientes"] });
-                  }}
-                />
-              </TabsContent>
-
-              <TabsContent value="perfiles" className="mt-0">
-                <PerfilesManager
                   cliente={cliente}
                   onUpdate={() => {
                     setHasChanges(true);

@@ -21,18 +21,22 @@ import { fetchPerfiles } from "../../api/ajustesService";
 import type { UsuarioData } from "../../types/ajustes";
 
 const usuarioSchema = z.object({
-  nombre: z.string().min(1, "Nombre es requerido"),
-  apellido: z.string().min(1, "Apellido es requerido"),
+  primerNombre: z.string().min(1, "Primer nombre es requerido"),
+  segundoNombre: z.string().optional(),
+  apellidoPaterno: z.string().min(1, "Apellido paterno es requerido"),
+  apellidoMaterno: z.string().optional(),
+  rut: z.string().optional(),
+  clave: z.string().min(8, "La clave debe tener 8 caracteres").max(8, "La clave debe tener 8 caracteres"),
   email: z.string().email("Email inválido"),
   telefono: z.string().min(1, "Teléfono es requerido"),
   perfilId: z.string().min(1, "Perfil es requerido"),
 });
 
-type UsuarioFormValues = z.infer<typeof usuarioSchema>;
+export type UsuarioFormValues = z.infer<typeof usuarioSchema>;
 
 interface UsuarioFormProps {
   initialData?: UsuarioData | null;
-  onSubmit: (data: UsuarioData) => void;
+  onSubmit: (data: UsuarioFormValues) => void;
   onBack: () => void;
 }
 
@@ -46,13 +50,34 @@ export function UsuarioForm({ initialData, onSubmit, onBack }: UsuarioFormProps)
   } = useForm<UsuarioFormValues>({
     resolver: zodResolver(usuarioSchema),
     defaultValues: initialData || {
-      nombre: "",
-      apellido: "",
+      primerNombre: "",
+      segundoNombre: "",
+      apellidoPaterno: "",
+      apellidoMaterno: "",
+      rut: "",
+      clave: "", // Se asignará en useEffect
       email: "",
       telefono: "",
       perfilId: "",
     },
   });
+
+  // Asignar clave aleatoria por defecto al montar si no hay valor
+  useEffect(() => {
+    if (!initialData?.clave) {
+      setValue("clave", generarClaveAleatoria());
+    }
+  }, [initialData, setValue]);
+
+  // Función para generar clave aleatoria alfanumérica de 8 caracteres
+  function generarClaveAleatoria() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let clave = '';
+    for (let i = 0; i < 8; i++) {
+      clave += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return clave;
+  }
 
   const { data: perfiles, isLoading: isLoadingPerfiles } = useQuery({
     queryKey: ["perfiles"],
@@ -76,8 +101,8 @@ export function UsuarioForm({ initialData, onSubmit, onBack }: UsuarioFormProps)
   const selectedPerfil = perfiles?.find((p) => p.id === watchPerfilId);
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-3">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 flex items-start gap-2">
         <UserPlus className="w-5 h-5 text-[#244F82] mt-0.5" />
         <div>
           <p className="font-medium text-gray-900">Usuario Principal</p>
@@ -87,37 +112,86 @@ export function UsuarioForm({ initialData, onSubmit, onBack }: UsuarioFormProps)
         </div>
       </div>
 
-      {/* Nombre y Apellido */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      {/* Nombres y Apellidos */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div>
-          <Label htmlFor="nombre">Nombre *</Label>
+          <Label htmlFor="primerNombre">Primer Nombre *</Label>
           <Input
-            id="nombre"
-            {...register("nombre")}
+            id="primerNombre"
+            {...register("primerNombre")}
             placeholder="Juan"
-            className={errors.nombre ? "border-red-500" : ""}
+            className={errors.primerNombre ? "border-red-500" : ""}
           />
-          {errors.nombre && (
-            <p className="text-sm text-red-600 mt-1">{errors.nombre.message}</p>
+          {errors.primerNombre && (
+            <p className="text-sm text-red-600 mt-1">{errors.primerNombre.message}</p>
           )}
         </div>
-
         <div>
-          <Label htmlFor="apellido">Apellido *</Label>
+          <Label htmlFor="segundoNombre">Segundo Nombre</Label>
           <Input
-            id="apellido"
-            {...register("apellido")}
-            placeholder="García"
-            className={errors.apellido ? "border-red-500" : ""}
+            id="segundoNombre"
+            {...register("segundoNombre")}
+            placeholder="Carlos (opcional)"
+            className={errors.segundoNombre ? "border-red-500" : ""}
           />
-          {errors.apellido && (
-            <p className="text-sm text-red-600 mt-1">{errors.apellido.message}</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <div>
+          <Label htmlFor="apellidoPaterno">Apellido Paterno *</Label>
+          <Input
+            id="apellidoPaterno"
+            {...register("apellidoPaterno")}
+            placeholder="García"
+            className={errors.apellidoPaterno ? "border-red-500" : ""}
+          />
+          {errors.apellidoPaterno && (
+            <p className="text-sm text-red-600 mt-1">{errors.apellidoPaterno.message}</p>
           )}
+        </div>
+        <div>
+          <Label htmlFor="apellidoMaterno">Apellido Materno</Label>
+          <Input
+            id="apellidoMaterno"
+            {...register("apellidoMaterno")}
+            placeholder="López (opcional)"
+            className={errors.apellidoMaterno ? "border-red-500" : ""}
+          />
+        </div>
+      </div>
+
+      {/* Rut y Clave */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <div>
+          <Label htmlFor="rut">RUT</Label>
+          <Input
+            id="rut"
+            {...register("rut")}
+            placeholder="12.345.678-9 (opcional)"
+            className={errors.rut ? "border-red-500" : ""}
+          />
+        </div>
+        <div>
+          <Label htmlFor="clave">Clave *</Label>
+          <Input
+            id="clave"
+            {...register("clave")}
+            placeholder="Clave autogenerada"
+            className={errors.clave ? "border-red-500" : ""}
+            maxLength={8}
+            minLength={8}
+            autoComplete="off"
+          />
+          {errors.clave && (
+            <p className="text-sm text-red-600 mt-1">{errors.clave.message}</p>
+          )}
+          <p className="text-xs text-gray-500 mt-1">La clave debe ser alfanumérica de 8 caracteres</p>
         </div>
       </div>
 
       {/* Email y Teléfono */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div>
           <Label htmlFor="email">Email *</Label>
           <Input
@@ -182,7 +256,7 @@ export function UsuarioForm({ initialData, onSubmit, onBack }: UsuarioFormProps)
               <p className="text-sm text-red-600 mt-1">{errors.perfilId.message}</p>
             )}
             {selectedPerfil && (
-              <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+              <div className="mt-2 p-2 bg-gray-50 rounded-lg">
                 <p className="text-sm font-medium text-gray-900">{selectedPerfil.nombre}</p>
                 <p className="text-xs text-gray-600 mt-1">{selectedPerfil.descripcion}</p>
                 <div className="flex items-center gap-2 mt-2">
@@ -198,7 +272,7 @@ export function UsuarioForm({ initialData, onSubmit, onBack }: UsuarioFormProps)
       </div>
 
       {/* Botones de Navegación */}
-      <div className="flex justify-between pt-4 border-t">
+      <div className="flex justify-between pt-2 border-t mt-2 gap-2">
         <Button type="button" variant="outline" onClick={onBack}>
           Atrás
         </Button>

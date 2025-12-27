@@ -15,8 +15,10 @@ const clienteBasicSchema = z.object({
   tipoPersona: z.enum(["persona-natural", "empresa"]),
   rut: z.string().min(1, "RUT es requerido"),
   // Persona Natural
-  nombres: z.string().optional(),
-  apellidos: z.string().optional(),
+  primerNombre: z.string().optional(),
+  segundoNombre: z.string().optional(),
+  apellidoPaterno: z.string().optional(),
+  apellidoMaterno: z.string().optional(),
   // Empresa
   razonSocial: z.string().optional(),
   nombreFantasia: z.string().optional(),
@@ -25,16 +27,17 @@ const clienteBasicSchema = z.object({
   telefono: z.string().min(1, "Teléfono es requerido"),
   email: z.string().email("Email inválido"),
   sitioWeb: z.string().optional(),
+    nombreContacto: z.string().min(1, "Nombre completo de contacto es requerido"),
 }).refine(
   (data) => {
     if (data.tipoPersona === "persona-natural") {
-      return !!data.nombres && !!data.apellidos;
+      return !!data.primerNombre && !!data.apellidoPaterno;
     }
     return true;
   },
   {
-    message: "Nombres y apellidos son requeridos para persona natural",
-    path: ["nombres"],
+    message: "Primer nombre y apellido paterno son requeridos para persona natural",
+    path: ["primerNombre"],
   }
 ).refine(
   (data) => {
@@ -81,6 +84,7 @@ export function ClienteBasicForm({ initialData, onSubmit, onBack }: ClienteBasic
       rut: "",
       telefono: "",
       email: "",
+      nombreContacto: "",
     },
   });
 
@@ -98,8 +102,8 @@ export function ClienteBasicForm({ initialData, onSubmit, onBack }: ClienteBasic
   const handleFormSubmit = (data: ClienteBasicFormValues) => {
     // Validación adicional
     if (data.tipoPersona === "persona-natural") {
-      if (!data.nombres || !data.apellidos) {
-        toast.error("Nombres y apellidos son requeridos para persona natural");
+      if (!data.primerNombre || !data.apellidoPaterno) {
+        toast.error("Primer nombre y apellido paterno son requeridos para persona natural");
         return;
       }
     } else {
@@ -108,14 +112,13 @@ export function ClienteBasicForm({ initialData, onSubmit, onBack }: ClienteBasic
         return;
       }
     }
-
     onSubmit(data as ClienteBasicData);
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-2 p-2">
       {/* Selector de Tipo de Persona */}
-      <div className="bg-white border border-gray-200 rounded-lg p-1">
+      <div className="bg-white border border-gray-200 rounded-lg p-0.5 mb-1">
         <TipoPersonaSelector
           value={tipoPersona}
           onValueChange={(value) => {
@@ -127,7 +130,7 @@ export function ClienteBasicForm({ initialData, onSubmit, onBack }: ClienteBasic
       </div>
 
       {/* RUT */}
-      <div>
+      <div className="mt-0 mb-1">
         <Label htmlFor="rut">RUT *</Label>
         <Input
           id="rut"
@@ -146,29 +149,55 @@ export function ClienteBasicForm({ initialData, onSubmit, onBack }: ClienteBasic
       {/* Campos Persona Natural */}
       {tipoPersona === "persona-natural" && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
             <div>
-              <Label htmlFor="nombres">Nombres *</Label>
+              <Label htmlFor="primerNombre">Primer Nombre *</Label>
               <Input
-                id="nombres"
-                {...register("nombres")}
-                placeholder="Juan Carlos"
-                className={errors.nombres ? "border-red-500" : ""}
+                id="primerNombre"
+                {...register("primerNombre")}
+                placeholder="Juan"
+                className={errors.primerNombre ? "border-red-500" : ""}
               />
-              {errors.nombres && (
-                <p className="text-sm text-red-600 mt-1">{errors.nombres.message}</p>
+              {errors.primerNombre && (
+                <p className="text-sm text-red-600 mt-1">{errors.primerNombre.message}</p>
               )}
             </div>
             <div>
-              <Label htmlFor="apellidos">Apellidos *</Label>
+              <Label htmlFor="segundoNombre">Segundo Nombre</Label>
               <Input
-                id="apellidos"
-                {...register("apellidos")}
-                placeholder="García López"
-                className={errors.apellidos ? "border-red-500" : ""}
+                id="segundoNombre"
+                {...register("segundoNombre")}
+                placeholder="Carlos"
+                className={errors.segundoNombre ? "border-red-500" : ""}
               />
-              {errors.apellidos && (
-                <p className="text-sm text-red-600 mt-1">{errors.apellidos.message}</p>
+              {errors.segundoNombre && (
+                <p className="text-sm text-red-600 mt-1">{errors.segundoNombre.message}</p>
+              )}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-1 mt-1">
+            <div>
+              <Label htmlFor="apellidoPaterno">Apellido Paterno *</Label>
+              <Input
+                id="apellidoPaterno"
+                {...register("apellidoPaterno")}
+                placeholder="García"
+                className={errors.apellidoPaterno ? "border-red-500" : ""}
+              />
+              {errors.apellidoPaterno && (
+                <p className="text-sm text-red-600 mt-1">{errors.apellidoPaterno.message}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="apellidoMaterno">Apellido Materno</Label>
+              <Input
+                id="apellidoMaterno"
+                {...register("apellidoMaterno")}
+                placeholder="López"
+                className={errors.apellidoMaterno ? "border-red-500" : ""}
+              />
+              {errors.apellidoMaterno && (
+                <p className="text-sm text-red-600 mt-1">{errors.apellidoMaterno.message}</p>
               )}
             </div>
           </div>
@@ -178,7 +207,7 @@ export function ClienteBasicForm({ initialData, onSubmit, onBack }: ClienteBasic
       {/* Campos Empresa */}
       {tipoPersona === "empresa" && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
             <div>
               <Label htmlFor="razonSocial">Razón Social *</Label>
               <Input
@@ -216,7 +245,7 @@ export function ClienteBasicForm({ initialData, onSubmit, onBack }: ClienteBasic
       )}
 
       {/* Campos Comunes */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
         <div>
           <Label htmlFor="telefono">Teléfono *</Label>
           <Input
@@ -241,20 +270,36 @@ export function ClienteBasicForm({ initialData, onSubmit, onBack }: ClienteBasic
           {errors.email && (
             <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>
           )}
+          {/* Nombre completo de contacto */}
+          {/* Nombre completo de contacto y sitio web en la misma fila */}
         </div>
       </div>
 
-      <div>
-        <Label htmlFor="sitioWeb">Sitio Web</Label>
-        <Input
-          id="sitioWeb"
-          {...register("sitioWeb")}
-          placeholder="www.ejemplo.cl"
-        />
+      <div className="grid grid-cols-12 gap-1 mt-1 mb-1">
+        <div className="col-span-6">
+          <Label htmlFor="nombreContacto">Nombre completo de contacto *</Label>
+          <Input
+            id="nombreContacto"
+            {...register("nombreContacto")}
+            placeholder="Ej: Juan Pérez"
+            className={errors.nombreContacto ? "border-red-500" : ""}
+          />
+          {errors.nombreContacto && (
+            <p className="text-sm text-red-600 mt-1">{errors.nombreContacto.message}</p>
+          )}
+        </div>
+        <div className="col-span-6">
+          <Label htmlFor="sitioWeb">Sitio Web</Label>
+          <Input
+            id="sitioWeb"
+            {...register("sitioWeb")}
+            placeholder="www.ejemplo.cl"
+          />
+        </div>
       </div>
-
+     
       {/* Botones de Navegación */}
-      <div className="flex justify-between pt-4 border-t">
+      <div className="flex justify-between pt-1 border-t mt-1 gap-1">
         {onBack && (
           <Button type="button" variant="outline" onClick={onBack}>
             Cancelar

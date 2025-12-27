@@ -21,7 +21,7 @@ const generalSchema = z.object({
   email: z.string().email("Email inválido"),
   sitioWeb: z.string().optional(),
   contactoPrincipal: z.string().min(1, "Contacto principal es requerido"),
-  emailContacto: z.string().email("Email de contacto inválido"),
+  // emailContacto eliminado
 });
 
 type GeneralFormValues = z.infer<typeof generalSchema>;
@@ -30,25 +30,6 @@ interface GeneralTabProps {
   cliente: Cliente;
   onUpdate: (data: Partial<Cliente>) => void;
 }
-
-const REGIONES_CHILE = [
-  "Arica y Parinacota",
-  "Tarapacá",
-  "Antofagasta",
-  "Atacama",
-  "Coquimbo",
-  "Valparaíso",
-  "Metropolitana",
-  "O'Higgins",
-  "Maule",
-  "Ñuble",
-  "Biobío",
-  "Araucanía",
-  "Los Ríos",
-  "Los Lagos",
-  "Aysén",
-  "Magallanes",
-];
 
 export function GeneralTab({ cliente, onUpdate }: GeneralTabProps) {
   const {
@@ -69,7 +50,7 @@ export function GeneralTab({ cliente, onUpdate }: GeneralTabProps) {
       email: cliente.email,
       sitioWeb: cliente.sitioWeb || "",
       contactoPrincipal: cliente.contactoPrincipal,
-      emailContacto: cliente.emailContacto,
+      // emailContacto eliminado
     },
   });
 
@@ -78,17 +59,17 @@ export function GeneralTab({ cliente, onUpdate }: GeneralTabProps) {
   };
 
   return (
-    <form onBlur={handleSubmit(onSubmit)} className="space-y-6">
+    <form onBlur={handleSubmit(onSubmit)} className="space-y-3 pt-2 pb-2 mt-1 mb-1">
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center justify-between">
+        <CardHeader className="pt-2 pb-2">
+          <CardTitle className="text-base flex items-center justify-between mt-0 mb-0">
             Información General
             <Badge variant={cliente.activo ? "default" : "outline"}>
               {cliente.activo ? "Activo" : "Inactivo"}
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-2 pt-2 pb-2">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="rut">RUT *</Label>
@@ -134,64 +115,10 @@ export function GeneralTab({ cliente, onUpdate }: GeneralTabProps) {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Ubicación</CardTitle>
+        <CardHeader className="pt-2 pb-2">
+          <CardTitle className="text-base mt-0 mb-0">Contacto</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="direccion">Dirección *</Label>
-            <Input
-              id="direccion"
-              {...register("direccion")}
-              className={errors.direccion ? "border-red-500" : ""}
-            />
-            {errors.direccion && (
-              <p className="text-xs text-red-500 mt-1">
-                {errors.direccion.message}
-              </p>
-            )}
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="region">Región *</Label>
-              <select
-                id="region"
-                {...register("region")}
-                className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background ${
-                  errors.region ? "border-red-500" : ""
-                }`}
-              >
-                <option value="">Seleccionar región</option>
-                {REGIONES_CHILE.map((region) => (
-                  <option key={region} value={region}>
-                    {region}
-                  </option>
-                ))}
-              </select>
-              {errors.region && (
-                <p className="text-xs text-red-500 mt-1">{errors.region.message}</p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="comuna">Comuna *</Label>
-              <Input
-                id="comuna"
-                {...register("comuna")}
-                className={errors.comuna ? "border-red-500" : ""}
-              />
-              {errors.comuna && (
-                <p className="text-xs text-red-500 mt-1">{errors.comuna.message}</p>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Contacto</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-2 pt-2 pb-2">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="telefono">Teléfono *</Label>
@@ -241,18 +168,7 @@ export function GeneralTab({ cliente, onUpdate }: GeneralTabProps) {
               )}
             </div>
             <div className="col-span-2">
-              <Label htmlFor="emailContacto">Email Contacto *</Label>
-              <Input
-                id="emailContacto"
-                type="email"
-                {...register("emailContacto")}
-                className={errors.emailContacto ? "border-red-500" : ""}
-              />
-              {errors.emailContacto && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.emailContacto.message}
-                </p>
-              )}
+              {/* Email Contacto eliminado */}
             </div>
           </div>
         </CardContent>

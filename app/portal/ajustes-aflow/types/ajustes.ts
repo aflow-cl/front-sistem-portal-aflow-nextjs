@@ -119,6 +119,8 @@ export interface UsuarioData {
   email: string;
   telefono: string;
   perfilId: string;
+  rut?: string;
+  clave: string;
 }
 
 export interface ServicioSeleccionado {
