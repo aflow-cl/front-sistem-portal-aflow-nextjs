@@ -1,10 +1,19 @@
 import { UseFormReturn } from 'react-hook-form';
-import { FileText, CheckCircle2, Download, Building2, Calendar, DollarSign, MapPin } from 'lucide-react';
+import { FileText, CheckCircle2, Download, Building2, Calendar, DollarSign, MapPin, Settings } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { regionesChile } from '../data/regionesChile';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface FormItem {
   tipo?: string;
@@ -55,6 +64,9 @@ export function ResumenFinal({ form, folio }: ResumenFinalProps) {
   const clienteData = useMemo(() => (formData.cliente || {}) as ClienteData, [formData.cliente]);
   const proyecto = (formData.proyecto || {}) as ProyectoData;
 
+  const [hideValues, setHideValues] = useState(false);
+  const [downloadScope, setDownloadScope] = useState('todo');
+
   // Generate client display name
   const clienteName = useMemo(() => {
     if (clienteData.tipoPersona === 'persona-natural') {
@@ -73,7 +85,7 @@ export function ResumenFinal({ form, folio }: ResumenFinalProps) {
   // Calculate totals from items
   const totales = useMemo(() => {
     const items = (formData.items || []) as FormItem[];
-    
+
     let valorNeto = 0;
     let totalUtilidad = 0;
     let countUtilidad = 0;
@@ -182,7 +194,7 @@ export function ResumenFinal({ form, folio }: ResumenFinalProps) {
               <Badge className={`${clienteData.estado === 'Activo' ? 'bg-green-500' : 'bg-gray-400'} text-white`}>
                 {clienteData.estado || 'N/A'}
               </Badge>
-            </div>            
+            </div>
             {/* Sucursal Information */}
             {clienteData.sucursalNombre && (
               <div className="md:col-span-2 bg-blue-50 rounded-lg p-4 border border-blue-200">
@@ -203,7 +215,7 @@ export function ResumenFinal({ form, folio }: ResumenFinalProps) {
                 </p>
               </div>
             )}
-                        <div>
+            <div>
               <p className="text-xs text-gray-600 mb-1">Región</p>
               <p className="text-sm font-semibold text-gray-900">
                 {regionNombre}
@@ -309,6 +321,40 @@ export function ResumenFinal({ form, folio }: ResumenFinalProps) {
               <span className="text-xl font-bold text-white">
                 ${totales.total.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
               </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Download Options */}
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+          <h3 className="flex items-center gap-2 text-base font-semibold text-gray-800 mb-3">
+            <Settings className="w-5 h-5 text-[#003366]" />
+            Opciones de Descarga
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="hide-values"
+                checked={hideValues}
+                onCheckedChange={(checked) => setHideValues(checked as boolean)}
+              />
+              <Label htmlFor="hide-values" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Ocultar valores monetarios (Valor / Sin Valor)
+              </Label>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="download-scope" className="text-sm font-medium">Alcance del Documento</Label>
+              <Select value={downloadScope} onValueChange={setDownloadScope}>
+                <SelectTrigger id="download-scope" className="w-full">
+                  <SelectValue placeholder="Seleccione alcance" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todo">Todo (Completo)</SelectItem>
+                  <SelectItem value="solo-items">Solo Ítems</SelectItem>
+                  <SelectItem value="basico">Básico (Resumen)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>

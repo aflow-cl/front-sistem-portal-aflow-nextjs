@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, Plus, Edit, Trash2, Star, Phone, Mail } from "lucide-react";
-import { Contratante, Direccion, getDisplayName } from "../../types/maestroNegocio";
+import { Contratante, Direccion, getDisplayName, CreateDireccionInput } from "../../types/maestroNegocio";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DireccionForm, DireccionFormValues } from "./DireccionForm";
 import { createDireccion, updateDireccion, deleteDireccion } from "../../api/maestroService";
@@ -50,7 +50,7 @@ export function DireccionesModal({
   // Mutation para crear dirección
   const createMutation = useMutation({
     mutationFn: (data: DireccionFormValues & { contratanteId: string }) =>
-      createDireccion(data),
+      createDireccion(data as unknown as CreateDireccionInput),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contratantes"] });
       toast.success("Dirección creada exitosamente");
@@ -201,11 +201,10 @@ export function DireccionesModal({
                     {direccionesActivas.map((direccion) => (
                       <Card
                         key={direccion.id}
-                        className={`p-4 transition-all ${
-                          direccion.esPrincipal
+                        className={`p-4 transition-all ${direccion.esPrincipal
                             ? "border-[#244F82] bg-blue-50/30"
                             : "hover:shadow-md"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 space-y-2">
@@ -236,7 +235,7 @@ export function DireccionesModal({
                                   )}
                                 </div>
                               </div>
-                              
+
                               {/* Comuna, Ciudad, Región */}
                               <div className="pl-6 text-xs text-gray-600 space-y-0.5">
                                 <div className="flex items-center gap-1.5">
@@ -333,7 +332,7 @@ export function DireccionesModal({
               isSubmitting={createMutation.isPending || updateMutation.isPending}
               headerInfo={{
                 title: `${formMode === "create" ? "Creando dirección para:" : "Editando dirección de:"} ${getDisplayName(contratante)}`,
-                description: formMode === "create" 
+                description: formMode === "create"
                   ? "Complete los datos de la nueva dirección."
                   : "Modifique los datos de la dirección.",
               }}

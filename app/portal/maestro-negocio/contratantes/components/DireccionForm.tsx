@@ -31,11 +31,10 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Building, User, Phone, Mail } from "lucide-react";
 import { regionesChile, Ciudad } from "@/app/portal/presupuesto/crear/data/regionesChile";
 
-// Schema de validación
-export const direccionSchema = z.object({
+// Schema de validación base
+const baseDireccionSchema = z.object({
   nombre: z.string().min(1, "El nombre de la dirección es obligatorio"),
   regionId: z.string().min(1, "Debe seleccionar una región"),
-  ciudadId: z.string().min(1, "Debe seleccionar una ciudad"),
   comuna: z.string().min(1, "Debe seleccionar una comuna"),
   calle: z.string().min(1, "La calle es obligatoria"),
   numero: z.string().min(1, "El número es obligatorio"),
@@ -46,7 +45,9 @@ export const direccionSchema = z.object({
   contactoEmail: z.string().email("Email inválido").optional().or(z.literal("")),
 });
 
-export type DireccionFormValues = z.infer<typeof direccionSchema>;
+export type DireccionFormValues = z.infer<typeof baseDireccionSchema> & {
+  ciudadId?: string;
+};
 
 interface DireccionFormProps {
   mode: "create" | "edit";
@@ -60,6 +61,7 @@ interface DireccionFormProps {
     title: string;
     description: string;
   };
+  skipCity?: boolean;
 }
 
 export function DireccionForm({
@@ -71,9 +73,15 @@ export function DireccionForm({
   formId = "direccion-form",
   showPrincipalCheckbox = true,
   headerInfo,
+  skipCity = false,
 }: DireccionFormProps) {
   const [ciudadesDisponibles, setCiudadesDisponibles] = useState<Ciudad[]>([]);
   const [comunasDisponibles, setComunasDisponibles] = useState<string[]>([]);
+
+  // Construir schema dinámico
+  const direccionSchema = skipCity
+    ? baseDireccionSchema.extend({ ciudadId: z.string().optional() })
+    : baseDireccionSchema.extend({ ciudadId: z.string().min(1, "Debe seleccionar una ciudad") });
 
   const form = useForm<DireccionFormValues>({
     resolver: zodResolver(direccionSchema),
@@ -95,65 +103,83 @@ export function DireccionForm({
   const watchRegionId = form.watch("regionId");
   const watchCiudadId = form.watch("ciudadId");
 
-  // Actualizar ciudades cuando cambia la región
+  // Actualizar ciudades/comunas cuando cambia la región
   useEffect(() => {
     if (watchRegionId) {
       const region = regionesChile.find((r) => r.id.toString() === watchRegionId);
       if (region) {
-        setCiudadesDisponibles(region.ciudades);
-        
-        // Solo resetear si la ciudad actual no pertenece a la nueva región
-        const currentCiudadId = form.getValues("ciudadId");
-        const ciudadExiste = region.ciudades.some(c => c.id.toString() === currentCiudadId);
-        
-        if (!ciudadExiste) {
-          form.setValue("ciudadId", "");
-          form.setValue("comuna", "");
-          setComunasDisponibles([]);
+        if (skipCity) {
+          // Si saltamos ciudad, aplanamos todas las comunas de la región
+          const todasComunas = region.ciudades.flatMap(c => c.comunas).sort();
+          // Eliminar duplicados si los hubiera
+          setComunasDisponibles([...new Set(todasComunas)]);
+
+          // Resetear comuna si no existe en la nueva lista
+          const currentComuna = form.getValues("comuna");
+          if (currentComuna && !todasComunas.includes(currentComuna)) {
+            form.setValue("comuna", "");
+          }
+        } else {
+          // Comportamiento normal: cargar ciudades
+          setCiudadesDisponibles(region.ciudades);
+
+          // Solo resetear si la ciudad actual no pertenece a la nueva región
+          const currentCiudadId = form.getValues("ciudadId");
+          const ciudadExiste = region.ciudades.some(c => c.id.toString() === currentCiudadId);
+
+          if (!ciudadExiste) {
+            form.setValue("ciudadId", "");
+            form.setValue("comuna", "");
+            setComunasDisponibles([]);
+          }
         }
       }
     } else {
       setCiudadesDisponibles([]);
       setComunasDisponibles([]);
     }
-  }, [watchRegionId, form]);
+  }, [watchRegionId, form, skipCity]);
 
-  // Actualizar comunas cuando cambia la ciudad
+  // Actualizar comunas cuando cambia la ciudad (solo si no skipCity)
   useEffect(() => {
-    if (watchCiudadId && ciudadesDisponibles.length > 0) {
+    if (!skipCity && watchCiudadId && ciudadesDisponibles.length > 0) {
       const ciudad = ciudadesDisponibles.find((c) => c.id.toString() === watchCiudadId);
       if (ciudad) {
         setComunasDisponibles(ciudad.comunas);
-        
+
         // Solo resetear si la comuna actual no pertenece a la nueva ciudad
         const currentComuna = form.getValues("comuna");
         const comunaExiste = ciudad.comunas.includes(currentComuna);
-        
+
         if (!comunaExiste) {
           form.setValue("comuna", "");
         }
       }
-    } else {
+    } else if (!skipCity) {
       setComunasDisponibles([]);
     }
-  }, [watchCiudadId, ciudadesDisponibles, form]);
+  }, [watchCiudadId, ciudadesDisponibles, form, skipCity]);
 
   // Inicializar cascadas al cargar datos iniciales
   useEffect(() => {
     if (initialData?.regionId) {
       const region = regionesChile.find((r) => r.id.toString() === initialData.regionId);
       if (region) {
-        setCiudadesDisponibles(region.ciudades);
-        
-        if (initialData?.ciudadId) {
-          const ciudad = region.ciudades.find((c) => c.id.toString() === initialData.ciudadId);
-          if (ciudad) {
-            setComunasDisponibles(ciudad.comunas);
+        if (skipCity) {
+          const todasComunas = region.ciudades.flatMap(c => c.comunas).sort();
+          setComunasDisponibles([...new Set(todasComunas)]);
+        } else {
+          setCiudadesDisponibles(region.ciudades);
+          if (initialData?.ciudadId) {
+            const ciudad = region.ciudades.find((c) => c.id.toString() === initialData.ciudadId);
+            if (ciudad) {
+              setComunasDisponibles(ciudad.comunas);
+            }
           }
         }
       }
     }
-  }, [initialData]);
+  }, [initialData, skipCity]);
 
   return (
     <div className="space-y-6">
@@ -226,7 +252,7 @@ export function DireccionForm({
               Ubicación
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className={`grid grid-cols-1 ${skipCity ? 'sm:grid-cols-2' : 'sm:grid-cols-2'} gap-3 sm:gap-4`}>
               {/* Región */}
               <FormField
                 control={form.control}
@@ -234,8 +260,8 @@ export function DireccionForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs sm:text-sm">Región *</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       value={field.value || ""}
                       defaultValue={field.value}
                     >
@@ -261,53 +287,55 @@ export function DireccionForm({
                 )}
               />
 
-              {/* Ciudad */}
-              <FormField
-                control={form.control}
-                name="ciudadId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs sm:text-sm">Ciudad *</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value || ""}
-                      defaultValue={field.value}
-                      disabled={!watchRegionId}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="text-xs sm:text-sm">
-                          <SelectValue placeholder="Seleccione ciudad" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="max-h-[300px]" position="popper" sideOffset={5}>
-                        {ciudadesDisponibles.map((ciudad) => (
-                          <SelectItem
-                            key={ciudad.id}
-                            value={ciudad.id.toString()}
-                            className="text-xs sm:text-sm"
-                          >
-                            {ciudad.nombre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
-              />
+              {/* Ciudad - Solo si no skipCity */}
+              {!skipCity && (
+                <FormField
+                  control={form.control}
+                  name="ciudadId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs sm:text-sm">Ciudad *</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value || ""}
+                        defaultValue={field.value}
+                        disabled={!watchRegionId}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="text-xs sm:text-sm">
+                            <SelectValue placeholder="Seleccione ciudad" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-h-[300px]" position="popper" sideOffset={5}>
+                          {ciudadesDisponibles.map((ciudad) => (
+                            <SelectItem
+                              key={ciudad.id}
+                              value={ciudad.id.toString()}
+                              className="text-xs sm:text-sm"
+                            >
+                              {ciudad.nombre}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               {/* Comuna */}
               <FormField
                 control={form.control}
                 name="comuna"
                 render={({ field }) => (
-                  <FormItem className="sm:col-span-2">
+                  <FormItem className={skipCity ? "" : "sm:col-span-2"}>
                     <FormLabel className="text-xs sm:text-sm">Comuna *</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value || ""}
                       defaultValue={field.value}
-                      disabled={!watchCiudadId}
+                      disabled={skipCity ? !watchRegionId : !watchCiudadId}
                     >
                       <FormControl>
                         <SelectTrigger className="text-xs sm:text-sm">

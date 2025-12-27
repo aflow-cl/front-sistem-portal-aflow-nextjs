@@ -1,7 +1,8 @@
 /**
- * Modal Wizard para crear Contratante (2 pasos obligatorios)
- * Paso 1: Datos del Contratante (dinámico según tipo seleccionado)
- * Paso 2: Sucursal Principal (obligatoria)
+ * Modal Wizard para crear Contratante (3 pasos)
+ * Paso 1: Datos del Contratante (sin ubicación)
+ * Paso 2: Sucursal Principal (con ubicación simplificada)
+ * Paso 3: Resumen y confirmación
  */
 
 "use client";
@@ -12,27 +13,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { User, Building2, Mail, Phone, FileText, AlertCircle, ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { validateRut, formatRut } from "@/lib/utils";
+import { Form } from "@/components/ui/form";
+import { FileText, User, ArrowRight, ArrowLeft, Check } from "lucide-react";
+import { validateRut } from "@/lib/utils";
 import { toast } from "sonner";
 import {
   Contratante,
@@ -41,21 +24,22 @@ import {
 } from "../../types/maestroNegocio";
 import { ContratanteWizardStepper } from "./ContratanteWizardStepper";
 import { SucursalForm, SucursalFormValues } from "./SucursalForm";
-import { useChileanRegions } from "../hooks/useChileanRegions";
+import { ContratanteForm } from "./ContratanteForm";
+import { ContratanteResumen } from "./ContratanteResumen";
 
-// Schema de validación con Zod
+// Schema de validación con Zod (sin ubicación)
 const contratanteSchema = z.object({
   tipoPersona: z.enum(["persona-natural", "empresa"]),
   rut: z
     .string()
     .min(1, "El RUT es obligatorio")
     .refine((val) => validateRut(val), "RUT inválido"),
-  // Campos para Persona Natural (4 campos separados)
+  // Campos para Persona Natural
   primerNombre: z.string().optional(),
   segundoNombre: z.string().optional(),
   apellidoPaterno: z.string().optional(),
   apellidoMaterno: z.string().optional(),
-  // Campos legacy para compatibilidad (se llenan automáticamente)
+  // Campos legacy
   nombres: z.string().optional(),
   apellidos: z.string().optional(),
   // Campos para Empresa
@@ -65,10 +49,6 @@ const contratanteSchema = z.object({
   email: z.string().email("Email inválido").min(1, "El email es obligatorio"),
   telefono: z.string().min(1, "El teléfono es obligatorio"),
   estado: z.enum(["Activo", "Inactivo"]),
-  // Campos de ubicación
-  regionId: z.string().optional(),
-  ciudadId: z.string().optional(),
-  comuna: z.string().optional(),
   notas: z.string().optional(),
 }).refine(
   (data) => {
@@ -94,7 +74,7 @@ const contratanteSchema = z.object({
   }
 );
 
-type ContratanteFormValues = z.infer<typeof contratanteSchema>;
+export type ContratanteFormValues = z.infer<typeof contratanteSchema>;
 
 interface ContratanteModalProps {
   open: boolean;
@@ -103,17 +83,22 @@ interface ContratanteModalProps {
   onSave: (input: CreateContratanteInput | UpdateContratanteInput) => Promise<void>;
 }
 
-// Pasos del wizard (solo para creación)
+// Pasos del wizard
 const WIZARD_STEPS = [
   {
     id: 0,
-    title: "Contratante",
-    description: "Datos básicos",
+    title: "Datos Básicos",
+    description: "Información del contratante",
   },
   {
     id: 1,
     title: "Sucursal",
     description: "Dirección principal",
+  },
+  {
+    id: 2,
+    title: "Resumen",
+    description: "Confirmación",
   },
 ];
 
@@ -153,24 +138,15 @@ export function ContratanteModal({
       email: "",
       telefono: "",
       estado: "Activo",
-      regionId: "",
-      ciudadId: "",
-      comuna: "",
       notas: "",
     },
   });
 
-  const watchTipoPersona = form.watch("tipoPersona");
-
-  // Hook for Chilean regions cascading dropdowns
-  const { regiones, ciudadesDisponibles, comunasDisponibles, watchRegionId, watchCiudadId } =
-    useChileanRegions({ form });
-
-  // Función helper para separar nombres y apellidos en 4 campos
+  // Función helper para separar nombres y apellidos
   const separarNombreCompleto = (nombres: string, apellidos: string) => {
     const nombresArray = nombres.trim().split(/\s+/).filter(Boolean);
     const apellidosArray = apellidos.trim().split(/\s+/).filter(Boolean);
-    
+
     return {
       primerNombre: nombresArray[0] || "",
       segundoNombre: nombresArray[1] || "",
@@ -194,7 +170,7 @@ export function ContratanteModal({
       if (contratante.tipoPersona === "persona-natural") {
         const { primerNombre, segundoNombre, apellidoPaterno, apellidoMaterno } =
           separarNombreCompleto(contratante.nombres, contratante.apellidos);
-        
+
         form.reset({
           tipoPersona: contratante.tipoPersona,
           rut: contratante.rut,
@@ -226,25 +202,16 @@ export function ContratanteModal({
           email: contratante.email,
           telefono: contratante.telefono,
           estado: contratante.estado,
-          regionId: contratante.regionId || "",
-          ciudadId: contratante.ciudadId || "",
-          comuna: contratante.comuna || "",
           notas: contratante.notas || "",
         });
       }
     }
   }, [contratante, open, form]);
 
-  // Handler de RUT con formato
-  const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatRut(e.target.value);
-    form.setValue("rut", formatted);
-  };
-
   // Submit paso 1: Guardar datos del contratante y avanzar
   const onSubmitContratante = async (data: ContratanteFormValues) => {
     if (isEditing) {
-      // Modo edición: guardar directamente
+      // Modo edición: guardar directamente (sin sucursal por ahora en este flujo)
       setIsSubmitting(true);
       try {
         const submitData: UpdateContratanteInput = {
@@ -268,15 +235,9 @@ export function ContratanteModal({
             .trim();
           submitData.nombres = nombres;
           submitData.apellidos = apellidos;
-          submitData.regionId = data.regionId;
-          submitData.ciudadId = data.ciudadId;
-          submitData.comuna = data.comuna;
         } else {
           submitData.razonSocial = data.razonSocial;
           submitData.giro = data.giro;
-          submitData.regionId = data.regionId;
-          submitData.ciudadId = data.ciudadId;
-          submitData.comuna = data.comuna;
         }
 
         await onSave(submitData);
@@ -290,16 +251,13 @@ export function ContratanteModal({
         setIsSubmitting(false);
       }
     } else {
-      // Modo creación: guardar y pasar al siguiente paso
+      // Modo creación: guardar en estado y avanzar
       setWizardData((prev) => ({ ...prev, contratante: data }));
       setCurrentStep(1);
-      toast.success("Datos del contratante guardados", {
-        description: "Ahora configura la sucursal principal",
-      });
     }
   };
 
-  // Submit paso 2: Crear contratante + sucursal
+  // Submit paso 2: Guardar sucursal y finalizar
   const onSubmitSucursal = async (sucursalData: SucursalFormValues) => {
     if (!wizardData.contratante) {
       toast.error("Error: Datos del contratante no encontrados");
@@ -329,30 +287,18 @@ export function ContratanteModal({
           .trim();
         submitData.nombres = nombres;
         submitData.apellidos = apellidos;
-        submitData.regionId = data.regionId;
-        submitData.ciudadId = data.ciudadId;
-        submitData.comuna = data.comuna;
       } else {
         submitData.razonSocial = data.razonSocial;
         submitData.giro = data.giro;
-        submitData.regionId = data.regionId;
-        submitData.ciudadId = data.ciudadId;
-        submitData.comuna = data.comuna;
       }
 
-      // TODO: Aquí deberás extender la API para incluir la sucursal
-      // Por ahora solo guardamos el contratante
-      // La sucursalData se usará cuando se implemente la API de sucursales
+      // TODO: Enviar también los datos de la sucursal cuando la API lo soporte
+      // Por ahora guardamos el contratante y simulamos que se guardó la sucursal
       await onSave(submitData);
 
-      toast.success("Contratante y sucursal creados exitosamente");
-      onOpenChange(false);
-      setCurrentStep(0);
-      setWizardData({ contratante: null, sucursal: null });
-      form.reset();
-      
-      // Evitar warning de variable no usada - se usará en implementación futura
-      void sucursalData;
+      setWizardData(prev => ({ ...prev, sucursal: sucursalData }));
+      setCurrentStep(2); // Ir al resumen
+
     } catch (error) {
       toast.error("Error al crear", {
         description: error instanceof Error ? error.message : "Intente nuevamente",
@@ -370,6 +316,12 @@ export function ContratanteModal({
       return `${data.primerNombre} ${data.apellidoPaterno}`.trim();
     }
     return data.razonSocial || "Empresa";
+  };
+
+  const handleCreateNew = () => {
+    setCurrentStep(0);
+    setWizardData({ contratante: null, sucursal: null });
+    form.reset();
   };
 
   return (
@@ -400,426 +352,16 @@ export function ContratanteModal({
         {currentStep === 0 && (
           <div className="flex-1 overflow-hidden flex flex-col">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmitContratante)} className="flex-1 overflow-y-auto space-y-4 sm:space-y-6 pr-2">
-              {/* Info de selección de tipo */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 flex items-start gap-2 sm:gap-3">
-                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-xs sm:text-sm text-blue-700">
-                    Selecciona el tipo de contratante para mostrar los campos correspondientes
-                  </p>
-                </div>
-              </div>
-
-              {/* Tipo de Persona (seleccionable) y Estado */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8">
-                {/* Tipo de Persona - Ahora editable */}
-                <FormField
-                  control={form.control}
-                  name="tipoPersona"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs sm:text-sm font-medium text-gray-700">Tipo:</span>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger className="w-fit border-0 p-0 h-auto focus:ring-0">
-                            <SelectValue>
-                              <Badge
-                                variant="outline"
-                                className={
-                                  field.value === "persona-natural"
-                                    ? "bg-purple-50 text-purple-700 border-purple-200 px-3 py-2 cursor-pointer"
-                                    : "bg-orange-50 text-orange-700 border-orange-200 px-3 py-2 cursor-pointer"
-                                }
-                              >
-                                {field.value === "persona-natural" ? (
-                                  <><User className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" /> Persona Natural</>
-                                ) : (
-                                  <><Building2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" /> Empresa</>
-                                )}
-                              </Badge>
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="persona-natural">
-                              <div className="flex items-center gap-2">
-                                <User className="w-4 h-4" />
-                                Persona Natural
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="empresa">
-                              <div className="flex items-center gap-2">
-                                <Building2 className="w-4 h-4" />
-                                Empresa
-                              </div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <FormMessage className="text-xs sm:text-sm" />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Estado */}
-                <FormField
-                  control={form.control}
-                  name="estado"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs sm:text-sm font-medium text-gray-700">Estado:</span>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger className="w-fit border-0 p-0 h-auto focus:ring-0">
-                            <SelectValue>
-                              <Badge
-                                variant="outline"
-                                className={
-                                  field.value === "Activo"
-                                    ? "bg-green-50 text-green-700 border-green-200 px-3 py-2 cursor-pointer"
-                                    : "bg-gray-50 text-gray-700 border-gray-200 px-3 py-2 cursor-pointer"
-                                }
-                              >
-                                <div className="flex items-center gap-1.5">
-                                  <div className={`w-2 h-2 rounded-full ${field.value === "Activo" ? "bg-green-500" : "bg-gray-400"}`}></div>
-                                  {field.value}
-                                </div>
-                              </Badge>
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Activo">
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                Activo
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="Inactivo">
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-gray-400"></div>
-                                Inactivo
-                              </div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <FormMessage className="text-xs sm:text-sm" />
-                    </FormItem>
-                  )}
+              <div className="flex-1 overflow-y-auto">
+                <ContratanteForm
+                  form={form}
+                  onSubmit={onSubmitContratante}
+                  isSubmitting={isSubmitting}
                 />
               </div>
 
-              <Separator />
-
-              {/* Campos condicionales según tipo */}
-              {watchTipoPersona === "persona-natural" ? (
-                <div className="space-y-3 sm:space-y-4">
-                  {/* RUT */}
-                  <FormField
-                    control={form.control}
-                    name="rut"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs sm:text-sm">RUT *</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="12.345.678-9"
-                            onChange={handleRutChange}
-                            maxLength={12}
-                            className="text-sm sm:text-base"
-                          />
-                        </FormControl>
-                        <FormMessage className="text-xs sm:text-sm" />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <FormField
-                      control={form.control}
-                      name="primerNombre"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs sm:text-sm">Primer Nombre *</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Juan" className="text-sm sm:text-base" />
-                          </FormControl>
-                          <FormMessage className="text-xs sm:text-sm" />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="segundoNombre"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs sm:text-sm">Segundo Nombre</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Carlos" className="text-sm sm:text-base" />
-                          </FormControl>
-                          <FormMessage className="text-xs sm:text-sm" />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <FormField
-                      control={form.control}
-                      name="apellidoPaterno"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs sm:text-sm">Apellido Paterno *</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Pérez" className="text-sm sm:text-base" />
-                          </FormControl>
-                          <FormMessage className="text-xs sm:text-sm" />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="apellidoMaterno"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs sm:text-sm">Apellido Materno</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="González" className="text-sm sm:text-base" />
-                          </FormControl>
-                          <FormMessage className="text-xs sm:text-sm" />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3 sm:space-y-4">
-                  {/* RUT y Razón Social en la misma línea */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <FormField
-                      control={form.control}
-                      name="rut"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs sm:text-sm">RUT *</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="12.345.678-9"
-                              onChange={handleRutChange}
-                              maxLength={12}
-                              className="text-sm sm:text-base"
-                            />
-                          </FormControl>
-                          <FormMessage className="text-xs sm:text-sm" />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="razonSocial"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs sm:text-sm">Razón Social *</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Empresa Ejemplo SpA" className="text-sm sm:text-base" />
-                          </FormControl>
-                          <FormMessage className="text-xs sm:text-sm" />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="giro"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs sm:text-sm">Giro Comercial *</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Construcción y Servicios" className="text-sm sm:text-base" />
-                        </FormControl>
-                        <FormMessage className="text-xs sm:text-sm" />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
-
-              <Separator />
-
-              {/* Ubicación (Región, Ciudad, Comuna) */}
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-1 h-5 bg-[#244F82] rounded"></div>
-                  <h3 className="text-sm sm:text-base font-semibold text-gray-900">Ubicación</h3>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                  <FormField
-                    control={form.control}
-                    name="regionId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs sm:text-sm">Región</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value || ""}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="text-xs sm:text-sm h-9 sm:h-10">
-                              <SelectValue placeholder="Seleccione región" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="max-h-[300px]" position="popper" sideOffset={5}>
-                            {regiones.map((region) => (
-                              <SelectItem
-                                key={region.id}
-                                value={region.id.toString()}
-                                className="text-xs sm:text-sm"
-                              >
-                                {region.nombre}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="ciudadId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs sm:text-sm">Ciudad</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value || ""}
-                          disabled={!watchRegionId || ciudadesDisponibles.length === 0}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="text-xs sm:text-sm h-9 sm:h-10">
-                              <SelectValue placeholder="Seleccione ciudad" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="max-h-[300px]" position="popper" sideOffset={5}>
-                            {ciudadesDisponibles.map((ciudad) => (
-                              <SelectItem
-                                key={ciudad.id}
-                                value={ciudad.id.toString()}
-                                className="text-xs sm:text-sm"
-                              >
-                                {ciudad.nombre}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="comuna"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs sm:text-sm">Comuna</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value || ""}
-                          disabled={!watchCiudadId || comunasDisponibles.length === 0}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="text-xs sm:text-sm h-9 sm:h-10">
-                              <SelectValue placeholder="Seleccione comuna" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="max-h-[300px]" position="popper" sideOffset={5}>
-                            {comunasDisponibles.map((comuna) => (
-                              <SelectItem
-                                key={comuna}
-                                value={comuna}
-                                className="text-xs sm:text-sm"
-                              >
-                                {comuna}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Contacto */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs sm:text-sm">Email *</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                          <Input
-                            {...field}
-                            type="email"
-                            placeholder="contacto@ejemplo.cl"
-                            className="pl-9 text-sm sm:text-base"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-xs sm:text-sm" />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="telefono"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs sm:text-sm">Teléfono *</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                          <Input
-                            {...field}
-                            placeholder="+56 9 1234 5678"
-                            className="pl-9 text-sm sm:text-base"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-xs sm:text-sm" />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Notas */}
-              <FormField
-                control={form.control}
-                name="notas"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs sm:text-sm">Notas (opcional)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Información adicional sobre el contratante..."
-                        rows={3}
-                        className="text-sm sm:text-base resize-none"
-                      />
-                    </FormControl>
-                    <FormMessage className="text-xs sm:text-sm" />
-                  </FormItem>
-                )}
-              />
-
-              {/* Acciones */}
-              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-4">
+              {/* Acciones Paso 1 */}
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t mt-4">
                 <Button
                   type="button"
                   variant="outline"
@@ -830,7 +372,7 @@ export function ContratanteModal({
                   Cancelar
                 </Button>
                 <Button
-                  type="submit"
+                  onClick={form.handleSubmit(onSubmitContratante)}
                   className="bg-[#244F82] hover:bg-[#1a3a5f] w-full sm:w-auto text-sm sm:text-base"
                   disabled={isSubmitting}
                 >
@@ -845,22 +387,23 @@ export function ContratanteModal({
                   )}
                 </Button>
               </div>
-              </form>
             </Form>
           </div>
         )}
 
         {/* Paso 2: Formulario de Sucursal */}
         {currentStep === 1 && !isEditing && (
-          <div className="space-y-4 sm:space-y-6">
-            <SucursalForm
-              onSubmit={onSubmitSucursal}
-              contratanteNombre={getContratanteNombre()}
-              isSubmitting={isSubmitting}
-            />
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto pr-2">
+              <SucursalForm
+                onSubmit={onSubmitSucursal}
+                contratanteNombre={getContratanteNombre()}
+                isSubmitting={isSubmitting}
+              />
+            </div>
 
-            {/* Navegación */}
-            <div className="flex flex-col-reverse sm:flex-row justify-between gap-2 sm:gap-3 pt-4 border-t">
+            {/* Navegación Paso 2 */}
+            <div className="flex flex-col-reverse sm:flex-row justify-between gap-2 sm:gap-3 pt-4 border-t mt-4">
               <Button
                 type="button"
                 variant="outline"
@@ -904,6 +447,16 @@ export function ContratanteModal({
               </div>
             </div>
           </div>
+        )}
+
+        {/* Paso 3: Resumen */}
+        {currentStep === 2 && !isEditing && (
+          <ContratanteResumen
+            contratante={wizardData.contratante}
+            sucursal={wizardData.sucursal}
+            onClose={() => onOpenChange(false)}
+            onCreateNew={handleCreateNew}
+          />
         )}
       </DialogContent>
     </Dialog>

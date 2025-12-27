@@ -108,37 +108,34 @@ export default function AjustesPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Ajustes de Personalización
-        </h2>
-        <p className="text-sm text-gray-600">
-          Configure la apariencia y diseño de los documentos de presupuesto
-        </p>
-      </div>
+    <div className="flex justify-center items-center min-h-screen bg-gray-50 px-2">
+      <div className="w-full max-w-3xl space-y-4 sm:space-y-6 bg-white rounded-xl shadow-md p-2 sm:p-6 md:p-8">
+        <div className="text-center mb-2">
+          <h2 className="text-2xl font-bold text-gray-900">Ajustes de Personalización</h2>
+          <p className="text-sm text-gray-600">Configure la apariencia y diseño de los documentos de presupuesto</p>
+        </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {/* Logos Section */}
-          <Card>
+          <Card className="w-full">
             <CardHeader>
               <CardTitle className="text-lg">Logos</CardTitle>
               <CardDescription>
                 Agregue los logos que aparecerán en los documentos de presupuesto
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               {/* Logo Principal */}
               <div className="space-y-3">
                 <Label className="text-sm font-medium text-gray-700">
                   Logo Principal <span className="text-red-500">*</span>
                 </Label>
-                <div className="flex items-start gap-4">
+                <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-4">
                   <div className="flex-1">
                     <div
                       onClick={() => logoPrincipalInputRef.current?.click()}
-                      className="border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-[#244F82] hover:bg-gray-50 transition-colors cursor-pointer text-center"
+                      className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-8 hover:border-[#244F82] hover:bg-gray-50 transition-colors cursor-pointer text-center"
                     >
                       {logoPrincipal ? (
                         <div className="relative inline-block">
@@ -195,11 +192,11 @@ export default function AjustesPage() {
                 <Label className="text-sm font-medium text-gray-700">
                   Logo Secundario <span className="text-gray-400 text-xs">(Opcional)</span>
                 </Label>
-                <div className="flex items-start gap-4">
+                <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-4">
                   <div className="flex-1">
                     <div
                       onClick={() => logoSecundarioInputRef.current?.click()}
-                      className="border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-[#244F82] hover:bg-gray-50 transition-colors cursor-pointer text-center"
+                      className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-8 hover:border-[#244F82] hover:bg-gray-50 transition-colors cursor-pointer text-center"
                     >
                       {logoSecundario ? (
                         <div className="relative inline-block">
@@ -256,8 +253,8 @@ export default function AjustesPage() {
                 Personalice el formato y estilo del número de folio
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                 <FormField
                   control={form.control}
                   name="folioOperativo"
@@ -331,8 +328,8 @@ export default function AjustesPage() {
                 Configure las fuentes y tamaños de elementos visuales
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <CardContent className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
                 <FormField
                   control={form.control}
                   name="tipoLetra"
@@ -427,14 +424,14 @@ export default function AjustesPage() {
                 Personalice los colores de elementos clave del presupuesto
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-2">
               <FormField
                 control={form.control}
                 name="colorCabeceraGrilla"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Color de Cabecera de Grilla</FormLabel>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1 sm:gap-2">
                       <FormControl>
                         <Input type="color" {...field} className="w-20 h-10 p-1 cursor-pointer" />
                       </FormControl>
@@ -463,7 +460,7 @@ export default function AjustesPage() {
                 Información adicional que aparecerá en el encabezado del documento
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-2">
               <FormField
                 control={form.control}
                 name="datosCabecera"
@@ -489,19 +486,19 @@ export default function AjustesPage() {
           </Card>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={handleReset}
-              className="gap-2"
+              className="gap-2 w-full sm:w-auto"
             >
               <RotateCcw className="w-4 h-4" />
               Restablecer
             </Button>
             <Button
               type="submit"
-              className="bg-[#244F82] hover:bg-[#1a3a5f] gap-2"
+              className="bg-[#244F82] hover:bg-[#1a3a5f] gap-2 w-full sm:w-auto"
             >
               <Save className="w-4 h-4" />
               Guardar Configuración
@@ -509,6 +506,7 @@ export default function AjustesPage() {
           </div>
         </form>
       </Form>
+      </div>
     </div>
   );
 }

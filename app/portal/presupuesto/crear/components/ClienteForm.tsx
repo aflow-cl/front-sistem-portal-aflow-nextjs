@@ -1,5 +1,5 @@
 import { UseFormReturn } from 'react-hook-form';
-import { User, Building2, MapPin, Phone, Mail, Search, Users, Building, FileText } from 'lucide-react';
+import { User, Building2, MapPin, Phone, Mail, Search, Users, Building, PlusCircle, ArrowLeft } from 'lucide-react';
 import { TipoPersonaSelector } from '@/components/ui/tipo-persona-selector';
 import { Card } from '@/components/ui/card';
 import {
@@ -24,7 +24,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -50,6 +49,8 @@ const TIPOS_DIRECCION = [
   { value: 'otra', label: 'Otra' },
 ];
 
+type SelectionMode = 'none' | 'new' | 'existing';
+
 export function ClienteForm({ form }: ClienteFormProps) {
   // Helper function to safely set form values
   const setFormValue = useCallback((path: string, value: unknown, options?: { shouldValidate?: boolean }) => {
@@ -64,6 +65,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
   const [selectedCliente, setSelectedCliente] = useState<ClienteExistente | null>(null);
   const [sucursalesDisponibles, setSucursalesDisponibles] = useState<Sucursal[]>([]);
   const [showValidationAlert, setShowValidationAlert] = useState(true);
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>('none');
   const sucursalSelectRef = useRef<HTMLButtonElement>(null);
 
   const watchRegion = form.watch('cliente.regionId');
@@ -81,6 +83,10 @@ export function ClienteForm({ form }: ClienteFormProps) {
         setSucursalesDisponibles([]);
         setShowValidationAlert(true);
       }
+      // If form is completely empty/reset, go back to selection mode if we are not already there
+      // Check if we should reset to 'none' based on some key field being empty
+      // But we don't want to reset while user is typing.
+      // A better check might be if the parent component calls a reset.
     }
   }, [watchRut, watchRazonSocial, selectedCliente]);
 
@@ -88,7 +94,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
   const validationErrors = useMemo(() => {
     const errors = form.formState.errors.cliente;
     if (!errors) return [];
-    
+
     const errorMessages: string[] = [];
     const fieldLabels: Record<string, string> = {
       tipoPersona: 'Tipo de Persona',
@@ -168,12 +174,12 @@ export function ClienteForm({ form }: ClienteFormProps) {
     // Store selected client and show sucursales
     setSelectedCliente(cliente);
     setSucursalesDisponibles(cliente.sucursales);
-    
+
     // Populate basic client fields - format RUT to ensure validation passes
     const formattedRut = formatRut(cliente.rut);
     setFormValue('cliente.tipoPersona', cliente.tipoPersona, { shouldValidate: true });
     setFormValue('cliente.rut', formattedRut, { shouldValidate: true });
-    
+
     // Fill fields based on tipo persona
     if (cliente.tipoPersona === 'persona-natural') {
       setFormValue('cliente.primerNombre', cliente.primerNombre || '', { shouldValidate: true });
@@ -190,12 +196,12 @@ export function ClienteForm({ form }: ClienteFormProps) {
       setFormValue('cliente.apellidoPaterno', '');
       setFormValue('cliente.apellidoMaterno', '');
     }
-    
+
     setFormValue('cliente.estado', cliente.estado, { shouldValidate: true });
     setFormValue('cliente.email', cliente.email, { shouldValidate: true });
     setFormValue('cliente.telefono', cliente.celular, { shouldValidate: true });
     setFormValue('cliente.notas', cliente.notas || '');
-    
+
     // Reset address fields - will be filled when sucursal is selected
     setFormValue('cliente.sucursalId', '');
     setFormValue('cliente.regionId', '');
@@ -208,11 +214,12 @@ export function ClienteForm({ form }: ClienteFormProps) {
     setFormValue('cliente.complemento', '');
 
     setShowClienteDialog(false);
-    
+    setSelectionMode('existing');
+
     const clienteName = cliente.tipoPersona === 'persona-natural'
       ? `${cliente.primerNombre || ''} ${cliente.apellidoPaterno || ''}`.trim()
       : cliente.razonSocial || 'Cliente';
-    
+
     toast.success('Cliente cargado correctamente', {
       description: `Ahora seleccione la sucursal de ${clienteName}`,
     });
@@ -227,33 +234,33 @@ export function ClienteForm({ form }: ClienteFormProps) {
   // Handle sucursal selection
   const handleSucursalChange = (sucursalId: string) => {
     if (!selectedCliente) return;
-    
+
     const sucursal = sucursalesDisponibles.find(s => s.id === sucursalId);
     if (!sucursal) return;
 
     // Set sucursal ID
     setFormValue('cliente.sucursalId', sucursalId);
-    
+
     // Set region first
     setFormValue('cliente.regionId', sucursal.regionId);
-    
+
     // Wait for region to update cities
     setTimeout(() => {
       setFormValue('cliente.ciudadId', sucursal.ciudadId);
-      
+
       // Wait for city to update comunas
       setTimeout(() => {
         setFormValue('cliente.comuna', sucursal.comuna);
       }, 100);
     }, 100);
-    
+
     // Set address fields
     setFormValue('cliente.descripcionDireccion', sucursal.nombre);
     setFormValue('cliente.tipoDireccion', sucursal.esPrincipal ? 'comercial' : 'otra');
     setFormValue('cliente.calle', sucursal.calle);
     setFormValue('cliente.numero', sucursal.numero);
     setFormValue('cliente.complemento', sucursal.complemento || '');
-    
+
     // Store sucursal name for display in ResumenFinal
     setFormValue('cliente.sucursalNombre', sucursal.nombre);
 
@@ -262,38 +269,96 @@ export function ClienteForm({ form }: ClienteFormProps) {
     });
   };
 
-  return (
-    <div className="bg-gradient-to-br from-gray-50 to-gray-100/50 p-4 sm:p-6 rounded-xl">
-      <Card className="p-6 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.15)] transition-shadow duration-300 border-gray-200/60 bg-white">
-        <div className="mb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#003366] to-[#00AEEF] flex items-center justify-center flex-shrink-0">
-              <User className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-gray-900">
-                Datos del Contratante / Cliente
-              </h2>
-              <p className="text-[11px] text-gray-600">
-                Registre la información completa del cliente
-              </p>
-            </div>
+  const handleModeSelection = (mode: 'new' | 'existing') => {
+    if (mode === 'existing') {
+      setShowClienteDialog(true);
+    } else {
+      setSelectionMode('new');
+      // Reset form for new client
+      form.reset({
+        ...form.getValues(),
+        cliente: {
+          ...form.getValues().cliente,
+          tipoPersona: 'empresa',
+          rut: '',
+          primerNombre: '',
+          segundoNombre: '',
+          apellidoPaterno: '',
+          apellidoMaterno: '',
+          razonSocial: '',
+          giro: '',
+          estado: 'Activo',
+          sucursalId: 'new-sucursal', // Placeholder or handle differently
+          sucursalNombre: '',
+          regionId: '',
+          ciudadId: '',
+          comuna: '',
+          descripcionDireccion: '',
+          tipoDireccion: '',
+          calle: '',
+          numero: '',
+          complemento: '',
+          email: '',
+          telefono: '',
+          notas: '',
+        }
+      });
+      setSelectedCliente(null);
+      setSucursalesDisponibles([]);
+    }
+  };
+
+  const handleBackToSelection = () => {
+    setSelectionMode('none');
+    setSelectedCliente(null);
+    setSucursalesDisponibles([]);
+    // Optionally reset form
+  };
+
+  if (selectionMode === 'none') {
+    return (
+      <div className="bg-gradient-to-br from-gray-50 to-gray-100/50 p-4 sm:p-6 rounded-xl">
+        <Card className="p-8 rounded-xl shadow-lg border-gray-200/60 bg-white">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Seleccione Tipo de Cliente</h2>
+            <p className="text-gray-600">¿Desea crear un presupuesto para un cliente nuevo o uno existente?</p>
           </div>
 
-          {/* Select Existing Client Button */}
-          <Dialog open={showClienteDialog} onOpenChange={setShowClienteDialog}>
-            <DialogTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                className="gap-1.5 border-[#003366] text-[#003366] hover:bg-blue-50 w-full sm:w-auto text-xs sm:text-sm h-9"
-              >
-                <Users className="w-3.5 h-3.5 flex-shrink-0" />
-                <span className="hidden xs:inline">Seleccionar Cliente Existente</span>
-                <span className="inline xs:hidden">Seleccionar Cliente</span>
-              </Button>
-            </DialogTrigger>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            <button
+              onClick={() => handleModeSelection('new')}
+              className="flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed border-gray-300 hover:border-[#003366] hover:bg-blue-50 transition-all group"
+            >
+              <div className="w-16 h-16 rounded-full bg-blue-100 text-[#003366] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <PlusCircle className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Nuevo Contratante</h3>
+              <p className="text-sm text-center text-gray-600">
+                Crear un nuevo registro de cliente desde cero
+              </p>
+            </button>
+
+            <button
+              onClick={() => handleModeSelection('existing')}
+              className="flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed border-gray-300 hover:border-[#003366] hover:bg-blue-50 transition-all group"
+            >
+              <div className="w-16 h-16 rounded-full bg-green-100 text-green-700 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Users className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Cliente Existente</h3>
+              <p className="text-sm text-center text-gray-600">
+                Buscar y seleccionar un cliente ya registrado
+              </p>
+            </button>
+          </div>
+
+          {/* Hidden dialog trigger to keep the dialog logic working if needed */}
+          <Dialog open={showClienteDialog} onOpenChange={(open) => {
+            setShowClienteDialog(open);
+            if (!open && selectionMode === 'none') {
+              // If closed without selection, stay in none
+            }
+          }}>
             <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 text-base">
@@ -332,7 +397,7 @@ export function ClienteForm({ form }: ClienteFormProps) {
                     const displayGiro = cliente.tipoPersona === 'persona-natural'
                       ? 'Persona Natural'
                       : cliente.giro || '';
-                    
+
                     return (
                       <button
                         key={cliente.id}
@@ -387,675 +452,693 @@ export function ClienteForm({ form }: ClienteFormProps) {
               </div>
             </DialogContent>
           </Dialog>
-        </div>
+        </Card>
       </div>
+    );
+  }
 
-      {/* Validation Alert */}
-      {validationErrors.length > 0 && showValidationAlert && (
-        <ValidationAlert
-          errors={validationErrors}
-          title="Errores de Validación - Datos del Cliente"
-          onClose={() => setShowValidationAlert(false)}
-        />
-      )}
-
-      <div className="space-y-4">
-        {/* Sucursal Selection - Only shown when client is selected */}
-        {selectedCliente && sucursalesDisponibles.length > 0 && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-[#003366] rounded-xl p-3">
-            <div className="flex flex-col sm:flex-row items-start gap-2">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center">
-                <Building className="w-4 h-4 text-white" />
+  return (
+    <div className="bg-gradient-to-br from-gray-50 to-gray-100/50 p-4 sm:p-6 rounded-xl">
+      <Card className="p-6 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.15)] transition-shadow duration-300 border-gray-200/60 bg-white">
+        <div className="mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#003366] to-[#00AEEF] flex items-center justify-center flex-shrink-0">
+                <User className="w-4 h-4 text-white" />
               </div>
-              <div className="flex-1 w-full">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 mb-1.5">
-                  <h3 className="text-sm font-semibold text-gray-900">
-                    Seleccione la Sucursal
-                  </h3>
-                  {form.watch('cliente.sucursalId') && (
-                    <Badge className="bg-green-500 text-white text-[10px] w-fit">
-                      ✓ Listo para avanzar
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-[11px] text-gray-600 mb-2">
-                  Cliente: <strong className="block sm:inline mt-0.5 sm:mt-0">
-                    {selectedCliente.tipoPersona === 'persona-natural'
-                      ? `${selectedCliente.primerNombre || ''} ${selectedCliente.apellidoPaterno || ''}`.trim()
-                      : selectedCliente.razonSocial || 'Cliente'}
-                  </strong>
-                  <span className="hidden sm:inline"> - </span>
-                  <span className="block sm:inline">Elija la sucursal para este presupuesto</span>
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">
+                  {selectionMode === 'new' ? 'Nuevo Contratante' : 'Datos del Cliente'}
+                </h2>
+                <p className="text-[11px] text-gray-600">
+                  {selectionMode === 'new' ? 'Complete los datos del nuevo cliente' : 'Información del cliente seleccionado'}
                 </p>
-                <FormField
-                  control={form.control}
-                  name="cliente.sucursalId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 font-semibold text-sm mb-1">
-                        Sucursal <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <Select 
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          handleSucursalChange(value);
-                        }} 
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger 
-                            ref={sucursalSelectRef}
-                            className="ring-2 ring-[#003366] focus:ring-[#00AEEF] rounded-lg h-9 text-sm font-medium"
-                          >
-                            <SelectValue placeholder="👉 Seleccione una sucursal..." />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-[300px] w-[var(--radix-select-trigger-width)] min-w-[280px] max-w-[calc(100vw-2rem)]">
-                          {sucursalesDisponibles.map((sucursal) => (
-                            <SelectItem 
-                              key={sucursal.id} 
-                              value={sucursal.id}
-                              className="py-1.5 px-2 cursor-pointer"
-                            >
-                              <div className="flex flex-col gap-1.5 w-full">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <Building className="w-3.5 h-3.5 text-[#003366] flex-shrink-0" />
-                                  <span className="font-medium text-sm break-words flex-1 min-w-0">{sucursal.nombre}</span>
-                                  {sucursal.esPrincipal && (
-                                    <Badge variant="default" className="bg-[#00AEEF] text-[10px] px-1.5 py-0.5 flex-shrink-0">
-                                      Principal
-                                    </Badge>
-                                  )}
-                                </div>
-                                <div className="text-[11px] text-gray-500 pl-5 break-words">
-                                  {sucursal.calle} {sucursal.numero}, {sucursal.comuna}
-                                </div>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage className="text-red-500 text-xs" />
-                    </FormItem>
-                  )}
-                />
-                
-                {/* Add New Sucursal Button */}
-                <div className="mt-2">
-                  <AddSucursalModal 
-                    form={form}
-                    clienteRut={selectedCliente.rut}
-                    clienteRazonSocial={
-                      selectedCliente.tipoPersona === 'persona-natural'
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleBackToSelection}
+              className="text-sm text-gray-600 hover:text-[#003366]"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Cambiar Selección
+            </Button>
+          </div>
+        </div>
+
+        {/* Validation Alert */}
+        {validationErrors.length > 0 && showValidationAlert && (
+          <ValidationAlert
+            errors={validationErrors}
+            title="Errores de Validación - Datos del Cliente"
+            onClose={() => setShowValidationAlert(false)}
+          />
+        )}
+
+        <div className="space-y-4">
+          {/* Sucursal Selection - Only shown when client is selected (Existing Mode) */}
+          {selectionMode === 'existing' && selectedCliente && sucursalesDisponibles.length > 0 && (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-[#003366] rounded-xl p-3">
+              <div className="flex flex-col sm:flex-row items-start gap-2">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center">
+                  <Building className="w-4 h-4 text-white" />
+                </div>
+                <div className="flex-1 w-full">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 mb-1.5">
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      Seleccione la Sucursal
+                    </h3>
+                    {form.watch('cliente.sucursalId') && (
+                      <Badge className="bg-green-500 text-white text-[10px] w-fit">
+                        ✓ Listo para avanzar
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-gray-600 mb-2">
+                    Cliente: <strong className="block sm:inline mt-0.5 sm:mt-0">
+                      {selectedCliente.tipoPersona === 'persona-natural'
                         ? `${selectedCliente.primerNombre || ''} ${selectedCliente.apellidoPaterno || ''}`.trim()
-                        : selectedCliente.razonSocial || 'Cliente'
-                    }
-                    onSucursalAdded={(sucursal: SucursalFormData) => {
-                      // Add to available sucursales list
-                      setSucursalesDisponibles(prev => [...prev, sucursal]);
-                      toast.success('Sucursal disponible', {
-                        description: 'La nueva sucursal se agregó y seleccionó automáticamente',
-                      });
-                    }}
+                        : selectedCliente.razonSocial || 'Cliente'}
+                    </strong>
+                    <span className="hidden sm:inline"> - </span>
+                    <span className="block sm:inline">Elija la sucursal para este presupuesto</span>
+                  </p>
+                  <FormField
+                    control={form.control}
+                    name="cliente.sucursalId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-700 font-semibold text-sm mb-1">
+                          Sucursal <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            handleSucursalChange(value);
+                          }}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger
+                              ref={sucursalSelectRef}
+                              className="ring-2 ring-[#003366] focus:ring-[#00AEEF] rounded-lg h-9 text-sm font-medium"
+                            >
+                              <SelectValue placeholder="👉 Seleccione una sucursal..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-[300px] w-[var(--radix-select-trigger-width)] min-w-[280px] max-w-[calc(100vw-2rem)]">
+                            {sucursalesDisponibles.map((sucursal) => (
+                              <SelectItem
+                                key={sucursal.id}
+                                value={sucursal.id}
+                                className="py-1.5 px-2 cursor-pointer"
+                              >
+                                <div className="flex flex-col gap-1.5 w-full">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <Building className="w-3.5 h-3.5 text-[#003366] flex-shrink-0" />
+                                    <span className="font-medium text-sm break-words flex-1 min-w-0">{sucursal.nombre}</span>
+                                    {sucursal.esPrincipal && (
+                                      <Badge variant="default" className="bg-[#00AEEF] text-[10px] px-1.5 py-0.5 flex-shrink-0">
+                                        Principal
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="text-[11px] text-gray-500 pl-5 break-words">
+                                    {sucursal.calle} {sucursal.numero}, {sucursal.comuna}
+                                  </div>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage className="text-red-500 text-xs" />
+                      </FormItem>
+                    )}
                   />
+
+                  {/* Add New Sucursal Button */}
+                  <div className="mt-2">
+                    <AddSucursalModal
+                      form={form}
+                      clienteRut={selectedCliente.rut}
+                      clienteRazonSocial={
+                        selectedCliente.tipoPersona === 'persona-natural'
+                          ? `${selectedCliente.primerNombre || ''} ${selectedCliente.apellidoPaterno || ''}`.trim()
+                          : selectedCliente.razonSocial || 'Cliente'
+                      }
+                      onSucursalAdded={(sucursal: SucursalFormData) => {
+                        // Add to available sucursales list
+                        setSucursalesDisponibles(prev => [...prev, sucursal]);
+                        toast.success('Sucursal disponible', {
+                          description: 'La nueva sucursal se agregó y seleccionó automáticamente',
+                        });
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <Separator className="my-4" />
+          <Separator className="my-4" />
 
-        {/* Tipo de Persona */}
-        <div className="bg-white border border-gray-200 rounded-lg p-1">
-          <FormField
-            control={form.control}
-            name="cliente.tipoPersona"
-            render={({ field }) => (
-              <FormItem>
-                <TipoPersonaSelector
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  label="Tipo de Contratante:"
-                />
-                <FormMessage className="text-red-500 text-xs" />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <Separator className="my-4" />
-
-        {/* Información Básica */}
-        <div className="bg-white p-4 rounded-lg">
-          <h3 className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 mb-3">
-            <Building2 className="w-4 h-4 text-[#003366]" />
-            {watchTipoPersona === 'persona-natural' ? 'Información Personal' : 'Información de la Empresa'}
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {/* Tipo de Persona */}
+          <div className="bg-white border border-gray-200 rounded-lg p-1">
             <FormField
               control={form.control}
-              name="cliente.rut"
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 text-sm mb-1">
-                    RUT <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="12.345.678-9"
-                      {...field}
-                      onChange={handleRUTChange}
-                      className={`ring-1 rounded-lg transition-all h-9 ${
-                        fieldState.error 
-                          ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
-                          : 'ring-gray-300 focus:ring-blue-500'
-                      }`}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-600 text-xs font-medium" />
-                </FormItem>
-              )}
-            />
-
-            {/* Conditional Fields - Persona Natural */}
-            {watchTipoPersona === 'persona-natural' && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="cliente.primerNombre"
-                  render={({ field, fieldState }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 text-sm mb-1">
-                        Primer Nombre <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Juan"
-                          {...field}
-                          className={`ring-1 rounded-lg transition-all h-9 ${
-                            fieldState.error 
-                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
-                              : 'ring-gray-300 focus:ring-blue-500'
-                          }`}
-                        />
-                      </FormControl>
-                      <FormMessage className="text-red-600 text-xs font-medium" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="cliente.segundoNombre"
-                  render={({ field, fieldState }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 text-sm mb-1">
-                        Segundo Nombre (Opcional)
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Carlos"
-                          {...field}
-                          className={`ring-1 rounded-lg transition-all h-9 ${
-                            fieldState.error 
-                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
-                              : 'ring-gray-300 focus:ring-blue-500'
-                          }`}
-                        />
-                      </FormControl>
-                      <FormMessage className="text-red-600 text-xs font-medium" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="cliente.apellidoPaterno"
-                  render={({ field, fieldState }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 text-sm mb-1">
-                        Apellido Paterno <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Pérez"
-                          {...field}
-                          className={`ring-1 rounded-lg transition-all h-9 ${
-                            fieldState.error 
-                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
-                              : 'ring-gray-300 focus:ring-blue-500'
-                          }`}
-                        />
-                      </FormControl>
-                      <FormMessage className="text-red-600 text-xs font-medium" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="cliente.apellidoMaterno"
-                  render={({ field, fieldState }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 text-sm mb-1">
-                        Apellido Materno (Opcional)
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="González"
-                          {...field}
-                          className={`ring-1 rounded-lg transition-all h-9 ${
-                            fieldState.error 
-                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
-                              : 'ring-gray-300 focus:ring-blue-500'
-                          }`}
-                        />
-                      </FormControl>
-                      <FormMessage className="text-red-600 text-xs font-medium" />
-                    </FormItem>
-                  )}
-                />
-              </>
-            )}
-
-            {/* Conditional Fields - Empresa */}
-            {watchTipoPersona === 'empresa' && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="cliente.razonSocial"
-                  render={({ field, fieldState }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 text-sm mb-1">
-                        Razón Social <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Empresa S.A."
-                          {...field}
-                          className={`ring-1 rounded-lg transition-all h-9 ${
-                            fieldState.error 
-                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
-                              : 'ring-gray-300 focus:ring-blue-500'
-                          }`}
-                        />
-                      </FormControl>
-                      <FormMessage className="text-red-600 text-xs font-medium" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="cliente.giro"
-                  render={({ field, fieldState }) => (
-                    <FormItem className="md:col-span-2 xl:col-span-1">
-                      <FormLabel className="text-gray-700 text-sm mb-1">
-                        Giro <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Construcción y servicios generales"
-                          {...field}
-                          className={`ring-1 rounded-lg transition-all h-9 ${
-                            fieldState.error 
-                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600' 
-                              : 'ring-gray-300 focus:ring-blue-500'
-                          }`}
-                        />
-                      </FormControl>
-                      <FormMessage className="text-red-600 text-xs font-medium" />
-                    </FormItem>
-                  )}
-                />
-              </>
-            )}
-
-            {/* Estado Field */}
-            <FormField
-              control={form.control}
-              name="cliente.estado"
+              name="cliente.tipoPersona"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 text-sm mb-1">
-                    Estado <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9 text-sm">
-                        <SelectValue placeholder="Seleccione estado" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Activo" className="cursor-pointer">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                          <span>Activo</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="Inactivo" className="cursor-pointer">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                          <span>Inactivo</span>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-        {/* Ubicación */}
-        <div className="bg-gray-50/60 p-4 rounded-lg">
-          <h3 className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 mb-3">
-            <MapPin className="w-4 h-4 text-[#003366]" />
-            Ubicación
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <FormField
-              control={form.control}
-              name="cliente.regionId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 text-sm mb-1">
-                    Región <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9 text-sm">
-                        <SelectValue placeholder="Seleccione región" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="max-h-[300px] w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)]">
-                      {regionesChile.map((region) => (
-                        <SelectItem 
-                          key={region.id} 
-                          value={region.id.toString()}
-                          className="text-sm py-1.5 px-2 cursor-pointer"
-                        >
-                          {region.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="cliente.ciudadId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 text-sm mb-1">
-                    Ciudad <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
+                  <TipoPersonaSelector
                     value={field.value}
-                    disabled={!watchRegion}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9 text-sm disabled:opacity-50">
-                        <SelectValue placeholder="Seleccione ciudad" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="max-h-[300px] w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)]">
-                      {ciudades.map((ciudad) => (
-                        <SelectItem 
-                          key={ciudad.id} 
-                          value={ciudad.id.toString()}
-                          className="text-sm py-1.5 px-2 cursor-pointer"
-                        >
-                          {ciudad.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="cliente.comuna"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 text-sm mb-1">
-                    Comuna <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <Select
                     onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={!watchCiudad}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9 text-sm disabled:opacity-50">
-                        <SelectValue placeholder="Seleccione comuna" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="max-h-[300px] w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)]">
-                      {comunas.map((comuna) => (
-                        <SelectItem 
-                          key={comuna} 
-                          value={comuna}
-                          className="text-sm py-1.5 px-2 cursor-pointer"
-                        >
-                          {comuna}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-        {/* Dirección */}
-        <div className="bg-white p-4 rounded-lg">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">
-            Dirección Completa
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-            <FormField
-              control={form.control}
-              name="cliente.tipoDireccion"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 text-sm mb-1">
-                    Tipo de Dirección <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9 text-sm">
-                        <SelectValue placeholder="Seleccione tipo" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="max-h-[300px] w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)]">
-                      {TIPOS_DIRECCION.map((tipo) => (
-                        <SelectItem 
-                          key={tipo.value} 
-                          value={tipo.value}
-                          className="text-sm py-1.5 px-2 cursor-pointer"
-                        >
-                          {tipo.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="cliente.descripcionDireccion"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 text-sm mb-1">
-                    Descripción Dirección <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Ej: Oficina central"
-                      {...field}
-                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="cliente.calle"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 text-sm mb-1">
-                    Calle <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Av. Libertador Bernardo O'Higgins"
-                      {...field}
-                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="cliente.numero"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 text-sm mb-1">
-                    Número <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="1234"
-                      {...field}
-                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="cliente.complemento"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel className="text-gray-700 text-sm mb-1">Complemento (Opcional)</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Ej: Oficina 501, Piso 5"
-                      {...field}
-                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-        {/* Contacto */}
-        <div className="bg-gray-50/60 p-4 rounded-lg">
-          <h3 className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 mb-3">
-            <Phone className="w-4 h-4 text-[#003366]" />
-            Información de Contacto
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <FormField
-              control={form.control}
-              name="cliente.email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 text-sm mb-1 flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5" />
-                    Correo Electrónico <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="contacto@empresa.cl"
-                      {...field}
-                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="cliente.telefono"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 text-sm mb-1 flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5" />
-                    Teléfono <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="tel"
-                      placeholder="+56 9 1234 5678"
-                      {...field}
-                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-        {/* Notas */}
-        <div className="bg-white p-4 rounded-lg">
-          <h3 className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 mb-3">
-            <FileText className="w-4 h-4 text-[#003366]" />
-            Notas Adicionales
-          </h3>
-          <FormField
-            control={form.control}
-            name="cliente.notas"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-gray-700 text-sm mb-1">
-                  Notas (Opcional)
-                </FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Información adicional sobre el cliente..."
-                    {...field}
-                    className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg min-h-[80px] resize-none"
+                    label="Tipo de Contratante:"
                   />
-                </FormControl>
-                <FormMessage className="text-red-500 text-xs" />
-              </FormItem>
-            )}
-          />
+                  <FormMessage className="text-red-500 text-xs" />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <Separator className="my-4" />
+
+          {/* Información Básica */}
+          <div className="bg-white p-4 rounded-lg">
+            <h3 className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 mb-3">
+              <Building2 className="w-4 h-4 text-[#003366]" />
+              {watchTipoPersona === 'persona-natural' ? 'Información Personal' : 'Información de la Empresa'}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+              <FormField
+                control={form.control}
+                name="cliente.rut"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 text-sm mb-1">
+                      RUT <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="12.345.678-9"
+                        {...field}
+                        onChange={handleRUTChange}
+                        className={`ring-1 rounded-lg transition-all h-9 ${fieldState.error
+                          ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600'
+                          : 'ring-gray-300 focus:ring-blue-500'
+                          }`}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-red-600 text-xs font-medium" />
+                  </FormItem>
+                )}
+              />
+
+              {/* Conditional Fields - Persona Natural */}
+              {watchTipoPersona === 'persona-natural' && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="cliente.primerNombre"
+                    render={({ field, fieldState }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-700 text-sm mb-1">
+                          Primer Nombre <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Juan"
+                            {...field}
+                            className={`ring-1 rounded-lg transition-all h-9 ${fieldState.error
+                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600'
+                              : 'ring-gray-300 focus:ring-blue-500'
+                              }`}
+                          />
+                        </FormControl>
+                        <FormMessage className="text-red-600 text-xs font-medium" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="cliente.segundoNombre"
+                    render={({ field, fieldState }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-700 text-sm mb-1">
+                          Segundo Nombre (Opcional)
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Carlos"
+                            {...field}
+                            className={`ring-1 rounded-lg transition-all h-9 ${fieldState.error
+                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600'
+                              : 'ring-gray-300 focus:ring-blue-500'
+                              }`}
+                          />
+                        </FormControl>
+                        <FormMessage className="text-red-600 text-xs font-medium" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="cliente.apellidoPaterno"
+                    render={({ field, fieldState }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-700 text-sm mb-1">
+                          Apellido Paterno <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Pérez"
+                            {...field}
+                            className={`ring-1 rounded-lg transition-all h-9 ${fieldState.error
+                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600'
+                              : 'ring-gray-300 focus:ring-blue-500'
+                              }`}
+                          />
+                        </FormControl>
+                        <FormMessage className="text-red-600 text-xs font-medium" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="cliente.apellidoMaterno"
+                    render={({ field, fieldState }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-700 text-sm mb-1">
+                          Apellido Materno (Opcional)
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="González"
+                            {...field}
+                            className={`ring-1 rounded-lg transition-all h-9 ${fieldState.error
+                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600'
+                              : 'ring-gray-300 focus:ring-blue-500'
+                              }`}
+                          />
+                        </FormControl>
+                        <FormMessage className="text-red-600 text-xs font-medium" />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              {/* Conditional Fields - Empresa */}
+              {watchTipoPersona === 'empresa' && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="cliente.razonSocial"
+                    render={({ field, fieldState }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-700 text-sm mb-1">
+                          Razón Social <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Empresa S.A."
+                            {...field}
+                            className={`ring-1 rounded-lg transition-all h-9 ${fieldState.error
+                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600'
+                              : 'ring-gray-300 focus:ring-blue-500'
+                              }`}
+                          />
+                        </FormControl>
+                        <FormMessage className="text-red-600 text-xs font-medium" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="cliente.giro"
+                    render={({ field, fieldState }) => (
+                      <FormItem className="md:col-span-2 xl:col-span-1">
+                        <FormLabel className="text-gray-700 text-sm mb-1">
+                          Giro <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Construcción y servicios generales"
+                            {...field}
+                            className={`ring-1 rounded-lg transition-all h-9 ${fieldState.error
+                              ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600'
+                              : 'ring-gray-300 focus:ring-blue-500'
+                              }`}
+                          />
+                        </FormControl>
+                        <FormMessage className="text-red-600 text-xs font-medium" />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              {/* Estado Field */}
+              <FormField
+                control={form.control}
+                name="cliente.estado"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 text-sm mb-1">
+                      Estado <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9 text-sm">
+                          <SelectValue placeholder="Seleccione estado" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Activo" className="cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            <span>Activo</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="Inactivo" className="cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                            <span>Inactivo</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-red-500 text-xs" />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          {/* Ubicación */}
+          <div className="bg-gray-50/60 p-4 rounded-lg">
+            <h3 className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 mb-3">
+              <MapPin className="w-4 h-4 text-[#003366]" />
+              Ubicación
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <FormField
+                control={form.control}
+                name="cliente.regionId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 text-sm mb-1">
+                      Región <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9 text-sm">
+                          <SelectValue placeholder="Seleccione región" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="max-h-[300px] w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)]">
+                        {regionesChile.map((region) => (
+                          <SelectItem
+                            key={region.id}
+                            value={region.id.toString()}
+                            className="text-sm py-1.5 px-2 cursor-pointer"
+                          >
+                            {region.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-red-500 text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="cliente.ciudadId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 text-sm mb-1">
+                      Ciudad <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={!watchRegion}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9 text-sm">
+                          <SelectValue placeholder="Seleccione ciudad" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="max-h-[300px]">
+                        {ciudades.map((ciudad) => (
+                          <SelectItem key={ciudad.id} value={ciudad.id.toString()}>
+                            {ciudad.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-red-500 text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="cliente.comuna"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 text-sm mb-1">
+                      Comuna <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={!watchCiudad}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9 text-sm">
+                          <SelectValue placeholder="Seleccione comuna" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="max-h-[300px]">
+                        {comunas.map((comuna) => (
+                          <SelectItem key={comuna} value={comuna}>
+                            {comuna}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-red-500 text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="cliente.calle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 text-sm mb-1">
+                      Calle <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Av. Principal"
+                        {...field}
+                        className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
+                      />
+                    </FormControl>
+                    <FormMessage className="text-red-500 text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="cliente.numero"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 text-sm mb-1">
+                      Número <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="1234"
+                        {...field}
+                        className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
+                      />
+                    </FormControl>
+                    <FormMessage className="text-red-500 text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="cliente.complemento"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 text-sm mb-1">
+                      Complemento (Opcional)
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Oficina 202"
+                        {...field}
+                        className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
+                      />
+                    </FormControl>
+                    <FormMessage className="text-red-500 text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="cliente.descripcionDireccion"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 text-sm mb-1">
+                      Descripción <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Casa Matriz"
+                        {...field}
+                        className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9"
+                      />
+                    </FormControl>
+                    <FormMessage className="text-red-500 text-xs" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="cliente.tipoDireccion"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 text-sm mb-1">
+                      Tipo Dirección <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg h-9 text-sm">
+                          <SelectValue placeholder="Seleccione tipo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {TIPOS_DIRECCION.map((tipo) => (
+                          <SelectItem key={tipo.value} value={tipo.value}>
+                            {tipo.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-red-500 text-xs" />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          <Separator className="my-4" />
+
+          {/* Contacto */}
+          <div className="bg-white p-4 rounded-lg">
+            <h3 className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 mb-3">
+              <Phone className="w-4 h-4 text-[#003366]" />
+              Información de Contacto
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="cliente.email"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 text-sm mb-1">
+                      Email <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input
+                          type="email"
+                          placeholder="contacto@empresa.cl"
+                          {...field}
+                          className={`pl-9 ring-1 rounded-lg transition-all h-9 ${fieldState.error
+                            ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600'
+                            : 'ring-gray-300 focus:ring-blue-500'
+                            }`}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage className="text-red-600 text-xs font-medium" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="cliente.telefono"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 text-sm mb-1">
+                      Teléfono <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input
+                          placeholder="+56 9 1234 5678"
+                          {...field}
+                          className={`pl-9 ring-1 rounded-lg transition-all h-9 ${fieldState.error
+                            ? 'ring-red-500 border-red-500 bg-red-50 focus:ring-red-600'
+                            : 'ring-gray-300 focus:ring-blue-500'
+                            }`}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage className="text-red-600 text-xs font-medium" />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          <Separator className="my-4" />
+
+          {/* Notas */}
+          <div className="bg-white p-4 rounded-lg">
+            <FormField
+              control={form.control}
+              name="cliente.notas"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700 text-sm mb-1">
+                    Notas Adicionales (Opcional)
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Información adicional relevante sobre el cliente..."
+                      {...field}
+                      rows={3}
+                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg resize-none"
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-500 text-xs" />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
-      </div>
       </Card>
     </div>
   );

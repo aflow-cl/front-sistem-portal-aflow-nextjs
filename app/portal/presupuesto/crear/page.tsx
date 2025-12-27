@@ -52,6 +52,7 @@ const itemSchema = z.object({
   bruto: z.number().default(0),
   total: z.number().default(0),
   esComentario: z.boolean().default(false),
+  seccion: z.string().optional(),
 });
 
 // Type for budget item derived from schema
@@ -137,7 +138,7 @@ const budgetWizardSchema = z.object({
       }
     }
   }),
-  
+
   // Step 2: Proyecto
   proyecto: z.object({
     nombre: z.string()
@@ -164,7 +165,7 @@ const budgetWizardSchema = z.object({
       path: ['fechaTermino'],
     }
   ),
-  
+
   // Step 3: Items
   items: z.array(itemSchema).default([]),
 });
@@ -206,7 +207,7 @@ export default function CrearPresupuestoPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  
+
   const [currentStep, setCurrentStep] = useState(0);
   const [folio, setFolio] = useState('');
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -271,7 +272,7 @@ export default function CrearPresupuestoPage() {
     if (user?.email) {
       const storageKey = `aflow-presupuesto-draft-${user.email}`;
       const savedDraft = localStorage.getItem(storageKey);
-      
+
       if (savedDraft) {
         try {
           const parsedDraft = JSON.parse(savedDraft);
@@ -330,7 +331,7 @@ export default function CrearPresupuestoPage() {
         };
         localStorage.setItem(storageKey, JSON.stringify(draftData));
       });
-      
+
       return () => subscription.unsubscribe();
     }
   }, [form, currentStep, folio, user]);
@@ -340,18 +341,18 @@ export default function CrearPresupuestoPage() {
     mutationFn: createBudget,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      
+
       // Clear localStorage draft
       if (user?.email) {
         const storageKey = `aflow-presupuesto-draft-${user.email}`;
         localStorage.removeItem(storageKey);
       }
-      
+
       // Simulate PDF download
       toast.success('¡Presupuesto generado correctamente!', {
         description: `Folio: ${folio}`,
       });
-      
+
       // Redirect after a delay
       setTimeout(() => {
         router.push('/portal/presupuesto/consultar');
@@ -387,7 +388,7 @@ export default function CrearPresupuestoPage() {
           'cliente.email',
           'cliente.telefono',
         ];
-        
+
         // Add conditional fields based on tipoPersona
         const tipoPersona = form.getValues('cliente.tipoPersona');
         if (tipoPersona === 'persona-natural') {
@@ -401,7 +402,7 @@ export default function CrearPresupuestoPage() {
             'cliente.giro'
           );
         }
-        
+
         fieldLabels = {
           'cliente.tipoPersona': 'Tipo de Persona',
           'cliente.rut': 'RUT',
@@ -488,16 +489,16 @@ export default function CrearPresupuestoPage() {
 
     // Trigger validation for specific fields
     const result = await form.trigger(fieldsToValidate as unknown as readonly (keyof z.infer<typeof budgetWizardSchema>)[]);
-    
+
     if (!result) {
       // Get specific errors from form state
       const errors = form.formState.errors;
       const missingFields: string[] = [];
-      
+
       fieldsToValidate.forEach((field) => {
         const fieldParts = field.split('.');
         let error: unknown = errors;
-        
+
         // Navigate through nested errors
         for (const part of fieldParts) {
           if (error && typeof error === 'object' && error !== null && part in error) {
@@ -507,7 +508,7 @@ export default function CrearPresupuestoPage() {
             break;
           }
         }
-        
+
         // If there's an error for this field, add to missing fields
         if (error && typeof error === 'object' && error !== null && 'message' in error) {
           const label = fieldLabels[field] || field;
@@ -515,7 +516,7 @@ export default function CrearPresupuestoPage() {
           missingFields.push(`• ${label}: ${message}`);
         }
       });
-      
+
       if (missingFields.length > 0) {
         const stepName = step === 0 ? 'Datos del Cliente' : 'Datos del Proyecto';
         toast.error(`Errores en ${stepName}`, {
@@ -542,7 +543,7 @@ export default function CrearPresupuestoPage() {
           duration: 5000,
         });
       }
-      
+
       // Scroll to first error
       const firstErrorField = document.querySelector('[aria-invalid="true"]');
       if (firstErrorField) {
@@ -553,14 +554,14 @@ export default function CrearPresupuestoPage() {
         description: 'Puede continuar al siguiente paso',
       });
     }
-    
+
     return result;
   };
 
   // Handle next step
   const handleNext = async () => {
     const isValid = await validateStep(currentStep);
-    
+
     if (isValid) {
       if (currentStep < WIZARD_STEPS.length - 1) {
         setCurrentStep(currentStep + 1);
@@ -607,7 +608,7 @@ export default function CrearPresupuestoPage() {
       const storageKey = `aflow-presupuesto-draft-${user.email}`;
       localStorage.removeItem(storageKey);
     }
-    
+
     // Reset form to initial values
     form.reset({
       cliente: {
@@ -644,14 +645,14 @@ export default function CrearPresupuestoPage() {
       },
       items: [],
     });
-    
+
     // Go back to first step
     setCurrentStep(0);
-    
+
     // Generate new folio
     const generatedFolio = `PRE-${Date.now()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
     setFolio(generatedFolio);
-    
+
     setShowClearDialog(false);
     toast.success('Formulario limpiado correctamente');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -660,7 +661,7 @@ export default function CrearPresupuestoPage() {
   // Handle finalize and submit
   const handleFinalize = async () => {
     const formData = form.getValues();
-    
+
     // Calculate totals
     const items = formData.items
       .filter((item: BudgetItem) => !item.esComentario)
@@ -675,26 +676,26 @@ export default function CrearPresupuestoPage() {
         utilidad: parseFloat(item.utilidad.toString()) || 0,
         total: item.total || 0,
       }));
-    
+
     const subtotal = items.reduce((sum, item) => {
       const base = item.cantidad * item.precioUnitario;
       const conUtilidad = base * (1 + item.utilidad / 100);
       return sum + conUtilidad;
     }, 0);
-    
+
     const iva = items.reduce((sum, item) => {
       const base = item.cantidad * item.precioUnitario;
       const conUtilidad = base * (1 + item.utilidad / 100);
       return sum + conUtilidad * (item.iva / 100);
     }, 0);
-    
+
     const total = subtotal + iva;
-    
+
     // Generate client name based on tipo persona
     const clienteName = formData.cliente.tipoPersona === 'persona-natural'
       ? `${formData.cliente.primerNombre || ''} ${formData.cliente.segundoNombre || ''} ${formData.cliente.apellidoPaterno || ''} ${formData.cliente.apellidoMaterno || ''}`.trim()
       : formData.cliente.razonSocial || 'Cliente';
-    
+
     // Transform data for API
     const budgetData = {
       cliente: clienteName,
@@ -752,7 +753,7 @@ export default function CrearPresupuestoPage() {
               <span className="inline xs:hidden">Volver</span>
             </Button>
           </div>
-          
+
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1">
             Crear Nuevo Presupuesto
           </h1>
@@ -849,7 +850,7 @@ export default function CrearPresupuestoPage() {
             <AlertDialogHeader>
               <AlertDialogTitle>¿Limpiar formulario?</AlertDialogTitle>
               <AlertDialogDescription>
-                Se borrarán todos los datos ingresados y se reiniciará el formulario desde el principio. 
+                Se borrarán todos los datos ingresados y se reiniciará el formulario desde el principio.
                 Esta acción no se puede deshacer.
               </AlertDialogDescription>
             </AlertDialogHeader>

@@ -1,5 +1,5 @@
 import { UseFormReturn } from 'react-hook-form';
-import { Briefcase, Calendar, FileText, User } from 'lucide-react';
+import { Briefcase, Calendar as CalendarIcon, FileText, User } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import {
   FormField,
@@ -12,6 +12,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useMemo, useState } from 'react';
 import { ValidationAlert } from './ValidationAlert';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { DateRange } from 'react-day-picker';
 
 interface ProyectoFormProps {
   form: UseFormReturn<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -19,13 +26,46 @@ interface ProyectoFormProps {
 
 export function ProyectoForm({ form }: ProyectoFormProps) {
   const watchFechaInicio = form.watch('proyecto.fechaInicio');
+  const watchFechaTermino = form.watch('proyecto.fechaTermino');
   const [showValidationAlert, setShowValidationAlert] = useState(true);
+
+  // Derive date range from form values
+  const dateRange: DateRange | undefined = useMemo(() => {
+    if (watchFechaInicio && watchFechaTermino) {
+      return {
+        from: new Date(watchFechaInicio),
+        to: new Date(watchFechaTermino),
+      };
+    } else if (watchFechaInicio) {
+      return {
+        from: new Date(watchFechaInicio),
+        to: undefined,
+      };
+    }
+    return undefined;
+  }, [watchFechaInicio, watchFechaTermino]);
+
+  // Handle date range selection
+  const handleDateSelect = (range: DateRange | undefined) => {
+    if (range?.from) {
+      form.setValue('proyecto.fechaInicio', range.from.toISOString().split('T')[0], { shouldValidate: true });
+    } else {
+      form.setValue('proyecto.fechaInicio', '', { shouldValidate: true });
+    }
+
+    if (range?.to) {
+      form.setValue('proyecto.fechaTermino', range.to.toISOString().split('T')[0], { shouldValidate: true });
+    } else {
+      // If we only have 'from', we might want to clear 'to' or keep it empty
+      form.setValue('proyecto.fechaTermino', '', { shouldValidate: true });
+    }
+  };
 
   // Get validation errors
   const validationErrors = useMemo(() => {
     const errors = form.formState.errors.proyecto;
     if (!errors) return [];
-    
+
     const errorMessages: string[] = [];
     const fieldLabels: Record<string, string> = {
       nombre: 'Nombre del Proyecto',
@@ -130,50 +170,64 @@ export function ProyectoForm({ form }: ProyectoFormProps) {
         {/* Fechas */}
         <div>
           <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-800 mb-4">
-            <Calendar className="w-5 h-5 text-[#003366]" />
+            <CalendarIcon className="w-5 h-5 text-[#003366]" />
             Planificación Temporal
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            <FormField
-              control={form.control}
-              name="proyecto.fechaInicio"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700">
-                    Fecha de Inicio <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg"
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="proyecto.fechaTermino"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700">
-                    Fecha Estimada de Término <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      min={watchFechaInicio}
-                      className="ring-1 ring-gray-300 focus:ring-blue-500 rounded-lg"
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-500 text-xs" />
-                </FormItem>
-              )}
-            />
+          <div className="grid grid-cols-1 gap-4">
+            <FormItem className="flex flex-col">
+              <FormLabel className="text-gray-700">
+                Periodo del Proyecto <span className="text-red-500">*</span>
+              </FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="date"
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !dateRange && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateRange?.from ? (
+                      dateRange.to ? (
+                        <>
+                          {format(dateRange.from, "LLL dd, y", { locale: es })} -{" "}
+                          {format(dateRange.to, "LLL dd, y", { locale: es })}
+                        </>
+                      ) : (
+                        format(dateRange.from, "LLL dd, y", { locale: es })
+                      )
+                    ) : (
+                      <span>Seleccione un rango de fechas</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={dateRange?.from}
+                    selected={dateRange}
+                    onSelect={handleDateSelect}
+                    numberOfMonths={2}
+                    locale={es}
+                  />
+                </PopoverContent>
+              </Popover>
+              <div className="flex gap-4">
+                <FormField
+                  control={form.control}
+                  name="proyecto.fechaInicio"
+                  render={() => <FormMessage className="text-red-500 text-xs" />}
+                />
+                <FormField
+                  control={form.control}
+                  name="proyecto.fechaTermino"
+                  render={() => <FormMessage className="text-red-500 text-xs" />}
+                />
+              </div>
+            </FormItem>
           </div>
         </div>
 

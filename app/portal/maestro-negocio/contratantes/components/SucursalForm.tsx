@@ -64,8 +64,9 @@ export function SucursalForm({
           title: `Creando sucursal para: ${contratanteNombre}`,
           description: "Esta será la dirección principal del contratante.",
         }}
+        skipCity={true}
       />
-      
+
       {/* Ocultar los botones del form usando CSS ya que el wizard tiene sus propios botones */}
       <style jsx global>{`
         #sucursal-form button[type="submit"],
