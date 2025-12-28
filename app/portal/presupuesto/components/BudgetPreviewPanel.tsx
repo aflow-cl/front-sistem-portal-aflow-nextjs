@@ -2,352 +2,251 @@
 
 import Image from 'next/image';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { VisualizationType } from '@/types/presupuesto';
+import { ClienteInfo } from '@/types/presupuesto';
 import { useBudgetSettings } from '../context/BudgetSettingsContext';
 import { useBudgetCalculations } from '../hooks/useBudgetFormState';
 import { formatCurrency } from '@/lib/utils';
-import { Building2, Calendar, FileText, Hash, Mail, MapPin, Phone, User } from 'lucide-react';
+import { Download } from 'lucide-react';
+import { useRef } from 'react';
+import html2pdf from 'html2pdf.js';
+import { toast } from 'sonner';
 
 interface FormDataType {
   folio?: string;
-  cliente?: Record<string, unknown>;
-  proyecto?: Record<string, unknown>;
+  cliente?: Partial<ClienteInfo>;
+  proyecto?: { [key: string]: unknown };
   items?: Array<Record<string, unknown>>;
 }
-
 interface BudgetPreviewPanelProps {
   isOpen: boolean;
   onClose: () => void;
   formData: FormDataType;
-  visualizationType: VisualizationType;
-  onVisualizationChange: (type: VisualizationType) => void;
+  // visualizationType: VisualizationType;
+  // onVisualizationChange: (type: VisualizationType) => void;
 }
 
 export function BudgetPreviewPanel({
   isOpen,
   onClose,
   formData,
-  visualizationType,
-  onVisualizationChange,
 }: BudgetPreviewPanelProps) {
   const { settings } = useBudgetSettings();
   const totals = useBudgetCalculations(formData?.items || []);
-
-  const cliente = formData?.cliente || {};
+  const cliente: Partial<ClienteInfo> = formData?.cliente || {};
   const proyecto = formData?.proyecto || {};
   const items = formData?.items || [];
-
-  // Font size mapping
-  const fontSizeClass = {
-    'Pequeña': 'text-xs',
-    'Normal': 'text-sm',
-    'Grande': 'text-base',
-  }[settings.tamanoLetra] || 'text-sm';
-
-  // Logo size
+  // const fontSizeClass = {
+  //   'Pequeña': 'text-xs',
+  //   'Normal': 'text-sm',
+  //   'Grande': 'text-base',
+  // }[settings.tamanoLetra] || 'text-sm';
   const logoSize = `${settings.tamanoLogo}px`;
+  // const folioClasses = {
+  //   'Simple': 'text-lg font-semibold',
+  //   'Destacado': 'text-2xl font-bold tracking-wide',
+  //   'Sombra': 'text-2xl font-bold drop-shadow-lg',
+  // }[settings.folioEstilo] || 'text-lg font-semibold';
+  const previewRef = useRef<HTMLDivElement>(null);
 
-  // Folio style classes
-  const folioClasses = {
-    'Simple': 'text-lg font-semibold',
-    'Destacado': 'text-2xl font-bold tracking-wide',
-    'Sombra': 'text-2xl font-bold drop-shadow-lg',
-  }[settings.folioEstilo] || 'text-lg font-semibold';
+  const handleExportPDF = () => {
+    if (previewRef.current) {
+      html2pdf()
+        .set({
+          margin: 0.5,
+          filename: `Presupuesto_${formData?.folio || '000000'}.pdf`,
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        })
+        .from(previewRef.current)
+        .save()
+        .then(() => {
+          toast.success('PDF descargado correctamente');
+        });
+    }
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent 
-        side="left" 
-        className="w-full sm:w-[80%] lg:w-[70%] overflow-y-auto p-0"
+      <SheetContent
+        side="left"
+        className="w-[80vw] max-w-[80vw] min-w-[80vw] overflow-y-auto p-0"
+        style={{ width: '80vw', maxWidth: '80vw', minWidth: '80vw' }}
       >
-        <div className="sticky top-0 z-10 bg-white border-b p-6 space-y-4">
-          <SheetHeader>
-            <SheetTitle className="text-xl font-bold text-gray-900">
-              Vista Previa del Presupuesto
-            </SheetTitle>
-          </SheetHeader>
-
-          {/* Visualization Type Selector */}
-          <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
-              Tipo de visualización:
-            </label>
-            <Select value={visualizationType} onValueChange={(value) => onVisualizationChange(value as VisualizationType)}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Completa">Completa</SelectItem>
-                <SelectItem value="Media">Media</SelectItem>
-                <SelectItem value="Compacta">Compacta</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <SheetHeader>
+          <SheetTitle>Previsualización de Presupuesto</SheetTitle>
+        </SheetHeader>
+        {/* Barra superior sticky solo en pantalla */}
+        <div className="sticky top-0 z-30 w-full bg-[#244F82] flex items-center justify-between px-3 py-2 shadow-md no-print">
+          <span className="text-white font-semibold text-base sm:text-lg">Previsualización de Presupuesto</span>
+          <button
+            onClick={handleExportPDF}
+            className="flex items-center gap-2 bg-white text-[#244F82] font-semibold px-3 py-1.5 rounded transition-all duration-200 hover:bg-orange-100 hover:text-orange-600 active:scale-95 shadow group text-xs sm:text-sm"
+            style={{ minWidth: 0 }}
+          >
+            <Download className="w-4 h-4 text-orange-500 group-hover:text-orange-600 transition-colors duration-200" />
+            <span className="hidden sm:inline">Descargar PDF</span>
+          </button>
         </div>
-
-        {/* Preview Content */}
-        <div 
-          className={`p-8 ${fontSizeClass}`}
-          style={{ fontFamily: settings.tipoLetra }}
+        {/* Contenido previsualización compacto y fondo blanco */}
+        <div
+          ref={previewRef}
+          className="bg-white max-w-[800px] mx-auto p-2 sm:p-4 text-xs sm:text-sm print:p-2 print:max-w-[800px] print:bg-white"
+          style={{ fontFamily: settings.tipoLetra, width: '100%' }}
         >
-          {/* Header Section */}
-          <div className="mb-8">
-            <div className="flex items-start justify-between mb-6">
-              {/* Logo */}
+          {/* Encabezado formal */}
+          <div className="flex justify-between items-start border-b border-gray-200 pb-2 mb-2">
+            {/* Logo y datos empresa */}
+            <div className="flex gap-2 items-center w-2/3">
               {settings.logoPrincipal && (
-                <div style={{ height: logoSize, position: 'relative', minWidth: '100px' }}>
-                  <Image 
-                    src={settings.logoPrincipal} 
-                    alt="Logo Principal" 
-                    width={200}
+                <div className="flex items-center justify-center h-full" style={{ minWidth: '60px', height: logoSize }}>
+                  <Image
+                    src={settings.logoPrincipal}
+                    alt="Logo Empresa"
+                    width={120}
                     height={parseInt(logoSize)}
-                    style={{ height: logoSize, width: 'auto' }}
                     className="object-contain"
                   />
                 </div>
               )}
-
-              {/* Folio */}
-              <div 
-                className={`px-6 py-3 rounded-lg ${folioClasses}`}
-                style={{ 
-                  backgroundColor: settings.folioColorFondo,
-                  color: '#1f2937'
-                }}
-              >
-                {settings.folioOperativo}-{formData?.folio || '000000'}
+              <div className="space-y-0.5 flex-1">
+                <div className="text-base font-bold text-gray-900">{settings.nombreEmpresa ?? 'Nombre Empresa'}</div>
+                <div className="text-xs text-gray-700">Ejecutivo: {settings.ejecutivo ?? '-'}</div>
+                <div className="text-xs text-gray-700">Correo: {settings.emailEjecutivo ?? '-'}</div>
+                <div className="text-xs text-gray-700">Teléfono: {settings.telefonoEjecutivo ?? '-'}</div>
+                <div className="text-xs text-gray-700">Rubro: {settings.rubro ?? '-'}</div>
+                <div className="text-xs text-gray-700">RUT: {settings.rutEmpresa ?? '-'}</div>
+                <div className="text-xs text-gray-700">Sitio web: {settings.sitioWeb ?? '-'}</div>
               </div>
             </div>
-
-            {/* Header Data */}
-            {settings.datosCabecera && (
-              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                <pre className="whitespace-pre-wrap text-gray-700 font-sans">
-                  {settings.datosCabecera}
-                </pre>
+            {/* Cotización y fecha */}
+            <div className="flex flex-col items-center w-1/3">
+              <div className="border border-gray-300 rounded bg-white w-full flex flex-col items-center p-2">
+                <div className="text-xs font-semibold text-gray-700 mb-1">N° COTIZACIÓN</div>
+                <div className="text-base font-bold text-gray-900 mb-1 w-full text-center">{settings.folioOperativo}-{formData?.folio || '000000'}</div>
               </div>
-            )}
-
-            {/* Secondary Logo */}
-            {settings.logoSecundario && (
-              <div className="flex justify-end">
-                <div style={{ height: `${settings.tamanoLogo * 0.7}px`, position: 'relative', minWidth: '70px' }}>
-                  <Image 
-                    src={settings.logoSecundario} 
-                    alt="Logo Secundario" 
-                    width={140}
-                    height={settings.tamanoLogo * 0.7}
-                    style={{ height: `${settings.tamanoLogo * 0.7}px`, width: 'auto' }}
-                    className="object-contain"
-                  />
-                </div>
+              <div className="border border-gray-300 rounded-b bg-white w-full mt-1 px-1 py-0.5 text-center">
+                <span className="text-xs text-gray-700">Fecha: {new Date().toLocaleDateString()}</span>
               </div>
-            )}
+            </div>
           </div>
 
-          <Separator className="my-6" />
-
-          {/* Client Information */}
-          {visualizationType !== "Compacta" && (
-            <Card className="p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <User className="w-5 h-5 text-[#244F82]" />
-                Información del Cliente
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {cliente.tipoPersona === 'empresa' ? (
-                  <div className="flex items-start gap-2">
-                    <Building2 className="w-4 h-4 text-gray-500 mt-1" />
-                    <div>
-                      <p className="text-xs text-gray-500">Razón Social</p>
-                      <p className="font-medium">{String(cliente.razonSocial || '-')}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-start gap-2">
-                    <User className="w-4 h-4 text-gray-500 mt-1" />
-                    <div>
-                      <p className="text-xs text-gray-500">Nombre</p>
-                      <p className="font-medium">
-                        {[cliente.primerNombre, cliente.segundoNombre, cliente.apellidoPaterno, cliente.apellidoMaterno]
-                          .filter(Boolean)
-                          .map(String)
-                          .join(' ') || '-'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="flex items-start gap-2">
-                  <Hash className="w-4 h-4 text-gray-500 mt-1" />
-                  <div>
-                    <p className="text-xs text-gray-500">RUT</p>
-                    <p className="font-medium">{String(cliente.rut || '-')}</p>
-                  </div>
-                </div>
-
-                {visualizationType === "Completa" && (
-                  <>
-                    <div className="flex items-start gap-2">
-                      <Mail className="w-4 h-4 text-gray-500 mt-1" />
-                      <div>
-                        <p className="text-xs text-gray-500">Email</p>
-                        <p className="font-medium">{String(cliente.email || '-')}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-2">
-                      <Phone className="w-4 h-4 text-gray-500 mt-1" />
-                      <div>
-                        <p className="text-xs text-gray-500">Teléfono</p>
-                        <p className="font-medium">{String(cliente.telefono || '-')}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-2 md:col-span-2">
-                      <MapPin className="w-4 h-4 text-gray-500 mt-1" />
-                      <div>
-                        <p className="text-xs text-gray-500">Dirección</p>
-                        <p className="font-medium">
-                          {[cliente.calle, cliente.numero, cliente.complemento, cliente.comuna]
-                            .filter(Boolean)
-                            .map(String)
-                            .join(', ') || '-'}
-                        </p>
-                      </div>
-                    </div>
-                  </>
-                )}
+          {/* Información del Cliente */}
+          <div className="border border-gray-200 rounded-lg p-2 mb-2 bg-white">
+            <div className="text-sm font-semibold text-gray-900 mb-2">Datos del Cliente</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-2 gap-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-gray-500 min-w-[120px]">Empresa Cliente:</span>
+                <span className="font-medium text-gray-800 text-[11px]">{String(cliente.razonSocial ?? '-')}</span>
               </div>
-            </Card>
-          )}
-
-          {/* Project Information */}
-          {visualizationType !== "Compacta" && proyecto && (
-            <Card className="p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-[#244F82]" />
-                Información del Proyecto
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-gray-500">Nombre del Proyecto</p>
-                  <p className="font-medium">{String(proyecto.nombre || '-')}</p>
-                </div>
-
-                {visualizationType === "Completa" && (
-                  <>
-                    <div>
-                      <p className="text-xs text-gray-500">Descripción</p>
-                      <p className="font-medium">{String(proyecto.descripcion || '-')}</p>
-                    </div>
-
-                    <div className="flex items-start gap-2">
-                      <Calendar className="w-4 h-4 text-gray-500 mt-1" />
-                      <div>
-                        <p className="text-xs text-gray-500">Fecha de Inicio</p>
-                        <p className="font-medium">{String(proyecto.fechaInicio || '-')}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-2">
-                      <Calendar className="w-4 h-4 text-gray-500 mt-1" />
-                      <div>
-                        <p className="text-xs text-gray-500">Fecha de Término</p>
-                        <p className="font-medium">{String(proyecto.fechaTermino || '-')}</p>
-                      </div>
-                    </div>
-                  </>
-                )}
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-gray-500 min-w-[120px]">RUT Cliente:</span>
+                <span className="font-medium text-gray-800 text-[11px]">{String(cliente.rut ?? '-')}</span>
               </div>
-            </Card>
-          )}
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-gray-500 min-w-[120px]">Dirección:</span>
+                <span className="font-medium text-gray-800 text-[11px]">{[cliente.calle, cliente.numero, cliente.complemento, cliente.comuna].filter(Boolean).join(', ') || '-'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-gray-500 min-w-[120px]">Nombre de Contacto:</span>
+                <span className="font-medium text-gray-800 text-[11px]">{String(cliente.primerNombre ?? cliente.nombreContacto ?? '-')}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-gray-500 min-w-[120px]">Correo de Contacto:</span>
+                <span className="font-medium text-gray-800 text-[11px]">{String(cliente.email ?? '-')}</span>
+              </div>
+            </div>
+          </div>
 
-          {/* Items Table */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Detalle de Ítems</h3>
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full">
-                <thead style={{ backgroundColor: settings.colorCabeceraGrilla }}>
+          {/* Detalle de Servicios/Productos */}
+          <div className="mb-2">
+            <div className="text-sm font-semibold text-gray-900 mb-2">Detalle de Servicios / Productos</div>
+            <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+              <table className="w-full text-xs">
+                <thead className="bg-blue-900">
                   <tr className="text-white">
-                    {visualizationType !== "Compacta" && <th className="text-left p-3 text-sm font-semibold">Producto</th>}
-                    <th className="text-left p-3 text-sm font-semibold">Descripción</th>
-                    {visualizationType === "Completa" && (
-                      <>
-                        <th className="text-right p-3 text-sm font-semibold">Cantidad</th>
-                        <th className="text-right p-3 text-sm font-semibold">Valor Unit.</th>
-                        <th className="text-right p-3 text-sm font-semibold">Utilidad %</th>
-                        <th className="text-right p-3 text-sm font-semibold">IVA %</th>
-                      </>
-                    )}
-                    <th className="text-right p-3 text-sm font-semibold">Total</th>
+                    <th className="px-1 py-0.5 text-left">N°</th>
+                    <th className="px-1 py-0.5 text-left">Servicio / Producto</th>
+                    <th className="px-1 py-0.5 text-left">Descripción</th>
+                    <th className="px-1 py-0.5 text-right">Cantidad</th>
+                    <th className="px-1 py-0.5 text-right">Valor Unitario</th>
+                    <th className="px-1 py-0.5 text-right">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.length === 0 ? (
                     <tr>
-                      <td colSpan={visualizationType === "Completa" ? 7 : 3} className="p-6 text-center text-gray-500">
-                        No hay ítems agregados
-                      </td>
+                      <td colSpan={6} className="p-6 text-center text-gray-500">No hay ítems agregados</td>
                     </tr>
-                  ) : (
-                    items.map((item: Record<string, unknown>, index: number) => (
-                      <tr key={index} className={item.esComentario ? 'bg-yellow-50' : 'hover:bg-gray-50'}>
-                        {visualizationType !== "Compacta" && (
-                          <td className="p-3 border-t">{String(item.producto || '-')}</td>
-                        )}
-                        <td className="p-3 border-t">{String(item.descripcion || '-')}</td>
-                        {visualizationType === "Completa" && (
-                          <>
-                            <td className="p-3 border-t text-right">{String(item.cantidad || 0)}</td>
-                            <td className="p-3 border-t text-right">{formatCurrency(Number(item.valor) || 0)}</td>
-                            <td className="p-3 border-t text-right">{String(item.utilidad || 0)}%</td>
-                            <td className="p-3 border-t text-right">{String(item.iva || 0)}%</td>
-                          </>
-                        )}
-                        <td className="p-3 border-t text-right font-semibold">
-                          {formatCurrency(Number(item.total) || 0)}
-                        </td>
-                      </tr>
-                    ))
-                  )}
+                  ) : (() => {
+                    let lastSection: string | null = null;
+                    let rowIdx = 0;
+                    const rows: React.ReactNode[] = [];
+                    items.forEach((item: Record<string, unknown>, idx: number) => {
+                      const section = (item.seccion as string) || null;
+                      if (section && section !== lastSection) {
+                        rows.push(
+                          <tr key={`section-${idx}`}
+                              className="bg-gray-100">
+                            <td colSpan={6} className="px-1 py-0.5 text-left font-bold text-blue-900 border-t border-b border-blue-200">
+                              {String(section)}
+                            </td>
+                          </tr>
+                        );
+                        lastSection = section;
+                      }
+                      rows.push(
+                        <tr key={idx} className={item.esComentario ? 'bg-yellow-50' : 'hover:bg-gray-50'}>
+                          <td className="px-1 py-0.5 border-t text-gray-700">{++rowIdx}</td>
+                          <td className="px-1 py-0.5 border-t text-gray-900 font-medium">{String(item.producto || '-')}</td>
+                          <td className="px-1 py-0.5 border-t text-gray-700">{String(item.descripcion || '-')}</td>
+                          <td className="px-1 py-0.5 border-t text-right">{String(item.cantidad || 0)}</td>
+                          <td className="px-1 py-0.5 border-t text-right">{formatCurrency(Number(item.valor) || 0)}</td>
+                          <td className="px-1 py-0.5 border-t text-right font-semibold">{formatCurrency(Number(item.total) || 0)}</td>
+                        </tr>
+                      );
+                    });
+                    return rows;
+                  })()}
                 </tbody>
               </table>
             </div>
           </div>
 
-          {/* Totals */}
-          <Card className="p-6 bg-gray-50">
-            <div className="space-y-3">
-              {visualizationType !== "Compacta" && (
-                <>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-700">Subtotal:</span>
-                    <span className="font-semibold">{formatCurrency(totals.subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-700">IVA:</span>
-                    <span className="font-semibold">{formatCurrency(totals.ivaTotal)}</span>
-                  </div>
-                  <Separator />
-                </>
-              )}
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-bold text-gray-900">Total:</span>
-                <span className="text-2xl font-bold text-[#244F82]">
-                  {formatCurrency(totals.totalGeneral)}
-                </span>
+          {/* Notas y resumen financiero en la misma fila debajo de la tabla */}
+          <div className="grid grid-cols-1 md:grid-cols-10 gap-2 mt-2">
+            <div className="bg-white border border-gray-200 rounded-lg p-2 col-span-1 md:col-span-5">
+              <div className="text-xs font-semibold text-gray-900 mb-1">Notas</div>
+              <div className="text-xs text-gray-700 whitespace-pre-line min-h-[40px]">
+                {String(cliente.notas ?? proyecto?.observaciones ?? 'Sin notas adicionales.')}
               </div>
-              {visualizationType !== "Compacta" && (
-                <p className="text-xs text-gray-500 text-right">
-                  ({totals.itemCount} {totals.itemCount === 1 ? 'ítem' : 'ítems'})
-                </p>
-              )}
             </div>
-          </Card>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-2 col-span-1 md:col-span-5 md:justify-self-end">
+              <div className="text-xs font-semibold text-gray-900 mb-1">Resumen Financiero</div>
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-gray-700">Moneda:</span>
+                <span className="font-medium">Peso Chileno (CLP)</span>
+              </div>
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-gray-700">Neto:</span>
+                <span className="font-semibold">{formatCurrency(totals.subtotal)}</span>
+              </div>
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-gray-700">IVA (19%):</span>
+                <span className="font-semibold">{formatCurrency(totals.ivaTotal)}</span>
+              </div>
+              <div className="border-t border-gray-300 my-1"></div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-bold text-gray-900">Total Final:</span>
+                <span className="text-lg font-bold text-blue-900">{formatCurrency(totals.totalGeneral)}</span>
+              </div>
+            </div>
+          </div>
+        <style jsx global>{`
+          @media print {
+            .no-print { display: none !important; }
+            body { background: #fff !important; }
+          }
+        `}</style>
         </div>
       </SheetContent>
     </Sheet>

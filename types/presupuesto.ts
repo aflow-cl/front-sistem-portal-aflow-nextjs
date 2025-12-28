@@ -75,10 +75,18 @@ export interface BudgetItem {
 }
 
 export interface ClienteInfo {
-  nombre: string;
-  direccion: string;
-  email: string;
-  telefono: string;
+  nombre?: string;
+  razonSocial?: string;
+  rut?: string;
+  calle?: string;
+  numero?: string;
+  complemento?: string;
+  comuna?: string;
+  nombreContacto?: string;
+  primerNombre?: string;
+  email?: string;
+  telefono?: string;
+  notas?: string;
 }
 
 export interface PersonalizacionVisual {
@@ -234,23 +242,32 @@ export interface BudgetSettings {
   // Logos
   logoPrincipal?: string; // Base64 encoded image
   logoSecundario?: string; // Base64 encoded image
-  
+
   // Folio
   folioOperativo: string;
   folioEstilo: FolioStyle;
   folioColorFondo: string;
-  
+
   // Tipografía
   tipoLetra: FontFamily;
   tamanoLetra: FontSize;
   tamanoLogo: number; // 50-200 (px o %)
-  
+
   // Colores
   colorCabeceraGrilla: string;
-  
+
   // Datos de cabecera
   datosCabecera: string; // Multiline text
-  
+
+  // Datos empresa y ejecutivo (agregados para BudgetPreviewPanel)
+  nombreEmpresa?: string;
+  ejecutivo?: string;
+  emailEjecutivo?: string;
+  telefonoEjecutivo?: string;
+  rubro?: string;
+  rutEmpresa?: string;
+  sitioWeb?: string;
+
   // Metadata
   updatedAt?: string;
   updatedBy?: string;

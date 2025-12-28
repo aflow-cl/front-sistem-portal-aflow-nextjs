@@ -1,3 +1,5 @@
+"use client"
+
 import { UseFormReturn } from 'react-hook-form';
 import { Briefcase, Calendar as CalendarIcon, FileText, User } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -19,7 +21,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { DateRange } from 'react-day-picker';
+import { type DateRange } from 'react-day-picker';
 
 interface ProyectoFormProps {
   form: UseFormReturn<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -213,6 +215,7 @@ export function ProyectoForm({ form }: ProyectoFormProps) {
                     onSelect={handleDateSelect}
                     numberOfMonths={2}
                     locale={es}
+                    className="rounded-lg border shadow-sm"
                   />
                 </PopoverContent>
               </Popover>

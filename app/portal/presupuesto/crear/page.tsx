@@ -20,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { VisualizationType } from '@/types/presupuesto';
+// import { VisualizationType } from '@/types/presupuesto';
 
 // Components
 import { BudgetWizardStepper } from '../components/shared/BudgetWizardStepper';
@@ -214,7 +214,7 @@ export default function CrearPresupuestoPage() {
   const [showFinalizeDialog, setShowFinalizeDialog] = useState(false);
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [visualizationType, setVisualizationType] = useState<VisualizationType>('Completa');
+  // const [visualizationType, setVisualizationType] = useState<VisualizationType>('Completa');
   const [showRestoreDraftDialog, setShowRestoreDraftDialog] = useState(false);
   const [savedDraftData, setSavedDraftData] = useState<Record<string, unknown> | null>(null);
 
@@ -796,8 +796,6 @@ export default function CrearPresupuestoPage() {
           isOpen={showPreview}
           onClose={() => setShowPreview(false)}
           formData={{ ...formValues, folio }}
-          visualizationType={visualizationType}
-          onVisualizationChange={setVisualizationType}
         />
 
         {/* Cancel Confirmation Dialog */}

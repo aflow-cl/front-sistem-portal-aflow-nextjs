@@ -282,7 +282,7 @@ export function PresupuestoTable({ form }: PresupuestoTableProps) {
                     Cree secciones para agrupar sus ítems (ej: Obra Gruesa, Terminaciones, etc.)
                   </DialogDescription>
                 </DialogHeader>
-                <div className="py-4">
+                <div className="py-4 grid gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="section-name">Nombre de la Sección</Label>
                     <Input
@@ -292,6 +292,29 @@ export function PresupuestoTable({ form }: PresupuestoTableProps) {
                       placeholder="Ej: Instalaciones Eléctricas"
                     />
                   </div>
+                  {sections.length > 0 && (
+                    <div>
+                      <Label className="mb-2">Secciones creadas</Label>
+                      <div className="border rounded-lg overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-gray-50">
+                              <TableHead className="font-semibold w-10">#</TableHead>
+                              <TableHead className="font-semibold">Nombre</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {sections.map((sec, idx) => (
+                              <TableRow key={sec}>
+                                <TableCell className="text-xs">{idx + 1}</TableCell>
+                                <TableCell className="text-xs">{sec}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setIsSectionDialogOpen(false)}>Cancelar</Button>
